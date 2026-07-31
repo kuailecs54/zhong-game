@@ -38,6 +38,13 @@ npm run preview  # 预览构建产物
 - 流程技能优先："让我们构建 X" → 先 brainstorming；"修复这个 bug" → 先 systematic-debugging。
 - 中文项目自动路由：代码审查/写中文文档/写 commit 时用对应 chinese-* 技能。
 
+## codegraph 使用
+
+- codegraph 是本仓库的代码知识图谱，索引在 `.codegraph/`（已 gitignore，勿提交）。
+- **优先用 `codegraph_explore` 工具代替 grep + Read 循环**：一次调用返回相关符号的完整源码（带行号）+ 调用路径 + 影响面（blast radius），适合回答"某个模块怎么工作"“改这里会影响什么”。
+- 命令行补充：`codegraph node <符号>`（单个符号源码 + 调用/被调用关系）、`codegraph callers <符号>`（找调用者）、`codegraph query <关键词>`（搜符号）。
+- 索引维护：代码变更后跑 `codegraph sync` 增量同步（全量重建用 `codegraph index`），`codegraph status` 查看状态。
+
 ## openspec 工作流
 
 - 规格驱动开发，规范与归档在 `openspec/`（`specs/` 存放能力规格，`changes/` 存放变更）。需要 `openspec` CLI。
