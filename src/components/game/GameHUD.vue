@@ -35,8 +35,12 @@ const progress = computed(() => {
       <div class="hud-progress">
         <div class="progress-track">
           <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+          <div class="progress-glow" :style="{ left: progress + '%' }"></div>
         </div>
-        <span class="progress-text">{{ correctCount }} / {{ targetCount }}</span>
+        <div class="progress-info">
+          <span class="progress-text">{{ correctCount }} / {{ targetCount }}</span>
+          <span class="progress-pct" v-if="targetCount > 0">{{ Math.round(progress) }}%</span>
+        </div>
       </div>
     </div>
 
@@ -68,7 +72,7 @@ const progress = computed(() => {
 
       <!-- 连击 -->
       <div class="hud-item hud-combo" v-if="combo > 0">
-        <span class="combo-text" :class="{ 'combo-hot': comboMultiplier >= 4 }" :key="combo">
+        <span class="combo-text" :class="{ 'combo-hot': comboMultiplier >= 4, 'combo-fire': comboMultiplier >= 6 }" :key="combo">
           x{{ comboMultiplier }}
         </span>
         <span class="combo-label">连击</span>
@@ -104,12 +108,12 @@ const progress = computed(() => {
   align-items: center;
   justify-content: space-between;
   padding: 0.55rem 1rem;
-  background: rgba(15, 12, 41, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(15, 12, 41, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: #f1f5f9;
   border-bottom: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   gap: 1rem;
   flex-shrink: 0;
   z-index: var(--z-hud);
@@ -134,48 +138,68 @@ const progress = computed(() => {
   font-size: var(--font-xs);
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 .score-value {
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: 900;
   color: var(--color-star);
   line-height: 1.1;
   display: inline-block;
-  text-shadow: 0 0 14px rgba(251, 191, 36, 0.35);
+  text-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
   animation: scorePop 0.25s var(--ease-spring);
 }
 
 @keyframes scorePop {
   0% { transform: scale(1); }
-  40% { transform: scale(1.18); }
+  40% { transform: scale(1.2); }
   100% { transform: scale(1); }
 }
 
 .hud-progress {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
   flex: 1;
-  max-width: 220px;
+  max-width: 240px;
   min-width: 80px;
 }
 
 .progress-track {
-  height: 7px;
-  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-full);
-  overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  overflow: visible;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+  background: linear-gradient(90deg, var(--color-accent), var(--color-primary), #a78bfa);
   border-radius: var(--radius-full);
-  box-shadow: 0 0 10px rgba(34, 211, 238, 0.35);
-  transition: width 0.35s var(--ease-out-expo);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+  transition: width 0.4s var(--ease-out-expo);
+  position: relative;
+}
+
+.progress-glow {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.6), 0 0 0 2px rgba(34, 211, 238, 0.2);
+  transition: left 0.4s var(--ease-out-expo);
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .progress-text {
@@ -184,10 +208,16 @@ const progress = computed(() => {
   font-weight: 600;
 }
 
+.progress-pct {
+  font-size: 0.65rem;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
 .hud-right {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 0.8rem;
 }
 
 .hud-item {
@@ -216,16 +246,16 @@ const progress = computed(() => {
 }
 
 .heart-lost {
-  opacity: 0.22;
-  transform: scale(0.65) rotate(-12deg);
+  opacity: 0.2;
+  transform: scale(0.6) rotate(-15deg);
   filter: grayscale(0.8);
   animation: heartBreak 0.5s var(--ease-soft);
 }
 
 @keyframes heartBreak {
   0% { transform: scale(1) rotate(0); opacity: 1; }
-  40% { transform: scale(0.8) rotate(-8deg); opacity: 0.6; }
-  100% { transform: scale(0.65) rotate(-12deg); opacity: 0.22; }
+  40% { transform: scale(0.75) rotate(-10deg); opacity: 0.5; }
+  100% { transform: scale(0.6) rotate(-15deg); opacity: 0.2; }
 }
 
 .heart-beat {
@@ -234,35 +264,46 @@ const progress = computed(() => {
 
 @keyframes heartBeat {
   0%, 100% { transform: scale(1); }
-  15% { transform: scale(1.12); }
+  15% { transform: scale(1.15); }
   30% { transform: scale(1); }
-  45% { transform: scale(1.08); }
+  45% { transform: scale(1.1); }
   60% { transform: scale(1); }
 }
 
 .combo-text {
-  font-size: 1.2rem;
-  font-weight: 800;
+  font-size: 1.3rem;
+  font-weight: 900;
   color: var(--color-warning);
   display: inline-block;
-  animation: comboPop 0.25s var(--ease-spring);
+  animation: comboPop 0.3s var(--ease-spring);
 }
 
 .combo-text.combo-hot {
   color: #f97316;
-  text-shadow: 0 0 10px rgba(249, 115, 22, 0.55), 0 0 20px rgba(249, 115, 22, 0.3);
-  animation: comboPop 0.25s var(--ease-spring), comboGlow 1.2s ease-in-out infinite;
+  text-shadow: 0 0 12px rgba(249, 115, 22, 0.6), 0 0 24px rgba(249, 115, 22, 0.3);
+  animation: comboPop 0.3s var(--ease-spring), comboGlow 1.2s ease-in-out infinite;
+}
+
+.combo-text.combo-fire {
+  color: #ef4444;
+  text-shadow: 0 0 14px rgba(239, 68, 68, 0.7), 0 0 28px rgba(239, 68, 68, 0.4);
+  animation: comboPop 0.3s var(--ease-spring), comboGlowFire 0.8s ease-in-out infinite;
 }
 
 @keyframes comboPop {
   0% { transform: scale(1); }
-  40% { transform: scale(1.35); }
+  40% { transform: scale(1.4); }
   100% { transform: scale(1); }
 }
 
 @keyframes comboGlow {
-  0%, 100% { text-shadow: 0 0 10px rgba(249, 115, 22, 0.55), 0 0 20px rgba(249, 115, 22, 0.3); }
-  50% { text-shadow: 0 0 16px rgba(249, 115, 22, 0.75), 0 0 30px rgba(249, 115, 22, 0.45); }
+  0%, 100% { text-shadow: 0 0 12px rgba(249, 115, 22, 0.6), 0 0 24px rgba(249, 115, 22, 0.3); }
+  50% { text-shadow: 0 0 18px rgba(249, 115, 22, 0.8), 0 0 36px rgba(249, 115, 22, 0.45); }
+}
+
+@keyframes comboGlowFire {
+  0%, 100% { text-shadow: 0 0 14px rgba(239, 68, 68, 0.7), 0 0 28px rgba(239, 68, 68, 0.4); }
+  50% { text-shadow: 0 0 22px rgba(239, 68, 68, 0.9), 0 0 40px rgba(239, 68, 68, 0.5); }
 }
 
 .combo-label {
@@ -281,7 +322,7 @@ const progress = computed(() => {
   color: #e2e8f0;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   min-height: 36px;
   min-width: 44px;
   justify-content: center;
@@ -290,6 +331,7 @@ const progress = computed(() => {
 .hud-btn:hover:not(.is-disabled) {
   background: rgba(255, 255, 255, 0.18);
   transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .freeze-btn.is-ready {
@@ -300,23 +342,24 @@ const progress = computed(() => {
 
 @keyframes freezeReady {
   0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.25); }
-  50% { box-shadow: 0 0 14px 3px rgba(56, 189, 248, 0.25); }
+  50% { box-shadow: 0 0 16px 4px rgba(56, 189, 248, 0.25); }
 }
 
 .freeze-btn.is-active {
   border-color: var(--color-freeze);
   background: rgba(56, 189, 248, 0.25);
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.5);
 }
 
 .hud-btn.is-disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
 .hud-btn.is-disabled:hover {
   background: var(--surface-glass-strong);
   transform: none;
+  box-shadow: none;
 }
 
 .freeze-icon {
@@ -326,7 +369,7 @@ const progress = computed(() => {
 
 .btn-count {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-freeze);
 }
 
@@ -346,7 +389,7 @@ const progress = computed(() => {
   }
 
   .hud-progress {
-    max-width: 120px;
+    max-width: 130px;
   }
 
   .hud-right {
@@ -367,5 +410,10 @@ const progress = computed(() => {
     min-width: 38px;
     padding: 0.3rem 0.45rem;
   }
+}
+
+/* 触摸设备横屏：HUD 压扁，节省纵向空间 */
+@media (pointer: coarse) and (orientation: landscape) {
+  .game-hud { padding: 0.3rem 0.75rem; }
 }
 </style>

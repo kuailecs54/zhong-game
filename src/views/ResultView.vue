@@ -85,22 +85,27 @@ function handleBackToLevels() {
     <!-- 庆祝光斑粒子（仅胜利） -->
     <div v-if="won" class="celebration">
       <div
-        v-for="i in 18"
+        v-for="i in 24"
         :key="i"
         class="particle"
         :style="{
           '--i': i,
           left: `${(i * 47) % 100}%`,
-          animationDelay: `${(i * 0.12)}s`,
-          backgroundColor: i % 3 === 0 ? '#fbbf24' : i % 3 === 1 ? '#34d399' : '#60a5fa',
+          animationDelay: `${(i * 0.1)}s`,
+          animationDuration: `${2.5 + (i % 5) * 0.3}s`,
+          backgroundColor: i % 4 === 0 ? '#fbbf24' : i % 4 === 1 ? '#34d399' : i % 4 === 2 ? '#60a5fa' : '#f472b6',
         }"
       ></div>
     </div>
 
     <div class="result-card">
-      <div v-if="loading" class="loading">加载中...</div>
+      <div class="card-highlight"></div>
+      <div v-if="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <span>加载中...</span>
+      </div>
       <template v-else>
-        <h1 class="result-title">{{ won ? '恭喜通关！' : '游戏失败' }}</h1>
+        <h1 class="result-title">{{ won ? '🎉 恭喜通关！' : '💔 游戏失败' }}</h1>
         <p class="result-level-name">{{ levelName }}</p>
 
         <!-- 星级 -->
@@ -110,7 +115,7 @@ function handleBackToLevels() {
             :key="i"
             class="result-star"
             :class="{ 'star-filled': i <= stars }"
-            :style="{ animationDelay: `${(i - 1) * 0.15}s` }"
+            :style="{ animationDelay: `${0.2 + (i - 1) * 0.2}s` }"
           >
             <svg viewBox="0 0 24 24" class="result-star__svg">
               <defs>
@@ -121,7 +126,7 @@ function handleBackToLevels() {
               </defs>
               <path
                 d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                :fill="i <= stars ? 'url(#result-star-gradient)' : 'rgba(255,255,255,0.18)'"
+                :fill="i <= stars ? 'url(#result-star-gradient)' : 'rgba(255,255,255,0.15)'"
               />
             </svg>
           </span>
@@ -133,7 +138,7 @@ function handleBackToLevels() {
             v-for="(item, idx) in statItems"
             :key="item.label"
             class="stat-row"
-            :style="{ animationDelay: `${0.35 + idx * 0.08}s` }"
+            :style="{ animationDelay: `${0.4 + idx * 0.1}s` }"
           >
             <span class="stat-label">{{ item.label }}</span>
             <span class="stat-value" :class="{
@@ -150,7 +155,8 @@ function handleBackToLevels() {
             class="result-btn btn-next"
             @click="handleNextLevel"
           >
-            下一关
+            <span>下一关</span>
+            <span class="btn-arrow">→</span>
           </button>
           <button class="result-btn btn-retry" @click="handleRetry">
             重新挑战
@@ -201,7 +207,17 @@ function handleBackToLevels() {
   border-radius: 50%;
   opacity: 0;
   animation: particleRise 3s var(--ease-soft) infinite;
-  box-shadow: 0 0 8px currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.particle:nth-child(3n) {
+  width: 4px;
+  height: 4px;
+}
+
+.particle:nth-child(5n) {
+  width: 8px;
+  height: 8px;
 }
 
 @keyframes particleRise {
@@ -209,15 +225,15 @@ function handleBackToLevels() {
     opacity: 0;
     transform: translateY(0) scale(0.5);
   }
-  10% {
-    opacity: 0.8;
+  8% {
+    opacity: 0.9;
   }
-  60% {
-    opacity: 0.6;
+  50% {
+    opacity: 0.7;
   }
   100% {
     opacity: 0;
-    transform: translateY(-110vh) scale(1.2);
+    transform: translateY(-110vh) scale(1.3) rotate(180deg);
   }
 }
 
@@ -225,16 +241,29 @@ function handleBackToLevels() {
   position: relative;
   z-index: 1;
   background: var(--surface-glass);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 2.5rem 2rem;
   max-width: 400px;
   width: 100%;
   text-align: center;
-  box-shadow: var(--shadow-lg);
-  animation: resultIn 0.55s var(--ease-out-expo);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.1);
+  animation: resultIn 0.6s var(--ease-out-expo);
+  overflow: hidden;
+}
+
+/* 玻璃高光 */
+.result-card .card-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  pointer-events: none;
 }
 
 @keyframes resultIn {
@@ -249,51 +278,73 @@ function handleBackToLevels() {
 }
 
 .loading {
+  position: relative;
   color: var(--text-faint);
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .result-title {
+  position: relative;
   font-size: 1.7rem;
-  font-weight: 800;
+  font-weight: 900;
   margin-bottom: 0.25rem;
 }
 
 .result-win .result-title {
   color: var(--color-success);
-  text-shadow: 0 0 18px rgba(16, 185, 129, 0.35);
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
 }
 
 .result-lose .result-title {
   color: var(--color-error);
+  text-shadow: 0 0 16px rgba(239, 68, 68, 0.3);
 }
 
 .result-level-name {
+  position: relative;
   font-size: 0.9rem;
   color: var(--text-muted);
   margin-bottom: 1.2rem;
 }
 
 .result-stars {
+  position: relative;
   display: flex;
   justify-content: center;
-  gap: 0.6rem;
-  margin-bottom: 1.2rem;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
 }
 
 .result-star {
-  width: 2.6rem;
-  height: 2.6rem;
-  color: rgba(255, 255, 255, 0.2);
+  width: 2.8rem;
+  height: 2.8rem;
+  color: rgba(255, 255, 255, 0.15);
   opacity: 0;
   transform: scale(0) rotate(-30deg);
-  animation: starPop 0.55s var(--ease-spring) forwards;
+  animation: starPop 0.6s var(--ease-spring) forwards;
 }
 
 .result-star__svg {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.45));
+  filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.5));
 }
 
 .result-star.star-filled {
@@ -305,9 +356,12 @@ function handleBackToLevels() {
     opacity: 0;
     transform: scale(0) rotate(-30deg);
   }
-  60% {
+  55% {
     opacity: 1;
-    transform: scale(1.25) rotate(8deg);
+    transform: scale(1.3) rotate(10deg);
+  }
+  75% {
+    transform: scale(0.95) rotate(-3deg);
   }
   100% {
     opacity: 1;
@@ -316,12 +370,13 @@ function handleBackToLevels() {
 }
 
 .result-stats {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
   margin-bottom: 1.5rem;
   text-align: left;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 1rem 1.25rem;
@@ -330,11 +385,12 @@ function handleBackToLevels() {
 .stat-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.35rem 0;
-  border-bottom: 1px solid var(--border-subtle);
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   opacity: 0;
   transform: translateY(10px);
-  animation: statIn 0.45s var(--ease-out-expo) forwards;
+  animation: statIn 0.5s var(--ease-out-expo) forwards;
 }
 
 .stat-row:last-child {
@@ -354,19 +410,23 @@ function handleBackToLevels() {
 }
 
 .stat-value {
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 1.05rem;
   color: var(--text-primary);
 }
 
 .stat-correct {
   color: var(--color-success);
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
 
 .stat-wrong {
   color: var(--color-error);
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
 }
 
 .result-actions {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -380,7 +440,11 @@ function handleBackToLevels() {
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s var(--ease-soft), box-shadow 0.2s var(--ease-soft), background 0.2s var(--ease-soft);
+  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease, background 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
 }
 
 .result-btn:hover {
@@ -388,7 +452,7 @@ function handleBackToLevels() {
 }
 
 .result-btn:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 /* 主按钮：下一关 */
@@ -401,7 +465,16 @@ function handleBackToLevels() {
 }
 
 .btn-next:hover {
-  box-shadow: 0 6px 28px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
+}
+
+.btn-arrow {
+  font-size: 1.2rem;
+  transition: transform 0.2s ease;
+}
+
+.btn-next:hover .btn-arrow {
+  transform: translateX(3px);
 }
 
 /* 次按钮：重新挑战 */
@@ -424,7 +497,56 @@ function handleBackToLevels() {
 }
 
 .btn-back:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text-primary);
+}
+
+/* 触摸设备横屏：结果卡片紧凑化 */
+@media (pointer: coarse) and (orientation: landscape) {
+  .result-card {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .result-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .result-level-name {
+    margin-bottom: 0.75rem;
+  }
+
+  .result-stars {
+    margin-bottom: 0.5rem;
+  }
+
+  .result-star {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .result-stats {
+    gap: 0.15rem;
+    margin-bottom: 0.75rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .stat-row {
+    padding: 0.15rem 0;
+  }
+
+  .result-actions {
+    gap: 0.35rem;
+  }
+
+  .result-btn {
+    padding: 0.55rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-next {
+    padding: 0.65rem 1.2rem;
+    font-size: 0.95rem;
+  }
 }
 </style>

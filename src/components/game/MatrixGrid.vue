@@ -294,7 +294,7 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
 
 /* 正确反馈 */
 .matrix-grid-cell.feedback-correct {
-  animation: matrixCorrect 0.5s ease;
+  animation: matrixCorrect 0.6s var(--ease-spring);
 }
 
 @keyframes matrixCorrect {
@@ -302,19 +302,21 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
     background: transparent;
     transform: scale(1);
   }
-  30% {
-    background: rgba(16, 185, 129, 0.25);
-    transform: scale(1.08);
+  25% {
+    background: rgba(16, 185, 129, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
   }
   100% {
-    background: rgba(16, 185, 129, 0.12);
+    background: rgba(16, 185, 129, 0.1);
     transform: scale(1);
+    box-shadow: none;
   }
 }
 
 /* 错误反馈 */
 .matrix-grid-cell.feedback-wrong {
-  animation: matrixWrong 0.6s ease;
+  animation: matrixWrong 0.6s var(--ease-soft);
 }
 
 @keyframes matrixWrong {
@@ -322,24 +324,18 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
     transform: translateX(0);
     background: transparent;
   }
-  15% {
-    background: rgba(239, 68, 68, 0.2);
+  12% {
+    background: rgba(239, 68, 68, 0.25);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
   }
-  20% {
-    transform: translateX(-5px);
-  }
-  40% {
-    transform: translateX(5px);
-  }
-  60% {
-    transform: translateX(-3px);
-  }
-  80% {
-    transform: translateX(3px);
-  }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
   100% {
     transform: translateX(0);
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(239, 68, 68, 0.08);
+    box-shadow: none;
   }
 }
 
@@ -398,5 +394,11 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   .matrix-grid-cell {
     min-height: 24px;
   }
+}
+
+/* 触摸设备横屏：矩阵格子紧凑 */
+@media (pointer: coarse) and (orientation: landscape) {
+  .matrix-grid-cell { padding: 1px; }
+  .matrix-grid-cell .mini-spine__text { font-size: 0.45rem; }
 }
 </style>

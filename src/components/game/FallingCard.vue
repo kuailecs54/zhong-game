@@ -153,19 +153,20 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
 
 /* 悬停效果 */
 .falling-card:hover {
-  transform: translateY(-4px) scale(1.04);
+  transform: translateY(-4px) scale(1.06);
   box-shadow:
-    3px 8px 22px rgba(0, 0, 0, 0.5),
-    0 0 18px rgba(99, 102, 241, 0.3),
-    0 0 0 1px rgba(99, 102, 241, 0.25);
+    4px 10px 28px rgba(0, 0, 0, 0.5),
+    0 0 22px rgba(99, 102, 241, 0.35),
+    0 0 0 2px rgba(99, 102, 241, 0.3);
 }
 
 .falling-card:hover .book-cover {
-  filter: brightness(1.08);
+  filter: brightness(1.12);
 }
 
 .falling-card:active {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(0) scale(0.95);
+  transition-duration: 0.08s;
 }
 
 /* 冰冻霜冻覆盖层 */

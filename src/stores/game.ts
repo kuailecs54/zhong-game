@@ -10,6 +10,19 @@ import type {
   ShelvedBook,
 } from '@/data/types'
 
+/** 下落速度缩放基准高度（px）：区域高度低于该值则速度按比例缩小，保证手机横屏难度与桌面一致 */
+const SPEED_BASELINE_HEIGHT = 700
+
+/** 下落卡片渲染宽度（px，含书脊与封面），生成时用于避免水平重叠 */
+const FALLING_CARD_WIDTH_PX = 110
+/** 下落卡片水平间距（px） */
+const FALLING_CARD_GAP_PX = 8
+/** 下落卡片视觉盒高（px，含容器内边距），用于判断顶部附近是否可能重叠 */
+const FALLING_CARD_HEIGHT_PX = 74
+/** 水平可用范围（百分比，留边避免卡片贴边被裁切） */
+const X_MIN = 8
+const X_MAX = 92
+
 type ColumnType = 'processGroup' | 'knowledgeArea'
 
 type GamePhase = 'start' | 'playing' | 'paused' | 'won' | 'lost'
@@ -192,14 +205,14 @@ export const useGameStore = defineStore('game', {
           const pg = processGroups.find(g => g.id === colId)
           return {
             id: colId,
-            name: pg?.shortName ?? colId,
+            name: pg?.name ?? colId,
             color: pg?.color ?? PROCESS_GROUP_COLORS[colId] ?? '#666',
           }
         }
         const ka = knowledgeAreas.find(a => a.id === colId)
         return {
           id: colId,
-          name: ka?.shortName ?? colId,
+          name: ka?.name ?? colId,
           color: KNOWLEDGE_AREA_COLORS[colId] ?? '#666',
         }
       })
@@ -211,7 +224,7 @@ export const useGameStore = defineStore('game', {
           const ka = knowledgeAreas.find(a => a.id === rowId)
           return {
             id: rowId,
-            name: ka?.shortName ?? rowId,
+            name: ka?.name ?? rowId,
             color: KNOWLEDGE_AREA_COLORS[rowId] ?? '#666',
           }
         })
@@ -247,28 +260,33 @@ export const useGameStore = defineStore('game', {
     },
 
     /**
-     * 生成一波新卡片：1 张正解 + N 张干扰项，添加到下落列表
+     * 生成一波新卡片：1 张正解 + N 张干扰项，添加到下落列表。
+     * 每张卡的水平位置做非重叠排布，并限制同时下落的总数，避免后续关卡卡片堆积重叠。
      */
-    spawnWave() {
+    spawnWave(areaWidth = 600, areaHeight = 600) {
       if (!this.isPlaying || this.isPaused || this.processPool.length === 0) return
+
+      // 同时下落的卡片上限（按区域高度自适应）：下落区越矮能同时容纳的卡片越少，
+      // 防止近顶带饱和导致排布回退、卡片重叠
+      const maxFalling = Math.max(4, Math.min(14, Math.round(areaHeight / 30)))
+      if (this.fallingCards.length >= maxFalling) return
 
       // 正解卡片
       const target = this.processPool[Math.floor(Math.random() * this.processPool.length)]
-      this.fallingCards.push(this.createCard(target, true))
+      this.fallingCards.push(this.createCard(target, true, this.pickNonOverlappingX(areaWidth)))
 
       // 干扰项卡片（同波内不重复）
       const distractorCount = Math.min(this.distractorCount, this.distractorPool.length)
       for (const process of pickDistinct(this.distractorPool, distractorCount)) {
-        this.fallingCards.push(this.createCard(process, false))
+        if (this.fallingCards.length >= maxFalling) break
+        this.fallingCards.push(this.createCard(process, false, this.pickNonOverlappingX(areaWidth)))
       }
     },
 
     /**
      * 创建一张下落中的卡片
      */
-    createCard(process: Process, isTarget: boolean): FallingCard {
-      const x = 15 + Math.random() * 70 // 15% ~ 85% 水平位置
-
+    createCard(process: Process, isTarget: boolean, x: number): FallingCard {
       return {
         id: generateCardId(),
         process,
@@ -277,6 +295,44 @@ export const useGameStore = defineStore('game', {
         y: -60, // 从顶部外进入
         speed: this.currentSpeed,
       }
+    },
+
+    /**
+     * 挑选一个不与其他卡片水平重叠的 x 位置（百分比）。
+     * 卡片同速下落、相对位置恒定，因此只需在生成时检查顶部附近（y < 0）的卡片一次。
+     * 以随机+拒绝为主，空间不足时回退到可用范围内最大空隙的中心。
+     */
+    pickNonOverlappingX(areaWidth: number): number {
+      const minDistPx = FALLING_CARD_WIDTH_PX + FALLING_CARD_GAP_PX
+      const occupied = this.fallingCards
+        .filter((c) => c.y < FALLING_CARD_HEIGHT_PX - 60) // 顶部附近（生成点为 y=-60），可能与本波新卡片视觉重叠
+        .map((c) => (c.x / 100) * areaWidth)
+
+      // 随机尝试若干次
+      for (let i = 0; i < 12; i++) {
+        const x = X_MIN + Math.random() * (X_MAX - X_MIN)
+        const px = (x / 100) * areaWidth
+        if (occupied.every((o) => Math.abs(px - o) >= minDistPx)) return x
+      }
+
+      // 回退：可用范围内最大空隙的中心
+      const rangeStart = (X_MIN / 100) * areaWidth
+      const rangeEnd = (X_MAX / 100) * areaWidth
+      const pts = [...occupied].sort((a, b) => a - b)
+      let bestCenter = rangeStart
+      let bestGap = 0
+      let prev = rangeStart
+      for (const p of pts) {
+        if (p - prev > bestGap) {
+          bestGap = p - prev
+          bestCenter = (p + prev) / 2
+        }
+        prev = Math.max(prev, p)
+      }
+      if (rangeEnd - prev > bestGap) {
+        bestCenter = (rangeEnd + prev) / 2
+      }
+      return (bestCenter / areaWidth) * 100
     },
 
     /**
@@ -388,9 +444,10 @@ export const useGameStore = defineStore('game', {
       this.gameTime += deltaTime
 
       // 移动下落卡片
+      const heightScale = Math.min(1, gameAreaHeight / SPEED_BASELINE_HEIGHT)
       const cardsToRemove: string[] = []
       for (const card of this.fallingCards) {
-        card.y += card.speed * deltaTime
+        card.y += card.speed * heightScale * deltaTime
         // 卡片底部超出游戏区域
         if (card.y - 60 > gameAreaHeight) {
           cardsToRemove.push(card.id)

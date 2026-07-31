@@ -1,4 +1,17 @@
 <script setup lang="ts">
+import { watch } from 'vue'
+import { useRotateGate } from '@/composables/useRotateGate'
+import { useGameStore } from '@/stores/game'
+import RotateGate from '@/components/RotateGate.vue'
+
+const { showGate, requestLandscape } = useRotateGate()
+const gameStore = useGameStore()
+
+watch(showGate, (gated) => {
+  if (gated && gameStore.isPlaying && !gameStore.isPaused) {
+    gameStore.setGamePhase('paused')
+  }
+})
 </script>
 
 <template>
@@ -8,6 +21,7 @@
         <component :is="Component" />
       </Transition>
     </RouterView>
+    <RotateGate v-if="showGate" @request-landscape="requestLandscape" />
   </div>
 </template>
 

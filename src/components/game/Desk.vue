@@ -72,13 +72,38 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
 .desk {
   flex-shrink: 0;
   padding: 0.5rem 1rem 0.75rem;
-  background: linear-gradient(180deg, #7c4a24, #5c3317);
+  background: linear-gradient(180deg, #7c4a24 0%, #5c3317 100%);
   border-top: 1px solid rgba(0, 0, 0, 0.35);
-  box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.35), 0 -2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 -2px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+/* 木纹纹理叠加 */
+.desk::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 40px,
+      rgba(255, 255, 255, 0.02) 40px,
+      rgba(255, 255, 255, 0.02) 41px
+    );
+  pointer-events: none;
+  border-radius: inherit;
 }
 
 .desk.is-full {
-  box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.35), 0 0 0 2px var(--color-error);
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 2px var(--color-error),
+    0 0 16px rgba(239, 68, 68, 0.3);
 }
 
 .desk.is-hint {
@@ -89,18 +114,21 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
   0%, 100% {
     box-shadow:
       inset 0 4px 12px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
       0 -2px 8px rgba(0, 0, 0, 0.2);
   }
   35% {
     box-shadow:
       inset 0 4px 12px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
       0 0 0 3px rgba(251, 191, 36, 0.6),
-      0 0 24px rgba(251, 191, 36, 0.35),
+      0 0 28px rgba(251, 191, 36, 0.35),
       0 -2px 8px rgba(0, 0, 0, 0.2);
   }
   70% {
     box-shadow:
       inset 0 4px 12px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
       0 0 0 1px rgba(251, 191, 36, 0.3),
       0 0 12px rgba(251, 191, 36, 0.2),
       0 -2px 8px rgba(0, 0, 0, 0.2);
@@ -123,13 +151,17 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
 
 .desk-count {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #d9c9a8;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-full);
 }
 
 .desk-count.count-full {
   color: var(--color-error);
-  font-weight: 700;
+  font-weight: 800;
+  background: rgba(239, 68, 68, 0.15);
 }
 
 .desk-surface {
@@ -141,7 +173,7 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
   background: linear-gradient(180deg, #a9743f, #8b5a2b);
   border: 1px solid rgba(0, 0, 0, 0.25);
   border-radius: 8px;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3), inset 0 -1px 0 rgba(255, 255, 255, 0.08);
   overflow-x: auto;
 }
 
@@ -149,14 +181,14 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
   margin: 0;
   font-size: 0.85rem;
   color: #f5e6c8;
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
 .desk-remaining {
   margin: 0 0 0 auto;
   font-size: 0.7rem;
   color: #f5e6c8;
-  opacity: 0.75;
+  opacity: 0.7;
   white-space: nowrap;
 }
 
@@ -164,7 +196,7 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
   flex-shrink: 0;
   touch-action: none;
   cursor: grab;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s var(--ease-spring);
 }
 
 .desk-card:active {
@@ -172,28 +204,28 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
 }
 
 .desk-card.is-dragging {
-  opacity: 0.25;
-  transform: scale(0.92);
+  opacity: 0.2;
+  transform: scale(0.9);
 }
 
 .feedback-pop {
-  animation: deskPop 0.4s ease;
+  animation: deskPop 0.4s var(--ease-spring);
 }
 
 @keyframes deskPop {
   0% { transform: scale(1); }
-  30% { transform: scale(1.1); }
+  30% { transform: scale(1.12); }
   100% { transform: scale(1); }
 }
 
 .feedback-shake {
-  animation: deskShake 0.5s ease;
+  animation: deskShake 0.5s var(--ease-soft);
 }
 
 @keyframes deskShake {
   0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-4px); }
-  40% { transform: translateX(4px); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
   60% { transform: translateX(-3px); }
   80% { transform: translateX(3px); }
 }
@@ -201,23 +233,32 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
 /* 放置失败提示 */
 .drop-hint-msg {
   margin: 0.35rem 0 0;
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.6rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #fbbf24;
   text-align: center;
   line-height: 1.3;
   white-space: nowrap;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
 }
 
 .hint-fade-enter-active {
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s var(--ease-out-expo);
 }
 .hint-fade-leave-active {
   transition: opacity 0.4s ease;
 }
-.hint-fade-enter-from,
+.hint-fade-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
 .hint-fade-leave-to {
   opacity: 0;
+}
+
+/* 触摸设备横屏：书桌托盘压扁 */
+@media (pointer: coarse) and (orientation: landscape) {
+  .desk-surface { min-height: 44px; padding: 0.25rem 0.75rem; }
 }
 </style>

@@ -21,6 +21,13 @@ export function useGameLoop(gameAreaRef: Ref<HTMLElement | null>) {
   }
 
   /**
+   * 获取游戏区域宽度
+   */
+  function getGameAreaWidth(): number {
+    return gameAreaRef.value?.clientWidth ?? 800
+  }
+
+  /**
    * 主循环
    */
   function gameLoop(timestamp: number) {
@@ -40,7 +47,7 @@ export function useGameLoop(gameAreaRef: Ref<HTMLElement | null>) {
     if (store.isPlaying && !store.isPaused && !store.isFrozen) {
       spawnTimer -= clampedDelta * 1000
       if (spawnTimer <= 0 && store.isPlaying) {
-        store.spawnWave()
+        store.spawnWave(getGameAreaWidth(), getGameAreaHeight())
         spawnTimer = store.currentSpawnInterval
       }
     }
@@ -74,7 +81,8 @@ export function useGameLoop(gameAreaRef: Ref<HTMLElement | null>) {
    * 暂停/继续
    */
   function togglePause() {
-    if (!store.isPlaying) return
+    // 仅在游戏运行或已暂停时允许切换；暂停时 isPlaying 为 false，不能据此拦截
+    if (!store.isPlaying && !store.isPaused) return
     const isPausing = !store.isPaused
     store.setGamePhase(isPausing ? 'paused' : 'playing')
     if (isPausing) {

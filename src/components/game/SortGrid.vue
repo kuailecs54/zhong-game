@@ -408,13 +408,19 @@ interface MergedSpine {
   width: 18px;
   min-height: 0;
   height: 100%;
-  border: 1.5px dashed rgba(99, 102, 241, 0.5);
+  border: 2px dashed rgba(99, 102, 241, 0.55);
   border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.5;
+  opacity: 0.6;
   flex-shrink: 0;
+  animation: ghostPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes ghostPulse {
+  0%, 100% { opacity: 0.5; border-color: rgba(99, 102, 241, 0.45); }
+  50% { opacity: 0.75; border-color: rgba(99, 102, 241, 0.7); }
 }
 
 .ghost-text {
@@ -431,13 +437,13 @@ interface MergedSpine {
 
 /* ===== 反馈动画 ===== */
 .shelf-unit.feedback-correct {
-  animation: shelfCorrect 0.55s var(--ease-spring);
+  animation: shelfCorrect 0.6s var(--ease-spring);
 }
 
 @keyframes shelfCorrect {
   0% { transform: scale(1); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
-  25% { transform: scale(0.97); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.5), 0 4px 16px rgba(16, 185, 129, 0.35); }
-  55% { transform: scale(1.02); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35), 0 3px 12px rgba(16, 185, 129, 0.25); }
+  20% { transform: scale(0.96); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.6), 0 4px 20px rgba(16, 185, 129, 0.4); }
+  50% { transform: scale(1.03); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35), 0 3px 14px rgba(16, 185, 129, 0.25); }
   100% { transform: scale(1); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
 }
 
@@ -447,11 +453,11 @@ interface MergedSpine {
 
 @keyframes shelfWrong {
   0% { transform: translateX(0); }
-  15% { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.5), 0 2px 12px rgba(239, 68, 68, 0.3); }
-  20% { transform: translateX(-3px); }
-  40% { transform: translateX(3px); }
-  60% { transform: translateX(-2px); }
-  80% { transform: translateX(2px); }
+  12% { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.6), 0 2px 14px rgba(239, 68, 68, 0.35); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
   100% { transform: translateX(0); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
 }
 
@@ -481,5 +487,11 @@ interface MergedSpine {
   .ghost-text {
     font-size: 8px;
   }
+}
+
+/* 触摸设备横屏：书架格子紧凑 */
+@media (pointer: coarse) and (orientation: landscape) {
+  .shelf-unit { padding: 2px; }
+  .shelf-unit .spine-text { font-size: 0.68rem; }
 }
 </style>

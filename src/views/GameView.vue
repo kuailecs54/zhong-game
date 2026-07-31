@@ -457,37 +457,50 @@ onUnmounted(() => {
 
     <!-- 开始界面 -->
     <div v-else-if="gameStore.gamePhase === 'start'" class="start-screen">
+      <!-- 背景装饰 -->
+      <div class="start-bg-decor">
+        <div class="bg-orb bg-orb--1"></div>
+        <div class="bg-orb bg-orb--2"></div>
+      </div>
+
       <div class="start-card">
+        <div class="card-highlight"></div>
         <h1 class="start-title">{{ gameStore.level?.name ?? '关卡' }}</h1>
         <p class="start-description">{{ gameStore.level?.description ?? '' }}</p>
-        <p class="start-guide">
-          玩法：点击掉落的书本接住放到书桌；从书桌拖拽书本到对应的书架归类
-        </p>
+        <div class="start-guide">
+          <span class="guide-icon">📖</span>
+          <span>点击掉落的书本接住放到书桌；从书桌拖拽书本到对应的书架归类</span>
+        </div>
         <p v-if="hasDistractors" class="start-distractor-tip">
-          注意：掉落的卡片可能包含干扰项（不属于本关），干扰项掉地不扣生命，请专注归类本关卡片
+          ⚠️ 掉落的卡片可能包含干扰项（不属于本关），干扰项掉地不扣生命，请专注归类本关卡片
         </p>
 
         <div class="start-info">
           <div class="info-item">
+            <span class="info-icon">🎯</span>
             <span class="info-label">目标</span>
             <span class="info-value">正确放置 {{ gameStore.targetCount }} 张卡片</span>
           </div>
           <div class="info-item">
+            <span class="info-icon">📊</span>
             <span class="info-label">难度</span>
             <span class="info-value">{{ levelDescription }}</span>
           </div>
           <div class="info-item">
+            <span class="info-icon">❤️</span>
             <span class="info-label">生命</span>
             <span class="info-value">{{ gameStore.level?.lives ?? 3 }} 条</span>
           </div>
           <div class="info-item">
+            <span class="info-icon">❄️</span>
             <span class="info-label">冰冻道具</span>
             <span class="info-value">{{ gameStore.level?.freezeCount ?? 0 }} 个</span>
           </div>
         </div>
 
         <button class="start-btn" @click="handleStartGame">
-          开始游戏
+          <span class="btn-text">开始游戏</span>
+          <span class="btn-shimmer"></span>
         </button>
       </div>
     </div>
@@ -720,20 +733,68 @@ onUnmounted(() => {
   height: 100vh;
   padding: 1rem;
   background: var(--bg-gradient);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 背景装饰 */
+.start-bg-decor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.start-bg-decor .bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.3;
+}
+
+.start-bg-decor .bg-orb--1 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.25), transparent 70%);
+  top: -100px;
+  right: -80px;
+}
+
+.start-bg-decor .bg-orb--2 {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.2), transparent 70%);
+  bottom: -60px;
+  left: -50px;
 }
 
 .start-card {
+  position: relative;
+  z-index: 1;
   background: var(--surface-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 2.5rem 2rem;
   max-width: 420px;
   width: 100%;
   text-align: center;
-  box-shadow: var(--shadow-lg);
-  animation: cardIn 0.4s ease;
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.1);
+  animation: cardIn 0.5s var(--ease-out-expo);
+  overflow: hidden;
+}
+
+/* 玻璃高光 */
+.start-card .card-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  pointer-events: none;
 }
 
 @keyframes cardIn {
@@ -748,51 +809,67 @@ onUnmounted(() => {
 }
 
 .start-title {
+  position: relative;
   font-size: 1.8rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #a5b4fc 0%, #22d3ee 100%);
+  font-weight: 900;
+  background: linear-gradient(135deg, #c7d2fe 0%, #22d3ee 50%, #a78bfa 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 0.75rem;
+  filter: drop-shadow(0 0 16px rgba(99, 102, 241, 0.35));
 }
 
 .start-description {
+  position: relative;
   font-size: 0.95rem;
   color: var(--text-muted);
   line-height: 1.5;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .start-guide {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
   font-size: 0.85rem;
   color: var(--text-muted);
   line-height: 1.5;
   margin-bottom: 1rem;
-  padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.06);
+  padding: 0.6rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
+  text-align: left;
+}
+
+.guide-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
 .start-distractor-tip {
+  position: relative;
   font-size: 0.85rem;
-  color: var(--color-warning, #f59e0b);
+  color: var(--color-warning);
   line-height: 1.5;
   margin-bottom: 1.5rem;
   padding: 0.5rem 0.75rem;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
   border-radius: var(--radius-sm);
+  text-align: left;
 }
 
 .start-info {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.55rem;
   margin-bottom: 2rem;
   text-align: left;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 1rem 1.25rem;
@@ -800,14 +877,22 @@ onUnmounted(() => {
 
 .info-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
+}
+
+.info-icon {
+  font-size: 0.9rem;
+  width: 1.4rem;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .info-label {
   font-size: 0.85rem;
   color: var(--text-faint);
   font-weight: 500;
+  min-width: 60px;
 }
 
 .info-value {
@@ -817,6 +902,7 @@ onUnmounted(() => {
 }
 
 .start-btn {
+  position: relative;
   width: 100%;
   padding: 0.9rem 2rem;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
@@ -824,19 +910,39 @@ onUnmounted(() => {
   border: none;
   border-radius: var(--radius-md);
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease;
   box-shadow: var(--glow-primary);
+  overflow: hidden;
+}
+
+.start-btn .btn-text {
+  position: relative;
+  z-index: 1;
+}
+
+.start-btn .btn-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.start-btn:hover .btn-shimmer {
+  left: 100%;
 }
 
 .start-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.45);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
 }
 
 .start-btn:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 /* ===== 主区域（游戏 + 书架） ===== */
@@ -1004,28 +1110,34 @@ onUnmounted(() => {
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: var(--z-drag-ghost);
-  font-size: 1.1rem;
-  font-weight: 800;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  animation: floatTextUp 0.9s var(--ease-out-expo) forwards;
+  font-size: 1.3rem;
+  font-weight: 900;
+  text-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 20px currentColor;
+  animation: floatTextUp 1s var(--ease-out-expo) forwards;
 }
 
 @keyframes floatTextUp {
   0% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
   }
-  20% {
-    transform: translate(-50%, -70%) scale(1.1);
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -60%) scale(1.2);
+  }
+  30% {
+    transform: translate(-50%, -70%) scale(1.05);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -140%) scale(1);
+    transform: translate(-50%, -150%) scale(0.9);
   }
 }
 
 /* 移动端适配 */
-@media (max-width: 768px) {
+@media (max-width: 768px) and (pointer: coarse) and (orientation: portrait) {
   .main-area {
     flex-direction: column-reverse;
   }
@@ -1044,6 +1156,18 @@ onUnmounted(() => {
 
   .sort-grid-container {
     max-height: 30vh;
+    overflow-y: auto;
+  }
+}
+
+/* 触摸设备横屏：并排布局 + 书架宽度封顶 + 矩阵网格安全高度 */
+@media (max-width: 820px) and (pointer: coarse) and (orientation: landscape) {
+  .book-shelf-panel {
+    max-width: 45vw !important;
+    min-width: 130px;
+  }
+  .sort-grid-container {
+    max-height: 58vh;
     overflow-y: auto;
   }
 }

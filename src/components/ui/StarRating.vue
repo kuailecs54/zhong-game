@@ -50,6 +50,7 @@ const MAX = 3
   display: inline-flex;
   width: 1.25rem;
   height: 1.25rem;
+  transition: transform 0.2s var(--ease-spring);
 }
 
 .star-svg {
@@ -59,10 +60,17 @@ const MAX = 3
 
 .star--filled {
   color: var(--color-star);
-  filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.45));
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.5));
+  animation: starFilledPop 0.3s var(--ease-spring) both;
+}
+
+@keyframes starFilledPop {
+  0% { transform: scale(0.8); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 .star--empty {
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.15);
 }
 </style>
