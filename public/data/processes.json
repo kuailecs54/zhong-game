@@ -44,8 +44,8 @@
   { "id": "p043", "name": "规划采购管理", "shortName": "规划采购", "processGroupId": "planning", "knowledgeAreaId": "procurement", "difficulty": 2 },
   { "id": "p044", "name": "实施采购", "shortName": "实施采购", "processGroupId": "executing", "knowledgeAreaId": "procurement", "difficulty": 3 },
   { "id": "p045", "name": "控制采购", "shortName": "控制采购", "processGroupId": "monitoring_controlling", "knowledgeAreaId": "procurement", "difficulty": 3 },
-  { "id": "p046", "name": "识别相关方", "shortName": "识别相关方", "processGroupId": "initiating", "knowledgeAreaId": "stakeholders", "difficulty": 2 },
-  { "id": "p047", "name": "规划相关方参与", "shortName": "规划参与", "processGroupId": "planning", "knowledgeAreaId": "stakeholders", "difficulty": 2 },
-  { "id": "p048", "name": "管理相关方参与", "shortName": "管理参与", "processGroupId": "executing", "knowledgeAreaId": "stakeholders", "difficulty": 3 },
-  { "id": "p049", "name": "监督相关方参与", "shortName": "监督参与", "processGroupId": "monitoring_controlling", "knowledgeAreaId": "stakeholders", "difficulty": 2 }
+  { "id": "p046", "name": "识别干系人", "shortName": "识别干系人", "processGroupId": "initiating", "knowledgeAreaId": "stakeholders", "difficulty": 2 },
+  { "id": "p047", "name": "规划干系人参与", "shortName": "规划参与", "processGroupId": "planning", "knowledgeAreaId": "stakeholders", "difficulty": 2 },
+  { "id": "p048", "name": "管理干系人参与", "shortName": "管理参与", "processGroupId": "executing", "knowledgeAreaId": "stakeholders", "difficulty": 3 },
+  { "id": "p049", "name": "监督干系人参与", "shortName": "监督参与", "processGroupId": "monitoring_controlling", "knowledgeAreaId": "stakeholders", "difficulty": 2 }
 ]

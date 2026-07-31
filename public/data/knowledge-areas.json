@@ -8,5 +8,5 @@
   { "id": "communications", "name": "项目沟通管理", "shortName": "沟通" },
   { "id": "risk", "name": "项目风险管理", "shortName": "风险" },
   { "id": "procurement", "name": "项目采购管理", "shortName": "采购" },
-  { "id": "stakeholders", "name": "项目相关方管理", "shortName": "相关方" }
+  { "id": "stakeholders", "name": "项目干系人管理", "shortName": "干系人" }
 ]

@@ -300,7 +300,7 @@
     "name": "五大领域（下）",
     "stage": 3,
     "number": 2,
-    "description": "按知识领域归类：资源、沟通、风险、采购、相关方管理",
+    "description": "按知识领域归类：资源、沟通、风险、采购、干系人管理",
     "layoutType": "columns",
     "columns": [
       "resources",

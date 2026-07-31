@@ -18,7 +18,7 @@ The system SHALL define 10 project management knowledge areas with Chinese names
 
 #### Scenario: All 10 knowledge areas available
 - **WHEN** the game loads
-- **THEN** data for all 10 knowledge areas is available: 整合, 范围, 进度, 成本, 质量, 资源, 沟通, 风险, 采购, 相关方
+- **THEN** data for all 10 knowledge areas is available: 整合, 范围, 进度, 成本, 质量, 资源, 沟通, 风险, 采购, 干系人
 
 ### Requirement: Process data
 The system SHALL define 49 project management processes, each mapped to one process group and one knowledge area.
