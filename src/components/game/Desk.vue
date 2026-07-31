@@ -4,19 +4,29 @@ import FallingCard from './FallingCard.vue'
 
 defineProps<{
   cards: Process[]
-  selectedIndex: number | null
   capacity: number
   feedbackIndex?: number | null
   feedbackType?: 'correct' | 'wrong' | null
+  hint?: boolean
+  /** 当前被拖拽的托盘索引，用于半透明原位置卡片 */
+  draggingIndex?: number | null
 }>()
 
 const emit = defineEmits<{
-  select: [index: number]
+  dragstart: [trayIndex: number, process: Process]
+  dragend: []
 }>()
+
+function onPointerDown(e: PointerEvent, index: number, process: Process) {
+  // 右键不启动拖拽
+  if (e.button !== 0) return
+  e.preventDefault()
+  emit('dragstart', index, process)
+}
 </script>
 
 <template>
-  <div class="desk" :class="{ 'is-full': cards.length >= capacity }">
+  <div class="desk" :class="{ 'is-full': cards.length >= capacity, 'is-hint': hint }">
     <div class="desk-header">
       <span class="desk-title">书桌</span>
       <span class="desk-count" :class="{ 'count-full': cards.length >= capacity }">
@@ -29,8 +39,12 @@ const emit = defineEmits<{
           v-for="(card, index) in cards"
           :key="index"
           class="desk-card"
-          :class="{ 'is-selected': selectedIndex === index }"
-          @click="emit('select', index)"
+          :class="{
+            'feedback-pop': feedbackIndex === index && feedbackType === 'correct',
+            'feedback-shake': feedbackIndex === index && feedbackType === 'wrong',
+            'is-dragging': draggingIndex === index,
+          }"
+          @pointerdown="onPointerDown($event, index, card)"
         >
           <FallingCard
             :process="card"
@@ -43,11 +57,14 @@ const emit = defineEmits<{
           />
         </div>
       </template>
-      <p v-else class="desk-hint">移动小手接住掉落的卡片，会放到书桌上</p>
+      <p v-else class="desk-hint">点击掉落的书本接住，会放到书桌上</p>
       <p class="desk-remaining" v-if="cards.length < capacity && cards.length > 0">
         还可放 {{ capacity - cards.length }} 张
       </p>
     </div>
+    <transition name="hint-fade">
+      <p v-if="hint" class="drop-hint-msg">没放准，拖到对应的书架再松手</p>
+    </transition>
   </div>
 </template>
 
@@ -58,11 +75,36 @@ const emit = defineEmits<{
   background: linear-gradient(180deg, #7c4a24, #5c3317);
   border-top: 1px solid rgba(0, 0, 0, 0.35);
   box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.35), 0 -2px 8px rgba(0, 0, 0, 0.2);
-  transition: box-shadow 0.3s ease;
 }
 
 .desk.is-full {
   box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.35), 0 0 0 2px var(--color-error);
+}
+
+.desk.is-hint {
+  animation: deskHintPulse 1s var(--ease-soft);
+}
+
+@keyframes deskHintPulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 4px 12px rgba(0, 0, 0, 0.35),
+      0 -2px 8px rgba(0, 0, 0, 0.2);
+  }
+  35% {
+    box-shadow:
+      inset 0 4px 12px rgba(0, 0, 0, 0.35),
+      0 0 0 3px rgba(251, 191, 36, 0.6),
+      0 0 24px rgba(251, 191, 36, 0.35),
+      0 -2px 8px rgba(0, 0, 0, 0.2);
+  }
+  70% {
+    box-shadow:
+      inset 0 4px 12px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(251, 191, 36, 0.3),
+      0 0 12px rgba(251, 191, 36, 0.2),
+      0 -2px 8px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .desk-header {
@@ -120,15 +162,62 @@ const emit = defineEmits<{
 
 .desk-card {
   flex-shrink: 0;
-  transition: transform 0.2s ease;
+  touch-action: none;
+  cursor: grab;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-.desk-card.is-selected {
-  transform: translateY(-6px);
+.desk-card:active {
+  cursor: grabbing;
 }
 
-.desk-card.is-selected :deep(.falling-card) {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+.desk-card.is-dragging {
+  opacity: 0.25;
+  transform: scale(0.92);
+}
+
+.feedback-pop {
+  animation: deskPop 0.4s ease;
+}
+
+@keyframes deskPop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.feedback-shake {
+  animation: deskShake 0.5s ease;
+}
+
+@keyframes deskShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+/* 放置失败提示 */
+.drop-hint-msg {
+  margin: 0.35rem 0 0;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fbbf24;
+  text-align: center;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.hint-fade-enter-active {
+  transition: opacity 0.15s ease;
+}
+.hint-fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+.hint-fade-enter-from,
+.hint-fade-leave-to {
+  opacity: 0;
 }
 </style>

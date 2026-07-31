@@ -1,16 +1,48 @@
 <script setup lang="ts">
-import type { Process, ColumnInfo, RowInfo } from '@/data/types'
+import { computed } from 'vue'
+import type { Process, ColumnInfo, RowInfo, ShelvedBook } from '@/data/types'
 
-defineProps<{
+const props = defineProps<{
   columns: ColumnInfo[]
   rows: RowInfo[]
-  selectedCard: Process | null
+  /** 当前正在拖拽的书本（null 表示未在拖拽） */
+  dragCard: Process | null
   feedback: { rowId?: string; columnId?: string; type: 'correct' | 'wrong' } | null
+  shelvedBooks: ShelvedBook[]
+  /** 当前拖拽高亮目标 */
+  highlightTarget?: { columnId: string; rowId?: string } | null
 }>()
 
 const emit = defineEmits<{
   place: [payload: { rowId: string; columnId: string }]
 }>()
+
+/** 缓存每个格子的已放书列表 */
+const cellBooks = computed(() => {
+  const map = new Map<string, Process[]>()
+  for (const book of props.shelvedBooks) {
+    if (!book.rowId) continue
+    const key = `${book.columnId}|${book.rowId}`
+    const list = map.get(key) ?? []
+    list.push(book.process)
+    map.set(key, list)
+  }
+  return map
+})
+
+function getCellBooks(colId: string, rowId: string): Process[] {
+  return cellBooks.value.get(`${colId}|${rowId}`) ?? []
+}
+
+function cellHasBooks(colId: string, rowId: string): boolean {
+  return getCellBooks(colId, rowId).length > 0
+}
+
+/** 判断某格是否可放入当前拖拽卡片 */
+function isCellPlaceable(colId: string, rowId: string): boolean {
+  if (!props.dragCard) return false
+  return props.dragCard.processGroupId === colId && props.dragCard.knowledgeAreaId === rowId
+}
 </script>
 
 <template>
@@ -44,10 +76,13 @@ const emit = defineEmits<{
           v-for="col in columns"
           :key="col.id + '-' + row.id"
           class="matrix-cell matrix-grid-cell"
+          :data-column-id="col.id"
+          :data-row-id="row.id"
           :class="[
-            selectedCard ? 'has-selected' : '',
+            dragCard ? (isCellPlaceable(col.id, row.id) ? 'drag-highlight' : 'drag-dim') : '',
             feedback?.columnId === col.id && feedback?.rowId === row.id && feedback.type === 'correct' ? 'feedback-correct' : '',
             feedback?.columnId === col.id && feedback?.rowId === row.id && feedback.type === 'wrong' ? 'feedback-wrong' : '',
+            highlightTarget?.columnId === col.id && highlightTarget?.rowId === row.id ? 'drag-target-active' : '',
           ]"
           :style="{
             borderTopColor: col.color,
@@ -55,7 +90,28 @@ const emit = defineEmits<{
           }"
           @click="emit('place', { rowId: row.id, columnId: col.id })"
         >
+          <!-- 迷你书脊堆叠 -->
+          <div v-if="cellHasBooks(col.id, row.id)" class="mini-spine-stack">
+            <div
+              v-for="(proc, idx) in getCellBooks(col.id, row.id).slice(0, 3)"
+              :key="proc.id + '-' + idx"
+              class="mini-spine"
+              :style="{
+                backgroundColor: col.color,
+                zIndex: 3 - idx,
+                transform: `translateX(${idx * 3}px) translateY(${-idx * 2}px)`,
+              }"
+            >
+              <span class="mini-spine__text">{{ proc.shortName }}</span>
+              <span v-if="idx === 2 && getCellBooks(col.id, row.id).length > 3" class="mini-spine__more">
+                +{{ getCellBooks(col.id, row.id).length - 3 }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 空状态指示点 -->
           <div
+            v-else
             class="cell-indicator"
             :style="{ backgroundColor: col.color }"
           ></div>
@@ -91,7 +147,7 @@ const emit = defineEmits<{
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .matrix-corner {
@@ -144,23 +200,96 @@ const emit = defineEmits<{
   position: relative;
 }
 
-.matrix-grid-cell.has-selected {
+/* 拖拽时高亮可放置的格子 */
+.matrix-grid-cell.drag-highlight {
   cursor: pointer;
   border-color: rgba(99, 102, 241, 0.6);
   background: rgba(99, 102, 241, 0.15);
 }
 
-.matrix-grid-cell.has-selected:hover {
+.matrix-grid-cell.drag-highlight:hover {
   transform: scale(1.05);
   box-shadow: 0 2px 12px rgba(99, 102, 241, 0.3);
   z-index: 2;
 }
 
+.matrix-grid-cell.drag-target-active {
+  transform: scale(1.06);
+  border-color: rgba(99, 102, 241, 0.9);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.45), 0 0 20px rgba(99, 102, 241, 0.35);
+  z-index: 3;
+  animation: matrixTargetPulse 1s var(--ease-soft) infinite;
+}
+
+@keyframes matrixTargetPulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.45), 0 0 20px rgba(99, 102, 241, 0.35); }
+  50% { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.6), 0 0 28px rgba(99, 102, 241, 0.5); }
+}
+
+/* 拖拽时弱化不可放置的格子 */
+.matrix-grid-cell.drag-dim {
+  opacity: 0.5;
+}
+
 .cell-indicator {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  opacity: 0.4;
+  opacity: 0.35;
+}
+
+/* 迷你书脊堆叠 */
+.mini-spine-stack {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+}
+
+.mini-spine {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 14px;
+  height: 80%;
+  margin-left: -7px;
+  border-radius: 2px;
+  box-shadow:
+    1px 0 2px rgba(0, 0, 0, 0.35),
+    inset 1px 0 0 rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mini-spine__text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  max-height: 100%;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-spine__more {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  font-size: 0.45rem;
+  font-weight: 800;
+  color: #fde68a;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0 2px;
+  border-radius: 3px;
+  line-height: 1;
 }
 
 /* 正确反馈 */

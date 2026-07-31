@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import { useUserStore } from '@/stores/user'
+import type { Process } from '@/data/types'
 import {
   loadLevels,
   loadProcesses,
@@ -18,7 +19,6 @@ import FallingCard from '@/components/game/FallingCard.vue'
 import SortGrid from '@/components/game/SortGrid.vue'
 import MatrixGrid from '@/components/game/MatrixGrid.vue'
 import Desk from '@/components/game/Desk.vue'
-import Hand from '@/components/game/Hand.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -29,10 +29,7 @@ const levelId = route.params.levelId as string
 
 // 游戏区域 ref
 const gameAreaRef = ref<HTMLElement | null>(null)
-
-// 小手位置：x 百分比、y 像素（相对游戏区域顶部）
-const handX = ref(50)
-const handY = ref(0)
+const shelfPanelRef = ref<HTMLElement | null>(null)
 
 // 数据加载状态
 const isLoading = ref(true)
@@ -70,6 +67,54 @@ const levelDescription = computed(() => {
 
 // 是否本关存在干扰项
 const hasDistractors = computed(() => gameStore.distractorCount > 0 && gameStore.distractorPool.length > 0)
+
+// 书架面板宽度
+const shelfPanelWidth = computed(() => {
+  const n = gameStore.columnInfos.length
+  return `${Math.min(520, Math.max(130, n * 110 + (n - 1) * 8 + 16))}px`
+})
+
+// ===== 拖拽状态 =====
+const dragCard = ref<Process | null>(null)
+const dragTrayIndex = ref<number>(-1)
+const dragX = ref(0)
+const dragY = ref(0)
+const isDragging = ref(false)
+
+// 拖拽时高亮的目标（column/row）
+const dragHighlightTarget = ref<{ columnId: string; rowId?: string } | null>(null)
+
+// 捕获飞入动画：记录刚被捕获的卡片，临时渲染飞行副本
+interface CaptureAnimation {
+  id: string
+  process: Process
+  x: number
+  y: number
+  startTime: number
+}
+const captureAnimations = ref<Map<string, CaptureAnimation>>(new Map())
+const captureAnimationsList = computed(() => Array.from(captureAnimations.value.values()))
+const CAPTURE_ANIMATION_DURATION = 450
+
+// 浮动得分文字
+interface FloatingText {
+  id: string
+  text: string
+  x: number
+  y: number
+  color: string
+}
+const floatingTexts = ref<FloatingText[]>([])
+let floatingTextId = 0
+
+// 放置失败提示
+const dropHint = ref(false)
+let dropHintTimer: ReturnType<typeof setTimeout> | null = null
+function showDropHint() {
+  if (dropHintTimer) clearTimeout(dropHintTimer)
+  dropHint.value = true
+  dropHintTimer = setTimeout(() => { dropHint.value = false }, 1200)
+}
 
 // 检查游戏结束/胜利
 watch(
@@ -194,29 +239,29 @@ async function initGame() {
   }
 }
 
-function onAreaMove(e: MouseEvent | TouchEvent) {
-  const rect = gameAreaRef.value?.getBoundingClientRect()
-  if (!rect) return
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-  handX.value = Math.min(92, Math.max(8, ((clientX - rect.left) / rect.width) * 100))
-  handY.value = Math.max(0, clientY - rect.top)
-}
+function onFallingPointerDown(e: PointerEvent, cardId: string) {
+  e.preventDefault()
+  e.stopPropagation()
 
-function handleCapture(cardId: string) {
+  const card = gameStore.fallingCards.find(c => c.id === cardId)
+  if (!card) return
+
+  // 先启动捕获飞入动画
+  captureAnimations.value.set(cardId, {
+    id: cardId,
+    process: card.process,
+    x: card.x,
+    y: card.y,
+    startTime: performance.now(),
+  })
+
+  // 延迟清理动画副本
+  setTimeout(() => {
+    captureAnimations.value.delete(cardId)
+  }, CAPTURE_ANIMATION_DURATION)
+
+  // 调用 store 真正捕获（移除下落卡片并加入书桌托盘）
   gameStore.captureCard(cardId)
-}
-
-function handleTraySelect(index: number) {
-  gameStore.selectTrayCard(index)
-}
-
-function handlePlace(columnId: string) {
-  gameStore.placeCard(columnId)
-}
-
-function handleMatrixPlace(payload: { rowId: string; columnId: string }) {
-  gameStore.placeCard(payload.columnId, payload.rowId)
 }
 
 function handleFreeze() {
@@ -227,8 +272,172 @@ function handlePause() {
   togglePause()
 }
 
+// ===== 拖拽处理 =====
+
+function onDragStart(trayIndex: number, process: Process) {
+  if (!gameStore.isPlaying || gameStore.isPaused || gameStore.feedbackActive) return
+  dragCard.value = process
+  dragTrayIndex.value = trayIndex
+  isDragging.value = true
+  // 注册全局事件监听（确保拖到任意位置都能释放）
+  document.addEventListener('pointermove', onDragMove)
+  document.addEventListener('pointerup', onDragEnd)
+  document.addEventListener('touchmove', onTouchMove, { passive: false })
+  document.addEventListener('touchend', onDragEnd)
+}
+
+function updateDragHighlight() {
+  if (!isDragging.value || !dragCard.value) {
+    dragHighlightTarget.value = null
+    return
+  }
+
+  const hitEl = document.elementFromPoint(dragX.value, dragY.value)
+  if (!hitEl) {
+    dragHighlightTarget.value = null
+    return
+  }
+
+  const target = hitEl.closest('[data-column-id]') as HTMLElement | null
+  if (!target) {
+    dragHighlightTarget.value = null
+    return
+  }
+
+  const columnId = target.dataset.columnId!
+  const rowId = target.dataset.rowId
+
+  // 仅当目标可放置时才高亮
+  let placeable = false
+  if (gameStore.layoutType === 'matrix' && rowId) {
+    placeable = dragCard.value.processGroupId === columnId && dragCard.value.knowledgeAreaId === rowId
+  } else {
+    placeable = gameStore.columnType === 'processGroup'
+      ? dragCard.value.processGroupId === columnId
+      : dragCard.value.knowledgeAreaId === columnId
+  }
+
+  if (placeable) {
+    dragHighlightTarget.value = { columnId, rowId }
+  } else {
+    dragHighlightTarget.value = null
+  }
+}
+
+function onDragMove(e: PointerEvent) {
+  if (!isDragging.value) return
+  dragX.value = e.clientX
+  dragY.value = e.clientY
+  updateDragHighlight()
+}
+
+function onDragEnd(e: PointerEvent | TouchEvent) {
+  if (!isDragging.value) return
+
+  const clientX = 'changedTouches' in e ? e.changedTouches[0].clientX : e.clientX
+  const clientY = 'changedTouches' in e ? e.changedTouches[0].clientY : e.clientY
+
+  // 移除全局监听
+  document.removeEventListener('pointermove', onDragMove)
+  document.removeEventListener('pointerup', onDragEnd)
+  document.removeEventListener('touchmove', onTouchMove)
+  document.removeEventListener('touchend', onDragEnd)
+
+  let result: 'correct' | 'wrong' | null = null
+
+  // 命中检测：查找指针下方的目标元素
+  const hitEl = document.elementFromPoint(clientX, clientY)
+  let placed = false
+  if (hitEl) {
+    // 向上查找带 data-column-id 的元素（书架单元或矩阵格子）
+    const target = hitEl.closest('[data-column-id]') as HTMLElement | null
+    if (target) {
+      const columnId = target.dataset.columnId!
+      const rowId = target.dataset.rowId // matrix 模式下有
+      result = gameStore.placeCard(dragTrayIndex.value, columnId, rowId || undefined)
+      placed = result !== null
+    }
+  }
+
+  // columns 模式下，直接命中失败时做面板内吸附（找最近的书架单元）
+  if (!placed && gameStore.layoutType === 'columns' && shelfPanelRef.value) {
+    const panelRect = shelfPanelRef.value.getBoundingClientRect()
+    if (
+      clientX >= panelRect.left && clientX <= panelRect.right &&
+      clientY >= panelRect.top && clientY <= panelRect.bottom
+    ) {
+      // 在面板内部：找离松手点最近的 .shelf-unit
+      const units = shelfPanelRef.value.querySelectorAll('.shelf-unit')
+      let bestDist = Infinity
+      let bestEl: HTMLElement | null = null
+      for (const u of units) {
+        const rect = (u as HTMLElement).getBoundingClientRect()
+        const cx = rect.left + rect.width / 2
+        const cy = rect.top + rect.height / 2
+        const dist = Math.hypot(clientX - cx, clientY - cy)
+        if (dist < bestDist) {
+          bestDist = dist
+          bestEl = u as HTMLElement
+        }
+      }
+      if (bestEl) {
+        const columnId = bestEl.dataset.columnId!
+        result = gameStore.placeCard(dragTrayIndex.value, columnId)
+        placed = result !== null
+      }
+    }
+  }
+
+  // 正确放置：弹出浮动得分
+  if (result === 'correct') {
+    const gained = 100 * gameStore.comboMultiplier
+    spawnFloatingText(`+${gained}`, clientX, clientY, '#34d399')
+  }
+
+  // 未成功放置或放错 → 显示提示
+  if (!placed || result === 'wrong') {
+    showDropHint()
+  }
+
+  // 清理拖拽状态
+  dragCard.value = null
+  dragTrayIndex.value = -1
+  isDragging.value = false
+  dragHighlightTarget.value = null
+}
+
+function spawnFloatingText(text: string, x: number, y: number, color: string) {
+  const id = `ft-${floatingTextId++}`
+  floatingTexts.value.push({ id, text, x, y, color })
+  setTimeout(() => {
+    floatingTexts.value = floatingTexts.value.filter(ft => ft.id !== id)
+  }, 900)
+}
+
+// 防止默认触摸行为（拖拽时）
+function onTouchMove(e: TouchEvent) {
+  if (isDragging.value) {
+    e.preventDefault()
+    const touch = e.touches[0]
+    if (touch) {
+      dragX.value = touch.clientX
+      dragY.value = touch.clientY
+      updateDragHighlight()
+    }
+  }
+}
+
 onMounted(() => {
   initGame()
+})
+
+onUnmounted(() => {
+  // 清理可能残留的拖拽监听
+  document.removeEventListener('pointermove', onDragMove)
+  document.removeEventListener('pointerup', onDragEnd)
+  document.removeEventListener('touchmove', onTouchMove)
+  document.removeEventListener('touchend', onDragEnd)
+  if (dropHintTimer) clearTimeout(dropHintTimer)
 })
 </script>
 
@@ -252,7 +461,7 @@ onMounted(() => {
         <h1 class="start-title">{{ gameStore.level?.name ?? '关卡' }}</h1>
         <p class="start-description">{{ gameStore.level?.description ?? '' }}</p>
         <p class="start-guide">
-          玩法：移动小手对准掉落的书本，点击接住放入书桌；点书桌上的书选中，再点对应的书架归类
+          玩法：点击掉落的书本接住放到书桌；从书桌拖拽书本到对应的书架归类
         </p>
         <p v-if="hasDistractors" class="start-distractor-tip">
           注意：掉落的卡片可能包含干扰项（不属于本关），干扰项掉地不扣生命，请专注归类本关卡片
@@ -301,85 +510,142 @@ onMounted(() => {
         @pause="handlePause"
       />
 
-      <!-- 游戏区域 -->
-      <div
-        ref="gameAreaRef"
-        class="game-area"
-        :class="{ 'is-paused': gameStore.isPaused }"
-        @mousemove="onAreaMove"
-        @touchmove="onAreaMove"
-      >
-        <!-- 冰冻覆盖层 -->
-        <div v-if="gameStore.isFrozen" class="freeze-overlay">
-          <span class="freeze-timer">{{ Math.ceil(gameStore.freezeRemaining) }}s</span>
-        </div>
-
-        <!-- 暂停覆盖层 -->
-        <div v-if="gameStore.isPaused" class="pause-overlay">
-          <span class="pause-text">已暂停</span>
-          <button class="resume-btn" @click="handlePause">继续游戏</button>
-        </div>
-
-        <!-- 下落卡片 -->
+      <!-- 主区域：游戏区 + 书架侧面板 -->
+      <div class="main-area">
+        <!-- 游戏区域 -->
         <div
-          v-for="card in gameStore.fallingCards"
-          :key="card.id"
-          class="falling-card-container"
-          :style="{
-            left: card.x + '%',
-            top: card.y + 'px',
+          ref="gameAreaRef"
+          class="game-area"
+          :class="{
+            'is-paused': gameStore.isPaused,
+            'is-frozen': gameStore.isFrozen,
           }"
         >
-          <FallingCard
-            :process="card.process"
-            :isFrozen="gameStore.isFrozen"
-            @capture="handleCapture(card.id)"
-          />
+          <!-- 冰冻 vignette -->
+          <div v-if="gameStore.isFrozen" class="freeze-vignette"></div>
+
+          <!-- 冰冻覆盖层 -->
+          <div v-if="gameStore.isFrozen" class="freeze-overlay">
+            <span class="freeze-timer">{{ Math.ceil(gameStore.freezeRemaining) }}s</span>
+          </div>
+
+          <!-- 暂停覆盖层 -->
+          <div v-if="gameStore.isPaused" class="pause-overlay">
+            <span class="pause-text">已暂停</span>
+            <button class="resume-btn" @click="handlePause">继续游戏</button>
+          </div>
+
+          <!-- 下落卡片 -->
+          <div
+            v-for="card in gameStore.fallingCards"
+            :key="card.id"
+            class="falling-card-container"
+            :style="{
+              left: card.x + '%',
+              top: card.y + 'px',
+            }"
+            @pointerdown="onFallingPointerDown($event, card.id)"
+          >
+            <FallingCard
+              :process="card.process"
+              :isFrozen="gameStore.isFrozen"
+            />
+          </div>
+
+          <!-- 捕获飞入动画卡片 -->
+          <Teleport to="body">
+            <div
+              v-for="anim in captureAnimationsList"
+              :key="anim.id"
+              class="capture-flyer"
+              :style="{
+                left: anim.x + '%',
+                top: anim.y + 'px',
+              }"
+            >
+              <FallingCard
+                :process="anim.process"
+                :compact="true"
+                :captured="true"
+              />
+            </div>
+          </Teleport>
+
+          <!-- matrix 模式：底部矩阵网格 -->
+          <div
+            v-if="gameStore.layoutType !== 'columns'"
+            class="sort-grid-container"
+          >
+            <MatrixGrid
+              :columns="gameStore.columnInfos"
+              :rows="gameStore.rowInfos"
+              :dragCard="dragCard"
+              :feedback="matrixFeedback"
+              :shelvedBooks="gameStore.shelvedBooks"
+              :highlightTarget="dragHighlightTarget"
+              @place="(p) => gameStore.placeCard(dragTrayIndex, p.columnId, p.rowId)"
+            />
+          </div>
         </div>
 
-        <!-- 小手（跟随鼠标，点击接书） -->
-        <Hand :x="handX" :y="handY" />
-
-        <!-- 目标区域（底部） -->
-        <div class="sort-grid-container">
-          <!-- columns 模式 -->
+        <!-- 书架侧面板（仅 columns 模式） -->
+        <aside
+          v-if="gameStore.layoutType === 'columns'"
+          ref="shelfPanelRef"
+          class="book-shelf-panel"
+          :style="{ width: shelfPanelWidth }"
+        >
           <SortGrid
-            v-if="gameStore.layoutType === 'columns'"
             :columns="gameStore.columnInfos"
-            :selectedCard="
-              gameStore.selectedTrayIndex !== null
-                ? gameStore.captureTray[gameStore.selectedTrayIndex] ?? null
-                : null
-            "
+            :columnType="gameStore.columnType"
+            :shelvedBooks="gameStore.shelvedBooks"
+            :dragCard="dragCard"
             :feedback="columnFeedback"
-            @place="handlePlace"
+            :highlightTarget="dragHighlightTarget"
+            @place="(colId) => gameStore.placeCard(dragTrayIndex, colId)"
           />
-          <!-- matrix 模式 -->
-          <MatrixGrid
-            v-else
-            :columns="gameStore.columnInfos"
-            :rows="gameStore.rowInfos"
-            :selectedCard="
-              gameStore.selectedTrayIndex !== null
-                ? gameStore.captureTray[gameStore.selectedTrayIndex] ?? null
-                : null
-            "
-            :feedback="matrixFeedback"
-            @place="handleMatrixPlace"
-          />
-        </div>
+        </aside>
       </div>
 
       <!-- 书桌 -->
       <Desk
         :cards="gameStore.captureTray"
-        :selectedIndex="gameStore.selectedTrayIndex"
         :capacity="gameStore.trayCapacity"
         :feedbackIndex="gameStore.feedbackState?.trayIndex ?? null"
         :feedbackType="gameStore.feedbackState?.type ?? null"
-        @select="handleTraySelect"
+        :hint="dropHint"
+        :draggingIndex="dragTrayIndex"
+        @dragstart="onDragStart"
       />
     </template>
+
+    <!-- 拖拽浮层（跟手的书本） -->
+    <Teleport to="body">
+      <div
+        v-if="isDragging && dragCard"
+        class="drag-ghost"
+        :class="{ 'over-target': !!dragHighlightTarget }"
+        :style="{ left: dragX + 'px', top: dragY + 'px' }"
+      >
+        <FallingCard :process="dragCard" :compact="true" />
+      </div>
+    </Teleport>
+
+    <!-- 浮动得分文字 -->
+    <Teleport to="body">
+      <div
+        v-for="ft in floatingTexts"
+        :key="ft.id"
+        class="floating-text"
+        :style="{
+          left: ft.x + 'px',
+          top: ft.y + 'px',
+          color: ft.color,
+        }"
+      >
+        {{ ft.text }}
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -573,6 +839,13 @@ onMounted(() => {
   transform: translateY(0);
 }
 
+/* ===== 主区域（游戏 + 书架） ===== */
+.main-area {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
 /* 游戏区域 */
 .game-area {
   flex: 1;
@@ -580,11 +853,33 @@ onMounted(() => {
   overflow: hidden;
   background: var(--bg-gradient-game);
   min-height: 0;
-  cursor: none;
 }
 
 .game-area.is-paused {
   filter: blur(2px);
+}
+
+/* 书架侧面板 */
+.book-shelf-panel {
+  flex-shrink: 0;
+  min-width: 160px;
+}
+
+/* 冰冻 vignette */
+.freeze-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+  box-shadow:
+    inset 0 0 80px 20px rgba(56, 189, 248, 0.18),
+    inset 0 0 30px 6px rgba(147, 197, 253, 0.12);
+  animation: freezeVignette 2s ease-in-out infinite;
+}
+
+@keyframes freezeVignette {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
 }
 
 /* 冰冻覆盖层 */
@@ -601,19 +896,25 @@ onMounted(() => {
 }
 
 .freeze-timer {
-  background: rgba(56, 189, 248, 0.9);
+  background: rgba(56, 189, 248, 0.95);
   color: #fff;
-  padding: 0.3rem 1rem;
+  padding: 0.35rem 1.1rem;
   border-radius: var(--radius-full);
-  font-size: 0.9rem;
-  font-weight: 700;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
-  animation: pulse 1s ease infinite;
+  font-size: 0.95rem;
+  font-weight: 800;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.55), 0 0 0 4px rgba(56, 189, 248, 0.12);
+  animation: freezeTimerPulse 1.2s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+@keyframes freezeTimerPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.55), 0 0 0 4px rgba(56, 189, 248, 0.12);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.75), 0 0 0 6px rgba(56, 189, 248, 0.18);
+  }
 }
 
 /* 暂停覆盖层 */
@@ -652,15 +953,27 @@ onMounted(() => {
   background: linear-gradient(135deg, #818cf8, var(--color-primary-strong));
 }
 
-/* 下落卡片容器 */
+/* 下落卡片容器（扩大点击命中区域） */
 .falling-card-container {
   position: absolute;
   transform: translateX(-50%);
-  z-index: 10;
+  z-index: var(--z-falling);
   transition: none;
+  padding: 12px;
+  margin: -12px;
 }
 
-/* 目标区域容器 */
+/* 捕获飞入动画卡片 */
+.capture-flyer {
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: var(--z-falling);
+  pointer-events: none;
+  padding: 12px;
+  margin: -12px;
+}
+
+/* 目标区域容器（matrix 模式底部） */
 .sort-grid-container {
   position: absolute;
   bottom: 0;
@@ -669,7 +982,72 @@ onMounted(() => {
   z-index: 5;
 }
 
+/* ===== 拖拽浮层 ===== */
+.drag-ghost {
+  position: fixed;
+  transform: translate(-50%, -50%) scale(1.08);
+  pointer-events: none;
+  z-index: var(--z-drag-ghost);
+  opacity: 0.92;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
+  transition: transform 0.15s var(--ease-soft), filter 0.15s var(--ease-soft);
+}
+
+.drag-ghost.over-target {
+  transform: translate(-50%, -50%) scale(1.12);
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px rgba(99, 102, 241, 0.35));
+}
+
+/* 浮动得分文字 */
+.floating-text {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: var(--z-drag-ghost);
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  animation: floatTextUp 0.9s var(--ease-out-expo) forwards;
+}
+
+@keyframes floatTextUp {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  20% {
+    transform: translate(-50%, -70%) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -140%) scale(1);
+  }
+}
+
 /* 移动端适配 */
+@media (max-width: 768px) {
+  .main-area {
+    flex-direction: column-reverse;
+  }
+
+  .book-shelf-panel {
+    width: 100% !important;
+    min-width: auto;
+    max-height: 28vh;
+    overflow-y: auto;
+    border-top: 1px solid rgba(0, 0, 0, 0.25);
+  }
+
+  .game-area {
+    flex: 1;
+  }
+
+  .sort-grid-container {
+    max-height: 30vh;
+    overflow-y: auto;
+  }
+}
+
 @media (max-width: 480px) {
   .start-card {
     padding: 2rem 1.25rem;

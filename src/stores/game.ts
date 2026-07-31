@@ -7,6 +7,7 @@ import type {
   FeedbackState,
   ColumnInfo,
   RowInfo,
+  ShelvedBook,
 } from '@/data/types'
 
 type ColumnType = 'processGroup' | 'knowledgeArea'
@@ -29,9 +30,11 @@ interface GameState {
   // 下落中的卡片
   fallingCards: FallingCard[]
 
+  // 已上架的书（正确放置的卡片积累）
+  shelvedBooks: ShelvedBook[]
+
   // 托盘
   captureTray: Process[]
-  selectedTrayIndex: number | null
 
   // 分数与状态
   score: number
@@ -129,8 +132,8 @@ export const useGameStore = defineStore('game', {
     distractorPool: [],
     distractorCount: 0,
     fallingCards: [],
+    shelvedBooks: [],
     captureTray: [],
-    selectedTrayIndex: null,
     score: 0,
     lives: 3,
     combo: 0,
@@ -215,8 +218,8 @@ export const useGameStore = defineStore('game', {
       }
 
       this.fallingCards = []
+      this.shelvedBooks = []
       this.captureTray = []
-      this.selectedTrayIndex = null
       this.score = 0
       this.lives = level.lives
       this.combo = 0
@@ -293,25 +296,14 @@ export const useGameStore = defineStore('game', {
     },
 
     /**
-     * 选中/取消选中托盘中的卡片
-     */
-    selectTrayCard(index: number) {
-      if (!this.isPlaying || this.isPaused || this.feedbackActive) return
-      if (index < 0 || index >= this.captureTray.length) return
-
-      this.selectedTrayIndex = this.selectedTrayIndex === index ? null : index
-    },
-
-    /**
      * 放置卡片到某列（或矩阵中的某格）
-     * 返回 'correct' 或 'wrong'
+     * 通过托盘索引指定要放置的卡片
      */
-    placeCard(columnId: string, rowId?: string): 'correct' | 'wrong' | null {
+    placeCard(trayIndex: number, columnId: string, rowId?: string): 'correct' | 'wrong' | null {
       if (!this.isPlaying || this.isPaused || this.feedbackActive) return null
-      if (this.selectedTrayIndex === null) return null
-      if (this.selectedTrayIndex < 0 || this.selectedTrayIndex >= this.captureTray.length) return null
+      if (trayIndex < 0 || trayIndex >= this.captureTray.length) return null
 
-      const card = this.captureTray[this.selectedTrayIndex]
+      const card = this.captureTray[trayIndex]
 
       // 判定逻辑
       let isCorrect: boolean
@@ -329,7 +321,7 @@ export const useGameStore = defineStore('game', {
         type: isCorrect ? 'correct' : 'wrong',
         columnId,
         rowId,
-        trayIndex: this.selectedTrayIndex,
+        trayIndex,
       }
 
       if (isCorrect) {
@@ -337,6 +329,14 @@ export const useGameStore = defineStore('game', {
         const multiplier = this.comboMultiplier
         this.score += 100 * multiplier
         this.correctCount++
+
+        // 正确放置的书上架积累
+        this.shelvedBooks.push({
+          id: generateCardId(),
+          process: card,
+          columnId,
+          rowId,
+        })
 
         // 计算加速步数
         const steps = Math.floor(this.correctCount / this.level!.speedIncreaseEvery)
@@ -353,7 +353,7 @@ export const useGameStore = defineStore('game', {
         this.score = Math.max(0, this.score - 50)
         this.wrongCount++
 
-        // 延迟清除反馈（取消选中）
+        // 延迟清除反馈
         setTimeout(() => this.clearFeedback(), 600)
       }
 
@@ -365,15 +365,6 @@ export const useGameStore = defineStore('game', {
 
       // 放置的卡片（无论正确还是错误）都从托盘移除
       this.captureTray.splice(this.feedbackState.trayIndex, 1)
-      // 调整选中索引
-      if (this.selectedTrayIndex !== null) {
-        if (this.selectedTrayIndex > this.feedbackState.trayIndex) {
-          this.selectedTrayIndex--
-        } else if (this.selectedTrayIndex === this.feedbackState.trayIndex) {
-          this.selectedTrayIndex = null
-        }
-      }
-
       this.feedbackState = null
     },
 
@@ -437,8 +428,8 @@ export const useGameStore = defineStore('game', {
       if (!this.level) return
       nextCardId = 0
       this.fallingCards = []
+      this.shelvedBooks = []
       this.captureTray = []
-      this.selectedTrayIndex = null
       this.score = 0
       this.lives = this.level.lives
       this.combo = 0

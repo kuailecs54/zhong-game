@@ -150,6 +150,18 @@ export interface FeedbackState {
   trayIndex: number
 }
 
+/** 已上架的书（正确放置的卡片积累） */
+export interface ShelvedBook {
+  /** 唯一实例ID */
+  id: string
+  /** 过程数据 */
+  process: Process
+  /** 列ID（columns 模式为过程组/知识领域ID，matrix 模式为过程组ID） */
+  columnId: string
+  /** 行ID（仅 matrix 模式） */
+  rowId?: string
+}
+
 /** 行信息（矩阵模式用） */
 export interface RowInfo {
   id: string

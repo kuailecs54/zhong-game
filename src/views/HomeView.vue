@@ -63,22 +63,24 @@ function handleSubmit() {
 
 .home-card {
   background: var(--surface-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   padding: 2.5rem 2rem;
   max-width: 400px;
   width: 100%;
   text-align: center;
-  animation: homeCardIn 0.5s ease;
+  animation: homeCardIn 0.6s var(--ease-out-expo) both;
 }
 
 @keyframes homeCardIn {
   from {
     opacity: 0;
-    transform: translateY(24px) scale(0.96);
+    transform: translateY(28px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -87,14 +89,26 @@ function handleSubmit() {
 }
 
 .home-title {
-  font-size: 1.9rem;
+  font-size: 2rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #a5b4fc 0%, #22d3ee 100%);
+  background: linear-gradient(135deg, #a5b4fc 0%, #22d3ee 50%, #818cf8 100%);
+  background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 0.5rem;
   letter-spacing: 0.02em;
+  filter: drop-shadow(0 0 18px rgba(99, 102, 241, 0.35)) drop-shadow(0 0 6px rgba(34, 211, 238, 0.25));
+  animation: titleGlow 3s ease-in-out infinite, itemIn 0.6s var(--ease-out-expo) 0.05s both;
+}
+
+@keyframes titleGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 18px rgba(99, 102, 241, 0.35)) drop-shadow(0 0 6px rgba(34, 211, 238, 0.25));
+  }
+  50% {
+    filter: drop-shadow(0 0 26px rgba(99, 102, 241, 0.5)) drop-shadow(0 0 10px rgba(34, 211, 238, 0.4));
+  }
 }
 
 .home-subtitle {
@@ -102,12 +116,25 @@ function handleSubmit() {
   color: rgba(255, 255, 255, 0.65);
   margin-bottom: 2rem;
   line-height: 1.4;
+  animation: itemIn 0.55s var(--ease-out-expo) 0.15s both;
 }
 
 .home-form {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  animation: itemIn 0.55s var(--ease-out-expo) 0.25s both;
+}
+
+@keyframes itemIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .form-label {
@@ -125,7 +152,7 @@ function handleSubmit() {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s var(--ease-soft), box-shadow 0.2s var(--ease-soft), background 0.2s var(--ease-soft);
 }
 
 .form-input::placeholder {
@@ -134,18 +161,30 @@ function handleSubmit() {
 
 .form-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.25),
+    0 0 18px rgba(99, 102, 241, 0.2);
 }
 
 .form-error {
   font-size: 0.85rem;
   color: var(--color-error);
   text-align: left;
+  animation: shake 0.4s var(--ease-soft);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
 }
 
 .form-btn {
   margin-top: 0.5rem;
-  padding: 0.8rem;
+  padding: 0.85rem;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
   color: #fff;
   border: none;
@@ -153,16 +192,22 @@ function handleSubmit() {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s var(--ease-soft), box-shadow 0.2s var(--ease-soft);
   box-shadow: var(--glow-primary);
 }
 
 .form-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 6px 28px rgba(99, 102, 241, 0.5);
+  animation: btnPulse 2s ease-in-out infinite;
 }
 
 .form-btn:active {
   transform: translateY(0);
+}
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 6px 28px rgba(99, 102, 241, 0.5); }
+  50% { box-shadow: 0 6px 32px rgba(99, 102, 241, 0.65), 0 0 0 4px rgba(99, 102, 241, 0.1); }
 }
 </style>
