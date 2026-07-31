@@ -39,7 +39,7 @@
   { "id": "p038", "name": "实施定性风险分析", "shortName": "定性分析", "processGroupId": "planning", "knowledgeAreaId": "risk", "difficulty": 3 },
   { "id": "p039", "name": "实施定量风险分析", "shortName": "定量分析", "processGroupId": "planning", "knowledgeAreaId": "risk", "difficulty": 5 },
   { "id": "p040", "name": "规划风险应对", "shortName": "规划应对", "processGroupId": "planning", "knowledgeAreaId": "risk", "difficulty": 3 },
-  { "id": "p041", "name": "实施风险应对", "shortName": "实施应对", "processGroupId": "executing", "knowledgeAreaId": "risk", "difficulty": 3 },
+  { "id": "p041", "name": "实施风险应对措施", "shortName": "实施应对", "processGroupId": "executing", "knowledgeAreaId": "risk", "difficulty": 3 },
   { "id": "p042", "name": "监督风险", "shortName": "监督风险", "processGroupId": "monitoring_controlling", "knowledgeAreaId": "risk", "difficulty": 3 },
   { "id": "p043", "name": "规划采购管理", "shortName": "规划采购", "processGroupId": "planning", "knowledgeAreaId": "procurement", "difficulty": 2 },
   { "id": "p044", "name": "实施采购", "shortName": "实施采购", "processGroupId": "executing", "knowledgeAreaId": "procurement", "difficulty": 3 },
