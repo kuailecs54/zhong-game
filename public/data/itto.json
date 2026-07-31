@@ -1,0 +1,1044 @@
+{
+  "p001": {
+    "inputs": [
+      { "name": "立项管理文件", "tags": ["core"] },
+      { "name": "协议", "tags": ["core"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据收集（头脑风暴、焦点小组、访谈）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（冲突管理、引导、会议管理）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "项目章程", "tags": ["core"] },
+      { "name": "假设日志", "tags": ["core"] }
+    ]
+  },
+  "p002": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["core"] },
+      { "name": "其他过程的输出", "tags": ["core"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据收集（头脑风暴、核对单、焦点小组、访谈）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（冲突管理、引导、会议管理）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "项目管理计划", "tags": ["core"] }
+    ]
+  },
+  "p003": {
+    "inputs": [
+      { "name": "项目管理计划（任何组件）", "tags": ["core"] },
+      { "name": "项目文件（变更日志、经验教训登记册、里程碑清单等）", "tags": ["common"] },
+      { "name": "批准的变更请求", "tags": ["core"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "项目管理信息系统", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "可交付成果", "tags": ["core"] },
+      { "name": "工作绩效数据", "tags": ["core"] },
+      { "name": "问题日志", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["core"] }
+    ]
+  },
+  "p004": {
+    "inputs": [
+      { "name": "项目管理计划（所有组件）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、项目团队派工单等）", "tags": ["common"] },
+      { "name": "可交付成果", "tags": ["core"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "知识管理", "tags": ["core"] },
+      { "name": "信息管理", "tags": ["core"] },
+      { "name": "人际关系与团队技能（积极倾听、引导、领导力、人际交往、政治意识）", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "经验教训登记册", "tags": ["core"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "组织过程资产更新", "tags": ["common"] }
+    ]
+  },
+  "p005": {
+    "inputs": [
+      { "name": "项目管理计划（任何组件）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、估算依据、成本预测、问题日志等）", "tags": ["common"] },
+      { "name": "工作绩效信息", "tags": ["core"] },
+      { "name": "协议", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析（备选方案分析、成本效益分析、挣值分析、根本原因分析、趋势分析、偏差分析）", "tags": ["core"] },
+      { "name": "决策", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "工作绩效报告", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["core"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p006": {
+    "inputs": [
+      { "name": "项目管理计划（任何组件）", "tags": ["common"] },
+      { "name": "项目文件（变更日志等）", "tags": ["common"] },
+      { "name": "工作绩效报告", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["core"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "变更控制工具", "tags": ["core"] },
+      { "name": "数据分析（备选方案分析、成本效益分析）", "tags": ["common"] },
+      { "name": "决策（投票、多标准决策分析）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "批准的变更请求", "tags": ["core"] },
+      { "name": "变更日志", "tags": ["core"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p007": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["core"] },
+      { "name": "项目管理计划（所有组件）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、估算依据、变更日志、问题日志、经验教训登记册等）", "tags": ["common"] },
+      { "name": "验收的可交付成果", "tags": ["core"] },
+      { "name": "立项管理文件", "tags": ["core"] },
+      { "name": "协议", "tags": ["common"] },
+      { "name": "采购文档", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析（文件分析、回归分析、趋势分析、偏差分析）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "最终产品、服务或成果", "tags": ["core"] },
+      { "name": "项目最终报告", "tags": ["core"] },
+      { "name": "项目文件更新（经验教训登记册）", "tags": ["common"] },
+      { "name": "组织过程资产更新", "tags": ["common"] }
+    ]
+  },
+  "p008": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["core"] },
+      { "name": "项目管理计划（质量管理计划、项目生命周期描述、开发方法）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析（备选方案分析）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "范围管理计划", "tags": ["core"] },
+      { "name": "需求管理计划", "tags": ["core"] }
+    ]
+  },
+  "p009": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["common"] },
+      { "name": "项目管理计划（范围管理计划、需求管理计划、干系人参与计划）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、经验教训登记册、干系人登记册）", "tags": ["common"] },
+      { "name": "立项管理文件", "tags": ["common"] },
+      { "name": "协议", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据收集（头脑风暴、访谈、焦点小组、问卷调查、标杆对照）", "tags": ["core"] },
+      { "name": "数据分析（文件分析）", "tags": ["common"] },
+      { "name": "决策（投票、多标准决策分析）", "tags": ["common"] },
+      { "name": "数据表现（亲和图、思维导图）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（名义小组技术、观察/交谈、引导）", "tags": ["common"] },
+      { "name": "系统交互图", "tags": ["common"] },
+      { "name": "原型法", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "需求文件", "tags": ["core"] },
+      { "name": "需求跟踪矩阵", "tags": ["core"] }
+    ]
+  },
+  "p010": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["core"] },
+      { "name": "项目管理计划（范围管理计划）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、需求文件、风险登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析（备选方案分析）", "tags": ["common"] },
+      { "name": "决策（多标准决策分析）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（引导）", "tags": ["common"] },
+      { "name": "产品分析", "tags": ["core"] }
+    ],
+    "outputs": [
+      { "name": "项目范围说明书", "tags": ["core"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p011": {
+    "inputs": [
+      { "name": "项目管理计划（范围管理计划）", "tags": ["common"] },
+      { "name": "项目文件（项目范围说明书、需求文件）", "tags": ["core"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "分解", "tags": ["core"] }
+    ],
+    "outputs": [
+      { "name": "范围基准", "tags": ["core"] },
+      { "name": "项目文件更新（假设日志、需求文件）", "tags": ["common"] }
+    ]
+  },
+  "p012": {
+    "inputs": [
+      { "name": "项目管理计划（范围管理计划、需求管理计划、范围基准）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、质量报告、需求文件、需求跟踪矩阵）", "tags": ["common"] },
+      { "name": "核实的可交付成果", "tags": ["core"] },
+      { "name": "工作绩效数据", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "检查", "tags": ["core"] },
+      { "name": "决策（投票）", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "验收的可交付成果", "tags": ["core"] },
+      { "name": "工作绩效信息", "tags": ["common"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p013": {
+    "inputs": [
+      { "name": "项目管理计划（范围管理计划、需求管理计划、变更管理计划、配置管理计划、范围基准、绩效测量基准）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、需求文件、需求跟踪矩阵）", "tags": ["common"] },
+      { "name": "工作绩效数据", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "数据分析（偏差分析、趋势分析）", "tags": ["core"] }
+    ],
+    "outputs": [
+      { "name": "工作绩效信息", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["core"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p014": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["common"] },
+      { "name": "项目管理计划（范围管理计划、开发方法）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "进度管理计划", "tags": ["core"] }
+    ]
+  },
+  "p015": {
+    "inputs": [
+      { "name": "项目管理计划（进度管理计划、范围基准）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "分解", "tags": ["core"] },
+      { "name": "滚动式规划", "tags": ["core"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "活动清单", "tags": ["core"] },
+      { "name": "活动属性", "tags": ["core"] },
+      { "name": "里程碑清单", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] }
+    ]
+  },
+  "p016": {
+    "inputs": [
+      { "name": "项目管理计划（进度管理计划、范围基准）", "tags": ["common"] },
+      { "name": "项目文件（活动属性、活动清单、假设日志、里程碑清单）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "紧前关系绘图法", "tags": ["core"] },
+      { "name": "确定和整合依赖关系", "tags": ["core"] },
+      { "name": "提前量和滞后量", "tags": ["common"] },
+      { "name": "项目管理信息系统", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "项目进度网络图", "tags": ["core"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p017": {
+    "inputs": [
+      { "name": "项目管理计划（进度管理计划、范围基准）", "tags": ["common"] },
+      { "name": "项目文件（活动属性、活动清单、假设日志、经验教训登记册、里程碑清单、项目团队派工单、资源分解结构、资源日历、资源需求、风险登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "类比估算", "tags": ["common"] },
+      { "name": "参数估算", "tags": ["common"] },
+      { "name": "三点估算", "tags": ["core"] },
+      { "name": "自下而上估算", "tags": ["common"] },
+      { "name": "数据分析（备选方案分析、储备分析）", "tags": ["common"] },
+      { "name": "决策", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "持续时间估算", "tags": ["core"] },
+      { "name": "估算依据", "tags": ["core"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p018": {
+    "inputs": [
+      { "name": "项目管理计划（进度管理计划、范围基准）", "tags": ["common"] },
+      { "name": "项目文件（活动属性、活动清单、假设日志、估算依据、持续时间估算、经验教训登记册、里程碑清单、项目进度网络图、项目团队派工单、资源日历、资源需求、风险登记册）", "tags": ["common"] },
+      { "name": "协议", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "关键路径法", "tags": ["core"] },
+      { "name": "资源优化", "tags": ["common"] },
+      { "name": "数据分析（假设情景分析、模拟）", "tags": ["common"] },
+      { "name": "提前量和滞后量", "tags": ["common"] },
+      { "name": "项目管理信息系统", "tags": ["common"] },
+      { "name": "进度压缩", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "进度基准", "tags": ["core"] },
+      { "name": "项目进度计划", "tags": ["core"] },
+      { "name": "进度数据", "tags": ["core"] },
+      { "name": "项目日历", "tags": ["common"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p019": {
+    "inputs": [
+      { "name": "项目管理计划（进度管理计划、进度基准、范围基准、绩效测量基准）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、项目日历、项目进度计划、资源日历、进度数据）", "tags": ["common"] },
+      { "name": "工作绩效数据", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "数据分析（挣值分析、迭代燃尽图、绩效审查、趋势分析、偏差分析、假设情景分析）", "tags": ["core"] },
+      { "name": "关键路径法", "tags": ["common"] },
+      { "name": "项目管理信息系统", "tags": ["common"] },
+      { "name": "资源优化", "tags": ["common"] },
+      { "name": "提前量和滞后量", "tags": ["common"] },
+      { "name": "进度压缩", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "工作绩效信息", "tags": ["core"] },
+      { "name": "进度预测", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p020": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["common"] },
+      { "name": "项目管理计划（进度管理计划、范围管理计划）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "成本管理计划", "tags": ["core"] }
+    ]
+  },
+  "p021": {
+    "inputs": [
+      { "name": "项目管理计划（成本管理计划、质量管理计划、范围基准）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、项目进度计划、资源需求、风险登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "类比估算", "tags": ["common"] },
+      { "name": "参数估算", "tags": ["common"] },
+      { "name": "自下而上估算", "tags": ["common"] },
+      { "name": "数据分析（备选方案分析、储备分析、质量成本）", "tags": ["common"] },
+      { "name": "项目管理信息系统", "tags": ["common"] },
+      { "name": "决策", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "成本估算", "tags": ["core"] },
+      { "name": "估算依据", "tags": ["core"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p022": {
+    "inputs": [
+      { "name": "项目管理计划（成本管理计划、范围基准、进度基准）", "tags": ["common"] },
+      { "name": "项目文件（成本估算、估算依据、项目进度计划、风险登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] },
+      { "name": "协议", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "成本汇总", "tags": ["core"] },
+      { "name": "数据分析（储备分析）", "tags": ["common"] },
+      { "name": "历史信息审核", "tags": ["common"] },
+      { "name": "资金限制平衡", "tags": ["common"] },
+      { "name": "融资", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "成本基准", "tags": ["core"] },
+      { "name": "项目资金需求", "tags": ["core"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p023": {
+    "inputs": [
+      { "name": "项目管理计划（成本管理计划、成本基准、绩效测量基准）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册）", "tags": ["common"] },
+      { "name": "项目资金需求", "tags": ["common"] },
+      { "name": "工作绩效数据", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析（挣值分析、偏差分析、趋势分析、储备分析）", "tags": ["core"] },
+      { "name": "完工尚需绩效指数", "tags": ["common"] },
+      { "name": "项目管理信息系统", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "工作绩效信息", "tags": ["core"] },
+      { "name": "成本预测", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p024": {
+    "inputs": [
+      { "name": "项目管理计划（需求管理计划、风险管理计划、干系人参与计划、范围基准）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、需求文件、需求跟踪矩阵、风险登记册、干系人登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据收集（标杆对照、头脑风暴、访谈）", "tags": ["common"] },
+      { "name": "数据分析（成本效益分析、质量成本）", "tags": ["common"] },
+      { "name": "决策（多标准决策分析）", "tags": ["common"] },
+      { "name": "数据表现（流程图、逻辑数据模型、矩阵图、思维导图）", "tags": ["common"] },
+      { "name": "测试与检查规划", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "质量管理计划", "tags": ["core"] },
+      { "name": "质量测量指标", "tags": ["core"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p025": {
+    "inputs": [
+      { "name": "项目管理计划（质量管理计划）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、质量控制测量结果、质量测量指标、风险报告）", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "数据收集（核对单）", "tags": ["common"] },
+      { "name": "数据分析（备选方案分析、文件分析、过程分析、根本原因分析）", "tags": ["common"] },
+      { "name": "决策（多标准决策分析）", "tags": ["common"] },
+      { "name": "数据表现（亲和图、因果图、流程图、直方图、矩阵图、散点图）", "tags": ["common"] },
+      { "name": "审计", "tags": ["core"] },
+      { "name": "面向X的设计", "tags": ["common"] },
+      { "name": "问题解决", "tags": ["common"] },
+      { "name": "质量改进方法", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "质量报告", "tags": ["core"] },
+      { "name": "测试与评估文件", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p026": {
+    "inputs": [
+      { "name": "项目管理计划（质量管理计划）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、质量测量指标、测试与评估文件）", "tags": ["common"] },
+      { "name": "批准的变更请求", "tags": ["common"] },
+      { "name": "可交付成果", "tags": ["core"] },
+      { "name": "工作绩效数据", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "数据收集（核对单、核查表、统计抽样、问卷调查）", "tags": ["common"] },
+      { "name": "数据分析（绩效审查、根本原因分析）", "tags": ["common"] },
+      { "name": "检查", "tags": ["core"] },
+      { "name": "测试/产品评估", "tags": ["core"] },
+      { "name": "数据表现（因果图、控制图、直方图、散点图）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "质量控制测量结果", "tags": ["core"] },
+      { "name": "核实的可交付成果", "tags": ["core"] },
+      { "name": "工作绩效信息", "tags": ["common"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p027": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["common"] },
+      { "name": "项目管理计划（质量管理计划、范围基准）", "tags": ["common"] },
+      { "name": "项目文件（活动需求、活动属性、假设日志、成本估算、资源日历、风险登记册、干系人登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据表现（层级图、责任分配矩阵、文本型格式）", "tags": ["common"] },
+      { "name": "组织理论", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "资源管理计划", "tags": ["core"] },
+      { "name": "团队章程", "tags": ["core"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p028": {
+    "inputs": [
+      { "name": "项目管理计划（资源管理计划、范围基准）", "tags": ["common"] },
+      { "name": "项目文件（活动属性、活动清单、假设日志、成本估算、资源日历、风险登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "自下而上估算", "tags": ["common"] },
+      { "name": "类比估算", "tags": ["common"] },
+      { "name": "参数估算", "tags": ["common"] },
+      { "name": "数据分析（备选方案分析）", "tags": ["common"] },
+      { "name": "项目管理信息系统", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "资源需求", "tags": ["core"] },
+      { "name": "估算依据", "tags": ["core"] },
+      { "name": "资源分解结构", "tags": ["core"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p029": {
+    "inputs": [
+      { "name": "项目管理计划（资源管理计划、采购管理计划、成本基准）", "tags": ["common"] },
+      { "name": "项目文件（项目进度计划、资源日历、资源需求、干系人登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "决策（多标准决策分析）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（谈判）", "tags": ["common"] },
+      { "name": "预分派", "tags": ["common"] },
+      { "name": "虚拟团队", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "物质资源分配单", "tags": ["core"] },
+      { "name": "项目团队派工单", "tags": ["core"] },
+      { "name": "资源日历", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p030": {
+    "inputs": [
+      { "name": "项目管理计划（资源管理计划）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、项目进度计划、项目团队派工单、资源日历、团队章程）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "集中办公", "tags": ["common"] },
+      { "name": "虚拟团队", "tags": ["common"] },
+      { "name": "沟通技术", "tags": ["common"] },
+      { "name": "人际关系与团队技能（冲突管理、影响力、激励、谈判、团队建设）", "tags": ["core"] },
+      { "name": "认可与奖励", "tags": ["common"] },
+      { "name": "培训", "tags": ["common"] },
+      { "name": "个人和团队评估", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "团队绩效评价", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p031": {
+    "inputs": [
+      { "name": "项目管理计划（资源管理计划）", "tags": ["common"] },
+      { "name": "项目文件（问题日志、经验教训登记册、项目团队派工单、团队章程）", "tags": ["common"] },
+      { "name": "工作绩效报告", "tags": ["common"] },
+      { "name": "团队绩效评价", "tags": ["core"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "人际关系与团队技能（冲突管理、制定决策、情商、影响力、领导力）", "tags": ["core"] },
+      { "name": "项目管理信息系统", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "变更请求", "tags": ["core"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] },
+      { "name": "事业环境因素更新", "tags": ["common"] }
+    ]
+  },
+  "p032": {
+    "inputs": [
+      { "name": "项目管理计划（资源管理计划）", "tags": ["common"] },
+      { "name": "项目文件（问题日志、经验教训登记册、物质资源分配单、项目进度计划、资源分解结构、资源需求、风险登记册）", "tags": ["common"] },
+      { "name": "工作绩效数据", "tags": ["common"] },
+      { "name": "协议", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "数据分析（备选方案分析、成本效益分析、绩效审查、趋势分析）", "tags": ["common"] },
+      { "name": "问题解决", "tags": ["common"] },
+      { "name": "人际关系与团队技能（谈判、影响力）", "tags": ["common"] },
+      { "name": "项目管理信息系统", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "工作绩效信息", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p033": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["common"] },
+      { "name": "项目管理计划（资源管理计划、干系人参与计划）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、问题日志、经验教训登记册、风险登记册、干系人登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "沟通需求分析", "tags": ["core"] },
+      { "name": "沟通技术", "tags": ["common"] },
+      { "name": "沟通模型", "tags": ["common"] },
+      { "name": "沟通方法", "tags": ["common"] },
+      { "name": "人际关系与团队技能", "tags": ["common"] },
+      { "name": "数据表现", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "沟通管理计划", "tags": ["core"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p034": {
+    "inputs": [
+      { "name": "项目管理计划（资源管理计划、沟通管理计划、干系人参与计划）", "tags": ["common"] },
+      { "name": "项目文件（变更日志、问题日志、经验教训登记册、质量报告、风险报告、干系人登记册）", "tags": ["common"] },
+      { "name": "工作绩效报告", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "沟通技术", "tags": ["common"] },
+      { "name": "沟通方法", "tags": ["common"] },
+      { "name": "沟通技能（沟通胜任力、反馈、非言语、演示）", "tags": ["common"] },
+      { "name": "项目管理信息系统", "tags": ["common"] },
+      { "name": "项目报告", "tags": ["core"] },
+      { "name": "人际关系与团队技能（积极倾听、冲突管理、文化意识、会议管理、人际交往、政治意识）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "项目沟通记录", "tags": ["core"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] },
+      { "name": "组织过程资产更新", "tags": ["common"] }
+    ]
+  },
+  "p035": {
+    "inputs": [
+      { "name": "项目管理计划（沟通管理计划、干系人参与计划）", "tags": ["common"] },
+      { "name": "项目文件（问题日志、经验教训登记册、项目沟通记录）", "tags": ["common"] },
+      { "name": "工作绩效数据", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析（绩效审查、趋势分析、偏差分析）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（观察/交谈）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "工作绩效信息", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p036": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["common"] },
+      { "name": "项目管理计划（所有组件）", "tags": ["common"] },
+      { "name": "项目文件", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "风险管理计划", "tags": ["core"] }
+    ]
+  },
+  "p037": {
+    "inputs": [
+      { "name": "项目管理计划（需求管理计划、风险管理计划、成本管理计划等）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、成本估算、持续时间估算、问题日志、经验教训登记册、需求文件、资源需求、干系人登记册）", "tags": ["common"] },
+      { "name": "协议", "tags": ["common"] },
+      { "name": "采购文档", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据收集（头脑风暴、核对单、访谈）", "tags": ["common"] },
+      { "name": "数据分析（假设条件和制约因素分析、SWOT分析、文件分析）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（引导）", "tags": ["common"] },
+      { "name": "提示清单", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "风险登记册", "tags": ["core"] },
+      { "name": "风险报告", "tags": ["core"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p038": {
+    "inputs": [
+      { "name": "项目管理计划（风险管理计划）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、风险登记册、干系人登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据收集（访谈）", "tags": ["common"] },
+      { "name": "数据分析（风险数据质量评估、风险概率和影响评估、其他风险参数评估）", "tags": ["core"] },
+      { "name": "人际关系与团队技能（引导）", "tags": ["common"] },
+      { "name": "风险分类", "tags": ["common"] },
+      { "name": "数据表现（概率和影响矩阵、层级图）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "项目文件更新（假设日志、问题日志、风险登记册、风险报告）", "tags": ["core"] }
+    ]
+  },
+  "p039": {
+    "inputs": [
+      { "name": "项目管理计划（风险管理计划、范围基准、进度基准、成本基准）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、估算依据、成本估算、成本预测、持续时间估算、里程碑清单、资源需求、风险登记册、风险报告、进度预测）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据收集（访谈）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（引导）", "tags": ["common"] },
+      { "name": "数据分析（模拟、敏感性分析、决策树分析、影响图）", "tags": ["core"] }
+    ],
+    "outputs": [
+      { "name": "项目文件更新（风险登记册、风险报告）", "tags": ["core"] }
+    ]
+  },
+  "p040": {
+    "inputs": [
+      { "name": "项目管理计划（资源管理计划、风险管理计划、成本基准）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、项目进度计划、项目团队派工单、资源日历、风险登记册、风险报告、干系人登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据收集（访谈）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（引导）", "tags": ["common"] },
+      { "name": "威胁应对策略（上报、规避、转移、减轻、接受）", "tags": ["core"] },
+      { "name": "机会应对策略（上报、开拓、分享、提高、接受）", "tags": ["core"] },
+      { "name": "应急应对策略", "tags": ["common"] },
+      { "name": "整体项目风险应对策略", "tags": ["common"] },
+      { "name": "数据分析（备选方案分析、成本效益分析）", "tags": ["common"] },
+      { "name": "决策（多标准决策分析）", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新（风险登记册、风险报告等）", "tags": ["core"] }
+    ]
+  },
+  "p041": {
+    "inputs": [
+      { "name": "项目管理计划（风险管理计划）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、风险登记册、风险报告）", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "人际关系与团队技能（影响力）", "tags": ["common"] },
+      { "name": "项目管理信息系统", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "变更请求", "tags": ["core"] },
+      { "name": "项目文件更新（问题日志、经验教训登记册、项目团队派工单、风险登记册、风险报告）", "tags": ["common"] }
+    ]
+  },
+  "p042": {
+    "inputs": [
+      { "name": "项目管理计划（风险管理计划）", "tags": ["common"] },
+      { "name": "项目文件（问题日志、经验教训登记册、风险登记册、风险报告）", "tags": ["common"] },
+      { "name": "工作绩效数据", "tags": ["common"] },
+      { "name": "工作绩效报告", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析（技术绩效分析、储备分析、趋势分析、偏差分析）", "tags": ["core"] },
+      { "name": "审计", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "工作绩效信息", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新（问题日志、经验教训登记册、风险登记册、风险报告）", "tags": ["common"] },
+      { "name": "组织过程资产更新", "tags": ["common"] }
+    ]
+  },
+  "p043": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["common"] },
+      { "name": "项目管理计划（范围管理计划、质量管理计划、资源管理计划等）", "tags": ["common"] },
+      { "name": "项目文件（风险登记册、干系人登记册等）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析（自制或外购分析）", "tags": ["core"] },
+      { "name": "供方选择分析", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "采购管理计划", "tags": ["core"] },
+      { "name": "采购策略", "tags": ["core"] },
+      { "name": "招标文件", "tags": ["core"] },
+      { "name": "采购工作说明书", "tags": ["core"] },
+      { "name": "供方选择标准", "tags": ["core"] },
+      { "name": "自制或外购决策", "tags": ["core"] },
+      { "name": "独立成本估算", "tags": ["common"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] },
+      { "name": "组织过程资产更新", "tags": ["common"] }
+    ]
+  },
+  "p044": {
+    "inputs": [
+      { "name": "项目管理计划（范围管理计划、需求管理计划、沟通管理计划、风险管理计划、采购管理计划、配置管理计划、成本基准）", "tags": ["common"] },
+      { "name": "项目文件（经验教训登记册、项目进度计划、需求文件、风险登记册、干系人登记册）", "tags": ["common"] },
+      { "name": "采购文档", "tags": ["common"] },
+      { "name": "卖方建议书", "tags": ["core"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "广告", "tags": ["common"] },
+      { "name": "投标人会议", "tags": ["common"] },
+      { "name": "数据分析（建议书评价）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（谈判）", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "选定的卖方", "tags": ["core"] },
+      { "name": "协议", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] },
+      { "name": "组织过程资产更新", "tags": ["common"] }
+    ]
+  },
+  "p045": {
+    "inputs": [
+      { "name": "项目管理计划（需求管理计划、风险管理计划、采购管理计划、变更管理计划、进度基准）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、经验教训登记册、里程碑清单、质量报告、需求文件、需求跟踪矩阵、风险登记册、干系人登记册）", "tags": ["common"] },
+      { "name": "协议", "tags": ["core"] },
+      { "name": "采购文档", "tags": ["common"] },
+      { "name": "工作绩效数据", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "索赔管理", "tags": ["common"] },
+      { "name": "数据分析（绩效审查、挣值分析、趋势分析）", "tags": ["common"] },
+      { "name": "检查", "tags": ["common"] },
+      { "name": "审计", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "采购关闭", "tags": ["core"] },
+      { "name": "工作绩效信息", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] },
+      { "name": "组织过程资产更新", "tags": ["common"] }
+    ]
+  },
+  "p046": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["core"] },
+      { "name": "立项管理文件", "tags": ["common"] },
+      { "name": "项目管理计划（沟通管理计划、干系人参与计划）", "tags": ["common"] },
+      { "name": "项目文件（变更日志、问题日志、需求文件）", "tags": ["common"] },
+      { "name": "协议", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据收集（问卷调查、头脑风暴）", "tags": ["common"] },
+      { "name": "数据分析（干系人分析、文件分析）", "tags": ["common"] },
+      { "name": "数据表现（干系人映射分析/表现）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "干系人登记册", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  },
+  "p047": {
+    "inputs": [
+      { "name": "项目章程", "tags": ["common"] },
+      { "name": "项目管理计划（资源管理计划、沟通管理计划、风险管理计划）", "tags": ["common"] },
+      { "name": "项目文件（假设日志、变更日志、问题日志、项目进度计划、风险登记册、干系人登记册）", "tags": ["common"] },
+      { "name": "协议", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据收集（标杆对照）", "tags": ["common"] },
+      { "name": "数据分析（假设条件和制约因素分析、根本原因分析）", "tags": ["common"] },
+      { "name": "决策（优先级排序/分级）", "tags": ["common"] },
+      { "name": "数据表现（思维导图、干系人参与度评估矩阵）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "干系人参与计划", "tags": ["core"] }
+    ]
+  },
+  "p048": {
+    "inputs": [
+      { "name": "项目管理计划（沟通管理计划、风险管理计划、干系人参与计划、变更管理计划）", "tags": ["common"] },
+      { "name": "项目文件（变更日志、问题日志、经验教训登记册、干系人登记册）", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "沟通技能（反馈）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（冲突管理、文化意识、谈判、观察/交谈、政治意识）", "tags": ["common"] },
+      { "name": "基本规则", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新（变更日志、问题日志、经验教训登记册、干系人登记册）", "tags": ["core"] }
+    ]
+  },
+  "p049": {
+    "inputs": [
+      { "name": "项目管理计划（沟通管理计划、干系人参与计划）", "tags": ["common"] },
+      { "name": "项目文件（问题日志、经验教训登记册、干系人登记册）", "tags": ["common"] },
+      { "name": "工作绩效数据", "tags": ["common"] },
+      { "name": "事业环境因素", "tags": ["common"] },
+      { "name": "组织过程资产", "tags": ["common"] }
+    ],
+    "toolsAndTechniques": [
+      { "name": "专家判断", "tags": ["common"] },
+      { "name": "数据分析（备选方案分析、根本原因分析、干系人分析）", "tags": ["common"] },
+      { "name": "决策（多标准决策分析、投票）", "tags": ["common"] },
+      { "name": "数据表现（干系人参与度评估矩阵）", "tags": ["common"] },
+      { "name": "沟通技能（反馈、演示）", "tags": ["common"] },
+      { "name": "人际关系与团队技能（积极倾听、文化意识、领导力、人际交往、政治意识）", "tags": ["common"] },
+      { "name": "会议", "tags": ["common"] }
+    ],
+    "outputs": [
+      { "name": "工作绩效信息", "tags": ["core"] },
+      { "name": "变更请求", "tags": ["common"] },
+      { "name": "项目管理计划更新", "tags": ["common"] },
+      { "name": "项目文件更新", "tags": ["common"] }
+    ]
+  }
+}

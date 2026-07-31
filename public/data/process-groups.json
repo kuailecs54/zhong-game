@@ -1,0 +1,7 @@
+[
+  { "id": "initiating", "name": "启动过程组", "shortName": "启动", "color": "#e74c3c" },
+  { "id": "planning", "name": "规划过程组", "shortName": "规划", "color": "#3498db" },
+  { "id": "executing", "name": "执行过程组", "shortName": "执行", "color": "#2ecc71" },
+  { "id": "monitoring_controlling", "name": "监控过程组", "shortName": "监控", "color": "#f39c12" },
+  { "id": "closing", "name": "收尾过程组", "shortName": "收尾", "color": "#9b59b6" }
+]

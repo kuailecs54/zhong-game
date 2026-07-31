@@ -1,0 +1,10 @@
+node_modules
+dist
+.vscode
+.DS_Store
+*.local
+tsconfig.tsbuildinfo
+
+# 浏览器测试/UI 记录，非源码
+.playwright-mcp/
+/*.png

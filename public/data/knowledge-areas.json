@@ -1,0 +1,12 @@
+[
+  { "id": "integration", "name": "项目整合管理", "shortName": "整合" },
+  { "id": "scope", "name": "项目范围管理", "shortName": "范围" },
+  { "id": "schedule", "name": "项目进度管理", "shortName": "进度" },
+  { "id": "cost", "name": "项目成本管理", "shortName": "成本" },
+  { "id": "quality", "name": "项目质量管理", "shortName": "质量" },
+  { "id": "resources", "name": "项目资源管理", "shortName": "资源" },
+  { "id": "communications", "name": "项目沟通管理", "shortName": "沟通" },
+  { "id": "risk", "name": "项目风险管理", "shortName": "风险" },
+  { "id": "procurement", "name": "项目采购管理", "shortName": "采购" },
+  { "id": "stakeholders", "name": "项目相关方管理", "shortName": "相关方" }
+]
