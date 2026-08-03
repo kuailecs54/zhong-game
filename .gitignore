@@ -8,3 +8,6 @@ tsconfig.tsbuildinfo
 # 浏览器测试/UI 记录，非源码
 .playwright-mcp/
 /*.png
+
+# 代码知识图谱索引，非源码
+.codegraph/
