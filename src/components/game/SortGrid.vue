@@ -60,27 +60,30 @@ const colLayerCounts = computed(() => {
   return map
 })
 
-/** 幽灵预览：已有的书→其所在层；新书→下一个空层 */
+/**
+ * 幽灵预览：已有同种书 → 其所在层；新书 → 最低有空位层末尾
+ */
 const ghostPreview = computed(() => {
   if (!props.dragCard) return null
   const map = new Map<string, number>()
+  const capacity = layerCapacityFor(props.unitWidth)
 
   for (const col of props.columns) {
     if (!isPlaceable(col.id)) continue
-    const entries = layerData.value.get(col.id) ?? []
+    const layers = layerData.value.get(col.id) ?? []
 
-    // 查找拖拽卡片是否已在该列的某层中
-    const existingLayer = entries.find(e =>
-      e.spines.some(s => s.process.id === props.dragCard!.id)
+    // 已有同种书 → 其所在层
+    const existingIdx = layers.findIndex(l =>
+      l.spines.some(s => s.process.id === props.dragCard!.id)
     )
-    if (existingLayer) {
-      map.set(col.id, existingLayer.layer)
-    } else {
-      // 新书 → 下一个空层 = 当前去重书种数
-      map.set(col.id, entries.length)
+    if (existingIdx >= 0) {
+      map.set(col.id, existingIdx)
+      continue
     }
+    // 新书 → 最低有空位层；无空位 → 开新层
+    const targetIdx = layers.findIndex(l => l.spines.length < capacity)
+    map.set(col.id, targetIdx >= 0 ? targetIdx : layers.length)
   }
-
   return map
 })
 
