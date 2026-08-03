@@ -99,10 +99,10 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
               :style="{
                 backgroundColor: col.color,
                 zIndex: 3 - idx,
-                transform: `translateX(${idx * 3}px) translateY(${-idx * 2}px)`,
+                transform: `translateY(${-idx * 3}px)`,
               }"
             >
-              <span class="mini-spine__text">{{ proc.shortName }}</span>
+              <span class="mini-spine__text">{{ proc.name }}</span>
               <span v-if="idx === 2 && getCellBooks(col.id, row.id).length > 3" class="mini-spine__more">
                 +{{ getCellBooks(col.id, row.id).length - 3 }}
               </span>
@@ -195,7 +195,7 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   border-top: 3px solid;
   border-left: 3px solid;
   cursor: default;
-  min-height: 36px;
+  min-height: 40px;
   padding: 2px;
   position: relative;
 }
@@ -252,10 +252,8 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
 .mini-spine {
   position: absolute;
   bottom: 2px;
-  left: 50%;
-  width: 14px;
-  height: 80%;
-  margin-left: -7px;
+  left: 4px;
+  right: 4px;
   border-radius: 2px;
   box-shadow:
     1px 0 2px rgba(0, 0, 0, 0.35),
@@ -264,19 +262,18 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  padding: 1px 2px;
 }
 
 .mini-spine__text {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-size: 0.55rem;
+  font-size: 10px;
   font-weight: 700;
   color: #fff;
-  line-height: 1;
-  max-height: 100%;
+  line-height: 1.2;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-all;
+  text-align: center;
+  max-width: 100%;
 }
 
 .mini-spine__more {
@@ -361,10 +358,14 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   }
 
   .matrix-grid-cell {
-    min-height: 28px;
+    min-height: 34px;
     border-width: 1px;
     border-top-width: 2px;
     border-left-width: 2px;
+  }
+
+  .mini-spine__text {
+    font-size: 9px;
   }
 
   .cell-indicator {
@@ -392,13 +393,17 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   }
 
   .matrix-grid-cell {
-    min-height: 24px;
+    min-height: 30px;
+  }
+
+  .mini-spine__text {
+    font-size: 8px;
   }
 }
 
 /* 触摸设备横屏：矩阵格子紧凑 */
 @media (pointer: coarse) and (orientation: landscape) {
   .matrix-grid-cell { padding: 1px; }
-  .matrix-grid-cell .mini-spine__text { font-size: 0.45rem; }
+  .matrix-grid-cell .mini-spine__text { font-size: 0.5rem; }
 }
 </style>

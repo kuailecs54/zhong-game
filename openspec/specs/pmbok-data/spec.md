@@ -26,7 +26,8 @@ The system SHALL define 49 project management processes, each mapped to one proc
 #### Scenario: All 49 processes available
 - **WHEN** the game loads
 - **THEN** all 49 processes from the 4th edition textbook are available
-- **AND** each process has a unique ID, Chinese name, short name, process group association, knowledge area association, and difficulty rating (1-5)
+- **AND** each process has a unique ID, Chinese full name, process group association, knowledge area association, and difficulty rating (1-5)
+- **AND** the data model contains no short-name field; all game interfaces display the full process name
 
 #### Scenario: Matrix position is correct
 - **WHEN** a process is placed in the grid at its correct matrix cell

@@ -179,7 +179,7 @@ interface MergedSpine {
                 :key="si"
                 class="book-spine"
               >
-                <span class="spine-text">{{ spine.process.shortName }}</span>
+                <span class="spine-text">{{ spine.process.name }}</span>
                 <span v-if="spine.count > 1" class="spine-count">×{{ spine.count }}</span>
               </div>
             </template>
@@ -189,7 +189,7 @@ interface MergedSpine {
               v-if="hasGhost(col.id, (colLayerCounts.get(col.id) ?? 1) - layerIdx)"
               class="ghost-spine"
             >
-              <span class="ghost-text">{{ dragCard?.shortName }}</span>
+              <span class="ghost-text">{{ dragCard?.name }}</span>
             </div>
           </div>
         </div>
@@ -378,12 +378,10 @@ interface MergedSpine {
 .spine-text {
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 600;
   color: #f5e6c8;
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
   line-height: 1.1;
   max-height: 100%;
   padding: 2px 0;
@@ -426,11 +424,9 @@ interface MergedSpine {
 .ghost-text {
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  font-size: 10px;
+  font-size: 8px;
   color: rgba(99, 102, 241, 0.6);
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
   max-height: 100%;
   padding: 2px 0;
 }
@@ -481,17 +477,17 @@ interface MergedSpine {
   }
 
   .spine-text {
-    font-size: 9px;
+    font-size: 8px;
   }
 
   .ghost-text {
-    font-size: 8px;
+    font-size: 7px;
   }
 }
 
 /* 触摸设备横屏：书架格子紧凑 */
 @media (pointer: coarse) and (orientation: landscape) {
   .shelf-unit { padding: 2px; }
-  .shelf-unit .spine-text { font-size: 0.68rem; }
+  .shelf-unit .spine-text { font-size: 0.6rem; }
 }
 </style>

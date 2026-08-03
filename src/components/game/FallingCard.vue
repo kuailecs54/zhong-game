@@ -50,7 +50,7 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
 
       <!-- 封面内容 -->
       <div class="cover-content">
-        <span class="cover-title">{{ process.shortName }}</span>
+        <span class="cover-title">{{ process.name }}</span>
       </div>
     </div>
   </div>
@@ -100,8 +100,9 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 72px;
-  padding: 0.5rem 1rem 0.5rem 0.6rem;
+  min-width: 76px;
+  max-width: 110px;
+  padding: 0.45rem 0.7rem 0.45rem 0.55rem;
 }
 
 /* 书口（右侧纸张边缘，浅色细条） */
@@ -138,17 +139,20 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
   text-align: center;
   position: relative;
   z-index: 1;
+  max-width: 100%;
 }
 
 .cover-title {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #fff;
-  line-height: 1.2;
+  line-height: 1.25;
   text-shadow:
     0 1px 3px rgba(0, 0, 0, 0.5),
     0 0 8px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.02em;
+  word-break: break-all;
+  text-align: center;
 }
 
 /* 悬停效果 */
@@ -260,8 +264,9 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
 }
 
 .is-compact .book-cover {
-  padding: 0.25rem 0.55rem 0.25rem 0.4rem;
-  min-width: 52px;
+  padding: 0.2rem 0.5rem 0.2rem 0.35rem;
+  min-width: 56px;
+  max-width: 90px;
 }
 
 .is-compact .book-pages {
@@ -269,7 +274,7 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
 }
 
 .is-compact .cover-title {
-  font-size: 0.7rem;
+  font-size: 0.62rem;
 }
 
 .is-compact .cover-border {
@@ -279,20 +284,22 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
 /* ===== 响应式 ===== */
 @media (max-width: 480px) {
   .book-cover {
-    min-width: 64px;
-    padding: 0.4rem 0.7rem 0.4rem 0.5rem;
+    min-width: 68px;
+    max-width: 100px;
+    padding: 0.35rem 0.6rem 0.35rem 0.45rem;
   }
 
   .cover-title {
-    font-size: 0.72rem;
+    font-size: 0.65rem;
   }
 
   .is-compact .book-cover {
-    min-width: 46px;
+    min-width: 50px;
+    max-width: 80px;
   }
 
   .is-compact .cover-title {
-    font-size: 0.62rem;
+    font-size: 0.56rem;
   }
 }
 </style>

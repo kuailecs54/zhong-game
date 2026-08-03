@@ -90,7 +90,6 @@ export interface KnowledgeArea {
 export interface Process {
   id: string
   name: string
-  shortName: string
   processGroupId: string
   knowledgeAreaId: string
   difficulty: number

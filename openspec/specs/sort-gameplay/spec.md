@@ -102,7 +102,7 @@ The system SHALL display a count badge on matrix cells that have received correc
 
 #### Scenario: Badge shows placed count
 - **WHEN** a card is correctly placed into a matrix cell
-- **THEN** the cell shows the process short name and a count badge (e.g., ×3 when placed 3 times)
+- **THEN** the cell shows the process full name and a count badge (e.g., ×3 when placed 3 times)
 
 #### Scenario: Badge updates on repeat placement
 - **WHEN** the same process is placed into the same matrix cell again
@@ -126,11 +126,11 @@ The system SHALL render falling cards with a book-like appearance.
 
 #### Scenario: Falling card looks like a book
 - **WHEN** a card falls in the game area
-- **THEN** it displays a dark spine on the left, a gradient cover with the process name, and a page-edge detail on the right
+- **THEN** it displays a dark spine on the left, a gradient cover with the full process name, and a page-edge detail on the right
 
 #### Scenario: Compact books on the desk
 - **WHEN** a captured card is shown in the desk tray or the drag ghost
-- **THEN** it keeps the book-like appearance in a smaller compact size
+- **THEN** it keeps the book-like appearance in a smaller compact size and displays the full process name
 
 ### Requirement: 下落卡片捕获反馈
 系统 SHALL 在玩家点击捕获下落卡片时，提供卡片"吸入书桌"的位移动画和视觉反馈。
