@@ -74,6 +74,13 @@ const shelfPanelWidth = computed(() => {
   return `${Math.min(520, Math.max(130, n * 110 + (n - 1) * 8 + 16))}px`
 })
 
+// 每个书架单元的估算宽度（与面板宽度公式同源）
+const shelfUnitWidth = computed(() => {
+  const n = gameStore.columnInfos.length
+  if (n === 0) return 0
+  return Math.round((parseFloat(shelfPanelWidth.value) - 16 - (n - 1) * 8) / n)
+})
+
 // ===== 拖拽状态 =====
 const dragCard = ref<Process | null>(null)
 const dragTrayIndex = ref<number>(-1)
@@ -615,6 +622,7 @@ onUnmounted(() => {
             :dragCard="dragCard"
             :feedback="columnFeedback"
             :highlightTarget="dragHighlightTarget"
+            :unit-width="shelfUnitWidth"
             @place="(colId) => gameStore.placeCard(dragTrayIndex, colId)"
           />
         </aside>
