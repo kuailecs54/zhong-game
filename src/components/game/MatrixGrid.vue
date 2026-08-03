@@ -90,23 +90,12 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
           }"
           @click="emit('place', { rowId: row.id, columnId: col.id })"
         >
-          <!-- 迷你书脊堆叠 -->
-          <div v-if="cellHasBooks(col.id, row.id)" class="mini-spine-stack">
-            <div
-              v-for="(proc, idx) in getCellBooks(col.id, row.id).slice(0, 3)"
-              :key="proc.id + '-' + idx"
-              class="mini-spine"
-              :style="{
-                backgroundColor: col.color,
-                zIndex: 3 - idx,
-                transform: `translateY(${-idx * 3}px)`,
-              }"
-            >
-              <span class="mini-spine__text">{{ proc.name }}</span>
-              <span v-if="idx === 2 && getCellBooks(col.id, row.id).length > 3" class="mini-spine__more">
-                +{{ getCellBooks(col.id, row.id).length - 3 }}
-              </span>
-            </div>
+          <!-- 格内固定宽书脊 + 角标 -->
+          <div v-if="cellHasBooks(col.id, row.id)" class="cell-spine">
+            <span class="cell-spine__text">{{ getCellBooks(col.id, row.id)[0].name }}</span>
+            <span v-if="getCellBooks(col.id, row.id).length > 1" class="cell-spine__count">
+              ×{{ getCellBooks(col.id, row.id).length }}
+            </span>
           </div>
 
           <!-- 空状态指示点 -->
@@ -238,22 +227,12 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   opacity: 0.35;
 }
 
-/* 迷你书脊堆叠 */
-.mini-spine-stack {
+/* 格内固定宽书脊 + 角标 */
+.cell-spine {
   position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  padding: 2px;
-}
-
-.mini-spine {
-  position: absolute;
-  bottom: 2px;
-  left: 4px;
-  right: 4px;
+  width: 14px;
+  height: 88%;
+  background: linear-gradient(180deg, #7c4a24, #a9743f);
   border-radius: 2px;
   box-shadow:
     1px 0 2px rgba(0, 0, 0, 0.35),
@@ -262,31 +241,33 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 1px 2px;
 }
 
-.mini-spine__text {
+.cell-spine__text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
   font-size: 10px;
   font-weight: 700;
   color: #fff;
-  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  max-height: 100%;
+  padding: 2px 0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-  word-break: break-all;
-  text-align: center;
-  max-width: 100%;
 }
 
-.mini-spine__more {
+.cell-spine__count {
   position: absolute;
-  top: 1px;
-  right: 1px;
-  font-size: 0.45rem;
-  font-weight: 800;
-  color: #fde68a;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 0 2px;
-  border-radius: 3px;
-  line-height: 1;
+  top: -3px;
+  right: -3px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 0 3px;
+  border-radius: 6px;
+  line-height: 1.2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* 正确反馈 */
@@ -364,7 +345,7 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
     border-left-width: 2px;
   }
 
-  .mini-spine__text {
+  .cell-spine__text {
     font-size: 9px;
   }
 
@@ -396,7 +377,7 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
     min-height: 30px;
   }
 
-  .mini-spine__text {
+  .cell-spine__text {
     font-size: 8px;
   }
 }
@@ -404,6 +385,6 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
 /* 触摸设备横屏：矩阵格子紧凑 */
 @media (pointer: coarse) and (orientation: landscape) {
   .matrix-grid-cell { padding: 1px; }
-  .matrix-grid-cell .mini-spine__text { font-size: 0.5rem; }
+  .matrix-grid-cell .cell-spine__text { font-size: 0.5rem; }
 }
 </style>
