@@ -2,159 +2,159 @@
 
 ## Purpose
 
-Defines the core sort-game loop: falling cards, capture, placement into target grids, lives, combo, power-ups, scoring, and level completion.
+定义核心归类游戏循环：下落卡片、捕获、放置到目标格子、生命、连击、道具、计分和关卡完成。
 ## Requirements
-### Requirement: Card falling mechanics
-The system SHALL display process name cards that fall from the top of the game area at a speed defined by the current level.
+### Requirement: 卡片下落机制
+系统 SHALL 以当前关卡定义的速度，从游戏区域顶部显示下落的过程名称卡片。
 
-#### Scenario: Cards spawn at top and fall downward
-- **WHEN** a sort level is active
-- **THEN** cards spawn at random horizontal positions at the top of the game area
-- **AND** each card falls downward at a constant speed
+#### Scenario: 卡片在顶部生成并向下下落
+- **WHEN** 归类关卡进行中
+- **THEN** 卡片在游戏区域顶部的随机水平位置生成
+- **AND** 每张卡片以恒定速度向下下落
 
-#### Scenario: Card reaches bottom
-- **WHEN** a card falls past the bottom of the game area without being captured
-- **THEN** the player loses one life
-- **AND** the card is removed from play
+#### Scenario: 卡片到达底部
+- **WHEN** 一张卡片未被捕获并下落越过游戏区域底部
+- **THEN** 玩家损失一条生命
+- **AND** 该卡片从游戏中移除
 
-### Requirement: Card placement in grid
-The system SHALL allow the player to place a captured card into a target grid cell.
+### Requirement: 卡片格子放置
+系统 SHALL 允许玩家将捕获的卡片放置到目标格子中。
 
-#### Scenario: Place correct card
-- **WHEN** the player clicks a card in the capture tray and then clicks a grid cell that matches the card's process group (and knowledge area for matrix levels)
-- **THEN** the card is removed from the tray
-- **AND** score is awarded
-- **AND** a success animation plays
-- **AND** the placed card is added to the bookshelf (columns layout) or to the matrix cell count badge (matrix layout)
+#### Scenario: 正确放置卡片
+- **WHEN** 玩家点击捕获托盘中的卡片，然后点击与卡片过程组匹配的格子（矩阵关卡还需匹配知识领域）
+- **THEN** 卡片从托盘中移除
+- **AND** 获得得分
+- **AND** 播放成功动画
+- **AND** 已放置的卡片被添加到书架（列布局）或矩阵格子计数徽章（矩阵布局）
 
-#### Scenario: Place wrong card
-- **WHEN** the player clicks a card in the capture tray and then clicks an incorrect grid cell
-- **THEN** the card returns to the capture tray
-- **AND** points are deducted
-- **AND** the combo counter resets to 0
-- **AND** a failure animation plays
+#### Scenario: 错误放置卡片
+- **WHEN** 玩家点击捕获托盘中的卡片，然后点击错误的格子
+- **THEN** 卡片返回捕获托盘
+- **AND** 扣除分数
+- **AND** 连击计数重置为 0
+- **AND** 播放失败动画
 
-### Requirement: Lives system
-The system SHALL track the player's remaining lives and end the level when lives reach zero.
+### Requirement: 生命系统
+系统 SHALL 跟踪玩家剩余的生命数，并在生命归零时结束关卡。
 
-#### Scenario: Start with 3 lives
-- **WHEN** a level begins
-- **THEN** the player has 3 lives
+#### Scenario: 初始 3 条生命
+- **WHEN** 关卡开始
+- **THEN** 玩家拥有 3 条生命
 
-#### Scenario: Lose all lives
-- **WHEN** the player's last life is lost
-- **THEN** the level ends in failure
-- **AND** a failure screen is shown with option to retry
+#### Scenario: 生命耗尽
+- **WHEN** 玩家失去最后一条生命
+- **THEN** 关卡以失败结束
+- **AND** 显示失败界面并提供重试选项
 
-### Requirement: Combo system
-The system SHALL track consecutive correct placements and award score multipliers.
+### Requirement: 连击系统
+系统 SHALL 跟踪连续正确放置的次数并给予得分倍率奖励。
 
-#### Scenario: Combo increases on correct placement
-- **WHEN** the player correctly places a card
-- **THEN** the combo counter increments by 1
-- **AND** the score multiplier increases (capped at x5)
+#### Scenario: 正确放置增加连击
+- **WHEN** 玩家正确放置一张卡片
+- **THEN** 连击计数加 1
+- **AND** 得分倍率提高（上限 x5）
 
-#### Scenario: Combo resets on wrong placement
-- **WHEN** the player places a card incorrectly
-- **THEN** the combo counter resets to 0
-- **AND** the score multiplier resets to x1
+#### Scenario: 错误放置重置连击
+- **WHEN** 玩家错误放置一张卡片
+- **THEN** 连击计数重置为 0
+- **AND** 得分倍率重置为 x1
 
-### Requirement: Power-ups
-The system SHALL provide power-ups that the player can use during a level.
+### Requirement: 道具系统
+系统 SHALL 提供玩家在关卡中可使用的道具。
 
-#### Scenario: Freeze power-up
-- **WHEN** the player activates the freeze power-up
-- **THEN** all falling cards pause for 3 seconds
-- **AND** the power-up is consumed
+#### Scenario: 冰冻道具
+- **WHEN** 玩家激活冰冻道具
+- **THEN** 所有下落卡片暂停 3 秒
+- **AND** 该道具被消耗
 
-#### Scenario: Power-up availability
-- **WHEN** a level starts
-- **THEN** the player has 1 freeze power-up available
+#### Scenario: 道具可用性
+- **WHEN** 关卡开始
+- **THEN** 玩家拥有 1 个冰冻道具可用
 
-### Requirement: Scoring
-The system SHALL calculate scores based on correct placements and combo multipliers.
+### Requirement: 计分机制
+系统 SHALL 根据正确放置和连击倍率计算得分。
 
-#### Scenario: Base score with combo
-- **WHEN** a card is correctly placed
-- **THEN** the score increases by 100 × current combo multiplier (minimum x1, maximum x5)
+#### Scenario: 含连击的基础得分
+- **WHEN** 一张卡片被正确放置
+- **THEN** 得分增加 100 × 当前连击倍率（最低 x1，最高 x5）
 
-#### Scenario: Penalty for wrong placement
-- **WHEN** a card is placed incorrectly
-- **THEN** 50 points are deducted from the score
-- **AND** the score cannot go below 0
+#### Scenario: 错误放置扣分
+- **WHEN** 一张卡片被错误放置
+- **THEN** 从得分中扣除 50 分
+- **AND** 得分不能低于 0
 
-### Requirement: Level completion
-The system SHALL track the number of correctly placed cards and complete the level when the target is reached.
+### Requirement: 关卡完成
+系统 SHALL 跟踪正确放置的卡片数量，并在达到目标时完成关卡。
 
-#### Scenario: Reach target correct count
-- **WHEN** the player correctly places the target number of cards
-- **THEN** the level ends successfully
-- **AND** a results screen shows the final score, accuracy, and star rating
+#### Scenario: 达到目标正确数
+- **WHEN** 玩家正确放置目标数量的卡片
+- **THEN** 关卡成功结束
+- **AND** 结算界面显示最终得分、准确率和星级
 
-#### Scenario: Star rating based on performance
-- **WHEN** a level is completed successfully
-- **THEN** 1 star is awarded for completing the level
-- **AND** 2 stars are awarded if accuracy >= 80%
-- **AND** 3 stars are awarded if accuracy is 100% and at least 2 lives remain
+#### Scenario: 基于表现的星级评定
+- **WHEN** 关卡成功完成
+- **THEN** 完成关卡获得 1 星
+- **AND** 准确率 >= 80% 时获得 2 星
+- **AND** 准确率达到 100% 且剩余至少 2 条生命时获得 3 星
 
-### Requirement: Matrix cell placement badges
-The system SHALL display a fixed-width book spine with a count badge on matrix cells that have received correctly placed cards.
+### Requirement: 矩阵格子放置计数徽章
+系统 SHALL 在收到正确放置卡片的矩阵格子上，显示固定宽度的书脊和计数徽章。
 
-#### Scenario: Cell shows book spine and count
-- **WHEN** a card is correctly placed into a matrix cell
-- **THEN** the cell shows one fixed-width book spine with the process full name
-- **AND** the book spine shows a count badge (e.g., ×3) when the process has been placed more than once
+#### Scenario: 格子显示书脊和计数
+- **WHEN** 一张卡片被正确放置到矩阵格子
+- **THEN** 该格子显示一根固定宽度的书脊，带过程全名
+- **AND** 当该过程被放置超过一次时，书脊显示计数徽章（如 ×3）
 
-#### Scenario: Badge updates on repeat placement
-- **WHEN** the same process is placed into the same matrix cell again
-- **THEN** the single book spine remains fixed width
-- **AND** the count badge increases by one
+#### Scenario: 重复放置时徽章更新
+- **WHEN** 同一过程再次放置到同一矩阵格子
+- **THEN** 单一书脊保持固定宽度
+- **AND** 计数徽章加 1
 
-#### Scenario: Spine text stays on a single unwrapped column
-- **WHEN** a matrix cell book spine displays its process name
-- **THEN** the name is rendered vertically on a single unwrapped column
-- **AND** the cell height accommodates the longest process full name (up to 9 characters, e.g., "指导与管理项目工作") so the name displays completely without truncation
+#### Scenario: 书脊文字保持单列不换行
+- **WHEN** 矩阵格子书脊显示其过程名称
+- **THEN** 名称在单一不换行列中垂直渲染
+- **AND** 格子高度容纳最长的过程全名（最多 9 个字符，如"指导与管理项目工作"），使名称完整显示不被截断
 
-### Requirement: Matrix grid headers display full names
-The system SHALL display complete textbook full names for matrix grid row headers (knowledge areas, up to 7 characters such as "项目干系人管理") and column headers (process groups) at any viewport width, without ellipsis truncation.
+### Requirement: 矩阵网格表头显示全名
+系统 SHALL 在任何视口宽度下，为矩阵网格行表头（知识领域，最长 7 个字符，如"项目干系人管理"）和列表头（过程组）显示完整的课本全名，不使用省略号截断。
 
-#### Scenario: Row headers show full knowledge area names
-- **WHEN** a matrix level is active (including the full 5×10 grid)
-- **THEN** every row header displays the complete knowledge area name (e.g., "项目整合管理", "项目干系人管理")
-- **AND** no row header text is truncated with ellipsis
+#### Scenario: 行表头显示完整知识领域名称
+- **WHEN** 矩阵关卡进行中（包括完整 5×10 网格）
+- **THEN** 每个行表头显示完整的知识领域名称（如"项目整合管理"、"项目干系人管理"）
+- **AND** 任何行表头文字都不被省略号截断
 
-#### Scenario: Column headers show full process group names
-- **WHEN** a matrix level is active
-- **THEN** every column header displays the complete process group name (e.g., "启动过程组", "监控过程组")
-- **AND** no column header text is truncated or clipped by the scroll container edge
+#### Scenario: 列表头显示完整过程组名称
+- **WHEN** 矩阵关卡进行中
+- **THEN** 每个列表头显示完整的过程组名称（如"启动过程组"、"监控过程组"）
+- **AND** 任何列表头文字都不被截断或被滚动容器边缘裁剪
 
-#### Scenario: Falling card titles wrap without hard character breaks
-- **WHEN** a falling card displays a long process full name (8–9 characters, e.g., "实施定量风险分析", "指导与管理项目工作")
-- **THEN** the title is fully visible, wrapping by word/punctuation boundaries rather than hard character breaks
+#### Scenario: 下落卡片标题按语义换行不硬断字
+- **WHEN** 下落卡片显示较长的过程全名（8–9 个字符，如"实施定量风险分析"、"指导与管理项目工作"）
+- **THEN** 标题完整可见，按词/标点边界换行而非硬性断字
 
-### Requirement: Card capture by press
-The system SHALL allow the player to capture a falling card by pressing on it, with an extended hit area.
+### Requirement: 按压捕获卡片
+系统 SHALL 允许玩家通过按压下落卡片来捕获它，并带扩展命中区域。
 
-#### Scenario: Press captures card
-- **WHEN** the player presses (pointerdown) on a falling card or within its extended hit area
-- **THEN** the card is removed from the falling area
-- **AND** the card appears in the capture tray (待放置区)
+#### Scenario: 按压捕获卡片
+- **WHEN** 玩家按压（pointerdown）下落卡片或其扩展命中区域
+- **THEN** 卡片从下落区域移除
+- **AND** 卡片出现在捕获托盘（待放置区）中
 
-#### Scenario: Capture tray capacity
-- **WHEN** the capture tray already contains 3 cards and the player presses another falling card
-- **THEN** the press has no effect (card continues falling)
-- **AND** a visual indicator shows the tray is full
+#### Scenario: 捕获托盘容量
+- **WHEN** 捕获托盘已包含 3 张卡片且玩家按压另一张下落卡片
+- **THEN** 按压无效（卡片继续下落）
+- **AND** 显示托盘已满的视觉提示
 
-### Requirement: Falling cards rendered as books
-The system SHALL render falling cards with a book-like appearance.
+### Requirement: 下落卡片渲染为书本
+系统 SHALL 将下落卡片渲染为书本外观。
 
-#### Scenario: Falling card looks like a book
-- **WHEN** a card falls in the game area
-- **THEN** it displays a dark spine on the left, a gradient cover with the full process name, and a page-edge detail on the right
+#### Scenario: 下落卡片呈现书本外观
+- **WHEN** 卡片在游戏区域下落
+- **THEN** 左侧显示深色书脊，封面为带完整过程名称的渐变，右侧显示页边细节
 
-#### Scenario: Compact books on the desk
-- **WHEN** a captured card is shown in the desk tray or the drag ghost
-- **THEN** it keeps the book-like appearance in a smaller compact size and displays the full process name
+#### Scenario: 书桌上的紧凑书本
+- **WHEN** 捕获的卡片显示在书桌托盘或拖拽幽灵中
+- **THEN** 以更小的紧凑尺寸保持书本外观，并显示完整过程名称
 
 ### Requirement: 下落卡片捕获反馈
 系统 SHALL 在玩家点击捕获下落卡片时，提供卡片"吸入书桌"的位移动画和视觉反馈。

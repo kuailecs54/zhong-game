@@ -2,67 +2,67 @@
 
 ## Purpose
 
-Defines the level structure, unlocking rules, per-level configuration, star persistence, and in-level difficulty progression for the game.
+定义游戏的关卡结构、解锁规则、每关配置、星级持久化以及关卡内的难度递进。
 
 ## Requirements
 
-### Requirement: Level structure
-The system SHALL provide 12 sort levels organized in 4 stages of increasing difficulty.
+### Requirement: 关卡结构
+系统 SHALL 提供 12 个归类关卡，分为 4 个难度递增的阶段。
 
-#### Scenario: Four stages of levels
-- **WHEN** the player views the level selection screen
-- **THEN** 4 stages are displayed
-- **AND** each stage contains 3 levels
+#### Scenario: 四个阶段
+- **WHEN** 玩家查看选关界面
+- **THEN** 显示 4 个阶段
+- **AND** 每个阶段包含 3 个关卡
 
-#### Scenario: Stage progression
-- **WHEN** the player has not completed the previous stage
-- **THEN** subsequent stages are locked and cannot be accessed
+#### Scenario: 阶段递进
+- **WHEN** 玩家尚未完成前一阶段
+- **THEN** 后续阶段被锁定且无法进入
 
-### Requirement: Level unlocking
-The system SHALL unlock the next level when the current level is completed with at least 1 star.
+### Requirement: 关卡解锁
+系统 SHALL 在当前关卡以至少 1 星完成时解锁下一关。
 
-#### Scenario: Complete level unlocks next
-- **WHEN** the player completes a level with at least 1 star
-- **THEN** the next level in the same stage becomes playable
-- **AND** if it was the last level of a stage, the first level of the next stage becomes playable
+#### Scenario: 完成关卡解锁下一关
+- **WHEN** 玩家以至少 1 星完成一个关卡
+- **THEN** 同阶段的下一个关卡变为可玩
+- **AND** 如果该关卡是阶段最后一关，则下一阶段的第一个关卡变为可玩
 
-#### Scenario: Initial state
-- **WHEN** a new player first views level selection
-- **THEN** only level 1-1 is unlocked
-- **AND** all other levels are locked
+#### Scenario: 初始状态
+- **WHEN** 新玩家首次查看选关界面
+- **THEN** 仅关卡 1-1 已解锁
+- **AND** 所有其他关卡处于锁定状态
 
-### Requirement: Level configuration
-Each level SHALL define its layout, card pool, difficulty parameters, and goals.
+### Requirement: 关卡配置
+系统 SHALL 为每个关卡定义布局、卡池、难度参数和目标。
 
-#### Scenario: Column-based layout
-- **WHEN** a level uses column layout (stages 1-3)
-- **THEN** the grid consists of multiple vertical columns
-- **AND** each column represents a process group or knowledge area
-- **AND** cards must be placed into the correct column
+#### Scenario: 列布局
+- **WHEN** 关卡使用列布局（第 1-3 阶段）
+- **THEN** 网格由多个垂直列组成
+- **AND** 每列代表一个过程组或知识领域
+- **AND** 卡片必须放置到正确的列
 
-#### Scenario: Matrix layout
-- **WHEN** a level uses matrix layout (stage 4)
-- **THEN** the grid is a 2D matrix with rows as knowledge areas and columns as process groups
-- **AND** cards must be placed into the correct cell (row + column intersection)
+#### Scenario: 矩阵布局
+- **WHEN** 关卡使用矩阵布局（第 4 阶段）
+- **THEN** 网格为二维矩阵，行为知识领域、列为过程组
+- **AND** 卡片必须放置到正确的格子（行与列交叉处）
 
-### Requirement: Star persistence
-The system SHALL save the best star rating for each level.
+### Requirement: 星级持久化
+系统 SHALL 保存每个关卡的最佳星级。
 
-#### Scenario: Stars saved on completion
-- **WHEN** the player completes a level
-- **THEN** the star rating is saved to localStorage if it's better than the previous best
+#### Scenario: 完成时保存星级
+- **WHEN** 玩家完成一个关卡
+- **THEN** 如果星级优于之前的最佳成绩，则保存到 localStorage
 
-#### Scenario: Stars displayed on level select
-- **WHEN** the player views the level selection screen
-- **THEN** each unlocked level shows its best star rating (0-3 stars)
+#### Scenario: 选关界面显示星级
+- **WHEN** 玩家查看选关界面
+- **THEN** 每个已解锁关卡显示其最佳星级（0-3 星）
 
-### Requirement: Difficulty progression within levels
-The system SHALL increase spawn rate and fall speed as the level progresses.
+### Requirement: 关卡内难度递进
+系统 SHALL 随关卡推进提高生成速率和下落速度。
 
-#### Scenario: Speed increases during level
-- **WHEN** the player has correctly placed 2/3 of the target cards
-- **THEN** the fall speed increases
-- **AND** the spawn interval decreases
+#### Scenario: 关卡进行中速度提高
+- **WHEN** 玩家已正确放置目标卡片的 2/3
+- **THEN** 下落速度提高
+- **AND** 生成间隔缩短
 
 ### Requirement: 选关卡片视觉增强
 系统 SHALL 为选关页的关卡卡片提供更丰富的视觉层次，包括阶段色条、星级渐变、悬停动效。

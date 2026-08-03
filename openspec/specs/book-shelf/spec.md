@@ -2,100 +2,99 @@
 
 ## Purpose
 
-Defines the multi-layer bookshelf presentation and interaction: accumulation of correctly placed books, merging of same-name books with count badges, capacity-based layer planning, placement targeting, and preview.
+定义多层书架的呈现与交互：正确放置书本的累积、同名书本合并与计数徽章、基于容量的分层规划、放置目标与预览。
 ## Requirements
-### Requirement: Book accumulation on shelf
-The system SHALL accumulate correctly placed cards as books on the bookshelf.
+### Requirement: 书架书本累积
+系统 SHALL 将正确放置的卡片作为书本累积在书架上。
 
-#### Scenario: Correct placement adds book
-- **WHEN** the player correctly places a card into a shelf column
-- **THEN** a book representing that process appears in that column's section on the shelf
-- **AND** the book remains on the shelf for the rest of the level
+#### Scenario: 正确放置新增书本
+- **WHEN** 玩家将卡片正确放置到书架列
+- **THEN** 代表该过程的书本出现在书架该列的分区中
+- **AND** 该书本在关卡剩余时间内保留在书架上
 
-#### Scenario: Wrong placement does not add book
-- **WHEN** the player places a card into an incorrect column
-- **THEN** no book is added to the shelf
+#### Scenario: 错误放置不新增书本
+- **WHEN** 玩家将卡片放置到错误的列
+- **THEN** 书架不新增书本
 
-### Requirement: Same-name books merge with count badge
-The system SHALL merge repeated placements of the same process in the same column into a single book with a count badge, keeping the book spine at a fixed width.
+### Requirement: 同名书本合并与计数徽章
+系统 SHALL 将同一列中同一过程的重复放置合并为带计数徽章的单一书本，并保持书脊固定宽度。
 
-#### Scenario: Repeated placement shows count badge
-- **WHEN** the same process is placed in the same column multiple times
-- **THEN** the books merge into one book spine of fixed width (does not thicken with additional placements)
-- **AND** the book shows a count badge (e.g., ×5) when placed more than once
+#### Scenario: 重复放置显示计数徽章
+- **WHEN** 同一过程在同一列被放置多次
+- **THEN** 书本合并为一根固定宽度的书脊（不因额外放置而变厚）
+- **AND** 放置超过一次时书本显示计数徽章（如 ×5）
 
-### Requirement: Bookshelf placement layout
-The system SHALL position the bookshelf in a dedicated space to the right of the game area.
+### Requirement: 书架放置布局
+系统 SHALL 将书架放置在游戏区域右侧的专属空间中。
 
-#### Scenario: Bookshelf on the right side
-- **WHEN** a columns-layout level is active
-- **THEN** the bookshelf is displayed in an independent panel to the right of the game area
-- **AND** the game area bottom shows no grid
-- **AND** the desk is the only element below the game area
+#### Scenario: 书架位于右侧
+- **WHEN** 列布局关卡进行中
+- **THEN** 书架显示在游戏区域右侧的独立面板中
+- **AND** 游戏区域底部不显示网格
+- **AND** 书桌是游戏区域下方唯一的元素
 
-### Requirement: Multi-layer bookshelf with per-book-type layers
-The system SHALL lay out each column's books side by side on a single layer, and automatically add a new layer above only when the current layer is full.
+### Requirement: 按书本类型分层的多层书架
+系统 SHALL 将每列的书本并排排布在单一层上，仅当当前层已满时才自动在上方新增一层。
 
-#### Scenario: Books stand side by side on one layer
-- **WHEN** books of different processes are placed in a column
-- **THEN** each distinct process renders as one upright spine, placed side by side from left to right on the same layer
-- **AND** the layer is filled from bottom upward (new books enter the lowest layer that has space)
+#### Scenario: 书本在同一层并排站立
+- **WHEN** 不同过程的书本被放置到同一列
+- **THEN** 每个不同的过程渲染为一根竖立书脊，在同一层上从左到右并排排列
+- **AND** 层从下往上填充（新书进入有空间的最底层）
 
-#### Scenario: Single-layer priority
-- **WHEN** the number of distinct book types in a column fits within the layer capacity
-- **THEN** all books render on a single layer
+#### Scenario: 单层优先
+- **WHEN** 一列中不同书本类型的数量在层容量范围内
+- **THEN** 所有书本渲染在单层上
 
-#### Scenario: Automatic new layer when full
-- **WHEN** the number of distinct book types exceeds the current layer capacity
-- **THEN** an additional layer is added above the full layer
-- **AND** no empty planned layers are rendered before they are needed
+#### Scenario: 层满时自动新增
+- **WHEN** 不同书本类型的数量超过当前层容量
+- **THEN** 在已满层上方新增一层
+- **AND** 在需要之前不渲染空的预留层
 
-#### Scenario: Layer capacity from unit width
-- **WHEN** a column's books are laid out
-- **THEN** the layer capacity is computed from the unit width and the fixed spine width (default 20px, min 14px on narrow units)
+#### Scenario: 层容量由单位宽度决定
+- **WHEN** 一列的书本进行排布
+- **THEN** 层容量根据单位宽度和固定书脊宽度计算（默认 20px，窄单位最小 14px）
 
-### Requirement: Placement by drag and drop
-The system SHALL support placing a tray card by dragging it from the desk onto a shelf column and highlight only applicable columns.
+### Requirement: 拖拽放置
+系统 SHALL 支持将托盘卡片从书桌拖拽到书架列上放置，并仅高亮可放置的列。
 
-#### Scenario: Drag and drop places card
-- **WHEN** the player drags a tray card from the desk and releases it over a matching shelf column
-- **THEN** the card is placed in that column
-- **AND** correct/wrong feedback plays on the section
+#### Scenario: 拖拽放置卡片
+- **WHEN** 玩家从书桌拖拽托盘卡片并在匹配的书架列上释放
+- **THEN** 卡片放置到该列
+- **AND** 在该分区播放正确/错误反馈
 
-#### Scenario: Only applicable columns highlighted
-- **WHEN** the player drags a tray card
-- **THEN** only columns matching the card's process group (or knowledge area) are highlighted as placeable
-- **AND** a dashed ghost preview book appears on the layer where the card would be placed
+#### Scenario: 仅高亮可放置的列
+- **WHEN** 玩家拖拽托盘卡片
+- **THEN** 仅与卡片过程组（或知识领域）匹配的列被高亮为可放置
+- **AND** 虚线幽灵预览书出现在卡片将被放置的层上
 
-#### Scenario: Drop near a shelf column snaps to the nearest column
-- **WHEN** the player releases the dragged card within the bookshelf panel but outside any column section
-- **THEN** the card is placed into the nearest column by distance
+#### Scenario: 在书架列附近释放时吸附到最近列
+- **WHEN** 玩家在书架面板内但在任何列分区之外释放拖拽的卡片
+- **THEN** 卡片按距离放置到最近的列
 
-#### Scenario: Failed drop shows a hint
-- **WHEN** the player releases the dragged card outside the bookshelf panel, or during an active feedback window
-- **THEN** no card is placed
-- **AND** the desk shows a brief hint prompting the player to drop onto a matching shelf
+#### Scenario: 放置失败显示提示
+- **WHEN** 玩家在书架面板外释放拖拽的卡片，或在反馈动画进行期间释放
+- **THEN** 不放置任何卡片
+- **AND** 书桌显示简短提示，引导玩家拖放到匹配的书架上
 
-### Requirement: Book spine display
-The system SHALL display shelved books as upright spines with vertical process names on a single unwrapped column.
+### Requirement: 书脊显示
+系统 SHALL 将已上架书本显示为竖直书脊，在单一不换行列中垂直显示过程名称。
 
-#### Scenario: Books stand upright
-- **WHEN** books are placed on the shelf
-- **THEN** each book renders as a tall narrow spine filling its layer height
+#### Scenario: 书本竖立
+- **WHEN** 书本放置到书架
+- **THEN** 每本书渲染为填满其层高的高窄书脊
 
-#### Scenario: Spine text reads top-to-bottom without wrapping
-- **WHEN** a book spine displays its process name
-- **THEN** the name is rendered vertically, reading from top to bottom without rotation
-- **AND** the name stays on a single unwrapped column, truncated if it exceeds the layer height
+#### Scenario: 书脊文字从上到下且不换行
+- **WHEN** 书脊显示其过程名称
+- **THEN** 名称垂直渲染，从上到下阅读，不旋转
+- **AND** 名称保持在单一不换行列中，超过层高时截断
 
-### Requirement: Ghost preview follows layer layout
-The system SHALL place the drag ghost preview according to the capacity-based layer layout.
+### Requirement: 幽灵预览遵循分层布局
+系统 SHALL 按照基于容量的分层布局放置拖拽幽灵预览。
 
-#### Scenario: Ghost preview next to existing same-process book
-- **WHEN** the player drags a card whose process is already placed in the column
-- **THEN** the ghost preview appears directly after that book spine on its layer
+#### Scenario: 幽灵预览位于已放置的同过程书本旁
+- **WHEN** 玩家拖拽一张其过程已在该列放置的卡片
+- **THEN** 幽灵预览出现在该书脊在其层上的紧邻位置
 
-#### Scenario: Ghost preview at end of lowest free layer
-- **WHEN** the player drags a card of a new process for the column
-- **THEN** the ghost preview appears at the end of the lowest layer that has space
-
+#### Scenario: 幽灵预览位于最低可用层末尾
+- **WHEN** 玩家拖拽一张该列的新过程卡片
+- **THEN** 幽灵预览出现在有空间的最底层末尾

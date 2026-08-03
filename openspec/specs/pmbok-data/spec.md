@@ -2,61 +2,61 @@
 
 ## Purpose
 
-Defines the project management knowledge data (process groups, knowledge areas, processes, and ITTO) loaded by the game at runtime.
+定义游戏运行时加载的项目管理知识数据（过程组、知识领域、过程和 ITTO）。
 
 ## Requirements
 
-### Requirement: Process group data
-The system SHALL define 5 project management process groups with Chinese names and colors.
+### Requirement: 过程组数据
+系统 SHALL 定义 5 个项目管理过程组，包含中文名称和颜色。
 
-#### Scenario: All 5 process groups available
-- **WHEN** the game loads
-- **THEN** data for all 5 process groups is available: 启动过程组, 规划过程组, 执行过程组, 监控过程组, 收尾过程组
+#### Scenario: 全部 5 个过程组可用
+- **WHEN** 游戏加载
+- **THEN** 全部 5 个过程组的数据可用：启动过程组、规划过程组、执行过程组、监控过程组、收尾过程组
 
-### Requirement: Knowledge area data
-The system SHALL define 10 project management knowledge areas with Chinese names.
+### Requirement: 知识领域数据
+系统 SHALL 定义 10 个项目管理知识领域，包含中文名称。
 
-#### Scenario: All 10 knowledge areas available
-- **WHEN** the game loads
-- **THEN** data for all 10 knowledge areas is available: 整合, 范围, 进度, 成本, 质量, 资源, 沟通, 风险, 采购, 干系人
+#### Scenario: 全部 10 个知识领域可用
+- **WHEN** 游戏加载
+- **THEN** 全部 10 个知识领域的数据可用：整合、范围、进度、成本、质量、资源、沟通、风险、采购、干系人
 
-### Requirement: Process data
-The system SHALL define 49 project management processes, each mapped to one process group and one knowledge area.
+### Requirement: 过程数据
+系统 SHALL 定义 49 个项目管理过程，每个过程映射到一个过程组和一个知识领域。
 
-#### Scenario: All 49 processes available
-- **WHEN** the game loads
-- **THEN** all 49 processes from the 4th edition textbook are available
-- **AND** each process has a unique ID, Chinese full name, process group association, knowledge area association, and difficulty rating (1-5)
-- **AND** the data model contains no short-name field; all game interfaces display the full process name
+#### Scenario: 全部 49 个过程可用
+- **WHEN** 游戏加载
+- **THEN** 第 4 版教材的全部 49 个过程可用
+- **AND** 每个过程有唯一的 ID、中文全名、过程组关联、知识领域关联和难度评级（1-5）
+- **AND** 数据模型不包含简称字段；所有游戏界面显示过程全名
 
-#### Scenario: Matrix position is correct
-- **WHEN** a process is placed in the grid at its correct matrix cell
-- **THEN** the cell at the intersection of its process group column and knowledge area row is the correct position
+#### Scenario: 矩阵位置正确
+- **WHEN** 过程被放置到网格中其正确的矩阵格子
+- **THEN** 其过程组列与知识领域行交叉处的格子即为正确位置
 
-#### Scenario: Process names use textbook terminology
-- **WHEN** the game loads
-- **THEN** all process names follow the 4th edition textbook terminology and do not introduce words absent from the textbook
-- **AND** the stakeholder knowledge area processes are named 识别干系人, 规划干系人参与, 管理干系人参与, 监督干系人参与
-- **AND** the plan-type processes are named 制定项目管理计划 and 制定进度计划 (using 制定)
-- **AND** the risk response process is named 实施风险应对措施
-- **AND** the processes 制定项目章程 and 制定预算 keep 制定 as the textbook does
+#### Scenario: 过程名称使用教材术语
+- **WHEN** 游戏加载
+- **THEN** 所有过程名称遵循第 4 版教材术语，不引入教材中不存在的用词
+- **AND** 干系人知识领域的过程命名为识别干系人、规划干系人参与、管理干系人参与、监督干系人参与
+- **AND** 计划类过程命名为制定项目管理计划和制定进度计划（使用制定）
+- **AND** 风险应对过程命名为实施风险应对措施
+- **AND** 过程制定项目章程和制定预算按教材保留制定
 
-### Requirement: ITTO data
-The system SHALL store Inputs, Tools & Techniques, and Outputs (ITTO) for each process as a foundation for future game modes.
+### Requirement: ITTO 数据
+系统 SHALL 为每个过程存储 Inputs、Tools & Techniques 和 Outputs（ITTO），作为未来游戏模式的基础。
 
-#### Scenario: ITTO data structure
-- **WHEN** ITTO data is loaded
-- **THEN** each process has arrays for inputs, toolsAndTechniques, and outputs
-- **AND** each item has a name and optional tags (e.g., "core" for process-specific items, "common" for frequently appearing items)
+#### Scenario: ITTO 数据结构
+- **WHEN** ITTO 数据加载
+- **THEN** 每个过程拥有 inputs、toolsAndTechniques 和 outputs 数组
+- **AND** 每个条目有名称和可选标签（如过程专有条目标记为 "core"，常见条目标记为 "common"）
 
-### Requirement: Data loading
-The system SHALL load game data from JSON files at runtime.
+### Requirement: 数据加载
+系统 SHALL 在运行时从 JSON 文件加载游戏数据。
 
-#### Scenario: Initial data load
-- **WHEN** the game starts
-- **THEN** process groups, knowledge areas, processes, and level configurations are loaded
-- **AND** ITTO data is loaded only when needed by game modes that use it
+#### Scenario: 初始数据加载
+- **WHEN** 游戏启动
+- **THEN** 过程组、知识领域、过程和关卡配置被加载
+- **AND** ITTO 数据仅在需要使用它的游戏模式需要时加载
 
-#### Scenario: Data integrity
-- **WHEN** data is loaded
-- **THEN** every process references a valid process group ID and a valid knowledge area ID
+#### Scenario: 数据完整性
+- **WHEN** 数据加载
+- **THEN** 每个过程都引用有效的过程组 ID 和有效的知识领域 ID

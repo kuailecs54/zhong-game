@@ -2,37 +2,37 @@
 
 ## Purpose
 
-Defines username entry on first visit and persistent user profile (username and progress) stored in localStorage.
+定义首次访问时的用户名输入，以及存储在 localStorage 中的持久化用户资料（用户名和进度）。
 
 ## Requirements
 
-### Requirement: Username entry on first visit
-The system SHALL require the user to enter a username on their first visit before accessing any game content.
+### Requirement: 首次访问的用户名输入
+系统 SHALL 要求用户在首次访问时、访问任何游戏内容之前输入用户名。
 
-#### Scenario: First visit shows username entry
-- **WHEN** a user opens the game for the first time (no username stored in localStorage)
-- **THEN** the username entry screen is displayed
+#### Scenario: 首次访问显示用户名输入
+- **WHEN** 用户首次打开游戏（localStorage 中未存储用户名）
+- **THEN** 显示用户名输入界面
 
-#### Scenario: Username cannot be empty
-- **WHEN** the user clicks confirm with an empty or whitespace-only username
-- **THEN** the system shows an error message and does not proceed
+#### Scenario: 用户名不能为空
+- **WHEN** 用户在用户名为空或仅含空白字符时点击确认
+- **THEN** 系统显示错误提示且不继续
 
-#### Scenario: Valid username submitted
-- **WHEN** the user enters a valid username (1-20 characters) and clicks confirm
-- **THEN** the username is saved to localStorage
-- **AND** the user is taken to the level selection screen
+#### Scenario: 提交有效用户名
+- **WHEN** 用户输入有效用户名（1-20 个字符）并点击确认
+- **THEN** 用户名保存到 localStorage
+- **AND** 用户被引导到选关界面
 
-### Requirement: Persistent user profile
-The system SHALL persist the user's profile (username and progress) in localStorage so it survives page reloads.
+### Requirement: 持久化用户资料
+系统 SHALL 将用户资料（用户名和进度）持久化存储在 localStorage 中，以便页面刷新后仍然保留。
 
-#### Scenario: Returning user skips username entry
-- **WHEN** a user with a saved username returns to the game
-- **THEN** the game proceeds directly to the level selection screen
-- **AND** the username is displayed in the UI
+#### Scenario: 回访用户跳过用户名输入
+- **WHEN** 有已保存用户名的用户返回游戏
+- **THEN** 游戏直接进入选关界面
+- **AND** UI 中显示用户名
 
-#### Scenario: Progress persists across sessions
-- **WHEN** a user completes a level and then reloads the page
-- **THEN** the previously earned stars and unlocked levels remain available
+#### Scenario: 进度跨会话保留
+- **WHEN** 用户完成一个关卡后重新加载页面
+- **THEN** 之前获得的星级和已解锁关卡仍然可用
 
 ### Requirement: 首页视觉增强
 系统 SHALL 为首页登录卡片提供更精致的入场动画和视觉层次。
