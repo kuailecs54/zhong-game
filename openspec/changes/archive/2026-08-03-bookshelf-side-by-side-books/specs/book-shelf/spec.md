@@ -1,20 +1,6 @@
-# Book Shelf Specification
+# Book Shelf Specification — Delta
 
-## Purpose
-
-Defines the multi-layer bookshelf presentation and interaction: accumulation of correctly placed books, merging of same-name books with count badges, capacity-based layer planning, placement targeting, and preview.
-## Requirements
-### Requirement: Book accumulation on shelf
-The system SHALL accumulate correctly placed cards as books on the bookshelf.
-
-#### Scenario: Correct placement adds book
-- **WHEN** the player correctly places a card into a shelf column
-- **THEN** a book representing that process appears in that column's section on the shelf
-- **AND** the book remains on the shelf for the rest of the level
-
-#### Scenario: Wrong placement does not add book
-- **WHEN** the player places a card into an incorrect column
-- **THEN** no book is added to the shelf
+## MODIFIED Requirements
 
 ### Requirement: Same-name books merge with count badge
 The system SHALL merge repeated placements of the same process in the same column into a single book with a count badge, keeping the book spine at a fixed width.
@@ -23,15 +9,6 @@ The system SHALL merge repeated placements of the same process in the same colum
 - **WHEN** the same process is placed in the same column multiple times
 - **THEN** the books merge into one book spine of fixed width (does not thicken with additional placements)
 - **AND** the book shows a count badge (e.g., ×5) when placed more than once
-
-### Requirement: Bookshelf placement layout
-The system SHALL position the bookshelf in a dedicated space to the right of the game area.
-
-#### Scenario: Bookshelf on the right side
-- **WHEN** a columns-layout level is active
-- **THEN** the bookshelf is displayed in an independent panel to the right of the game area
-- **AND** the game area bottom shows no grid
-- **AND** the desk is the only element below the game area
 
 ### Requirement: Multi-layer bookshelf with per-book-type layers
 The system SHALL lay out each column's books side by side on a single layer, and automatically add a new layer above only when the current layer is full.
@@ -54,28 +31,6 @@ The system SHALL lay out each column's books side by side on a single layer, and
 - **WHEN** a column's books are laid out
 - **THEN** the layer capacity is computed from the unit width and the fixed spine width (default 20px, min 14px on narrow units)
 
-### Requirement: Placement by drag and drop
-The system SHALL support placing a tray card by dragging it from the desk onto a shelf column and highlight only applicable columns.
-
-#### Scenario: Drag and drop places card
-- **WHEN** the player drags a tray card from the desk and releases it over a matching shelf column
-- **THEN** the card is placed in that column
-- **AND** correct/wrong feedback plays on the section
-
-#### Scenario: Only applicable columns highlighted
-- **WHEN** the player drags a tray card
-- **THEN** only columns matching the card's process group (or knowledge area) are highlighted as placeable
-- **AND** a dashed ghost preview book appears on the layer where the card would be placed
-
-#### Scenario: Drop near a shelf column snaps to the nearest column
-- **WHEN** the player releases the dragged card within the bookshelf panel but outside any column section
-- **THEN** the card is placed into the nearest column by distance
-
-#### Scenario: Failed drop shows a hint
-- **WHEN** the player releases the dragged card outside the bookshelf panel, or during an active feedback window
-- **THEN** no card is placed
-- **AND** the desk shows a brief hint prompting the player to drop onto a matching shelf
-
 ### Requirement: Book spine display
 The system SHALL display shelved books as upright spines with vertical process names on a single unwrapped column.
 
@@ -88,6 +43,8 @@ The system SHALL display shelved books as upright spines with vertical process n
 - **THEN** the name is rendered vertically, reading from top to bottom without rotation
 - **AND** the name stays on a single unwrapped column, truncated if it exceeds the layer height
 
+## ADDED Requirements
+
 ### Requirement: Ghost preview follows layer layout
 The system SHALL place the drag ghost preview according to the capacity-based layer layout.
 
@@ -98,4 +55,3 @@ The system SHALL place the drag ghost preview according to the capacity-based la
 #### Scenario: Ghost preview at end of lowest free layer
 - **WHEN** the player drags a card of a new process for the column
 - **THEN** the ghost preview appears at the end of the lowest layer that has space
-
