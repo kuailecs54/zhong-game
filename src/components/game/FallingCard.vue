@@ -151,7 +151,8 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
     0 1px 3px rgba(0, 0, 0, 0.5),
     0 0 8px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.02em;
-  word-break: break-all;
+  overflow-wrap: break-word;
+  white-space: normal;
   text-align: center;
 }
 

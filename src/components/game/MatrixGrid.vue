@@ -125,7 +125,7 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
 
 .matrix-grid {
   display: grid;
-  grid-template-columns: 60px repeat(5, 1fr);
+  grid-template-columns: 96px repeat(5, 1fr);
   gap: 3px;
   padding: 4px;
   min-width: 400px;
@@ -169,13 +169,11 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   color: #cbd5e1;
   text-align: right;
   justify-content: flex-end;
-  min-height: 36px;
+  min-height: 90px;
 }
 
 .row-header-text {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .matrix-grid-cell {
@@ -184,7 +182,7 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   border-top: 3px solid;
   border-left: 3px solid;
   cursor: default;
-  min-height: 40px;
+  min-height: 90px;
   padding: 2px;
   position: relative;
 }
@@ -231,7 +229,7 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
 .cell-spine {
   position: relative;
   width: 14px;
-  height: 88%;
+  height: 96%;
   background: linear-gradient(180deg, #7c4a24, #a9743f);
   border-radius: 2px;
   box-shadow:
@@ -240,7 +238,7 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .cell-spine__text {
@@ -250,8 +248,6 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   font-weight: 700;
   color: #fff;
   white-space: nowrap;
-  overflow: hidden;
-  max-height: 100%;
   padding: 2px 0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
@@ -320,7 +316,7 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
 /* 响应式：小屏幕 */
 @media (max-width: 600px) {
   .matrix-grid {
-    grid-template-columns: 44px repeat(5, 1fr);
+    grid-template-columns: 72px repeat(5, 1fr);
     gap: 2px;
     padding: 2px;
     min-width: 320px;
@@ -335,11 +331,11 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   .matrix-row-header {
     font-size: 0.55rem;
     padding: 3px 4px;
-    min-height: 28px;
+    min-height: 80px;
   }
 
   .matrix-grid-cell {
-    min-height: 34px;
+    min-height: 80px;
     border-width: 1px;
     border-top-width: 2px;
     border-left-width: 2px;
@@ -357,7 +353,7 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
 
 @media (max-width: 400px) {
   .matrix-grid {
-    grid-template-columns: 36px repeat(5, 1fr);
+    grid-template-columns: 64px repeat(5, 1fr);
     min-width: 280px;
   }
 
@@ -370,11 +366,11 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   .matrix-row-header {
     font-size: 0.5rem;
     padding: 2px 3px;
-    min-height: 24px;
+    min-height: 72px;
   }
 
   .matrix-grid-cell {
-    min-height: 30px;
+    min-height: 72px;
   }
 
   .cell-spine__text {
