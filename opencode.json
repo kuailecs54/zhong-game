@@ -6,5 +6,51 @@
       "command": ["codegraph", "serve", "--mcp"],
       "enabled": true
     }
+  },
+  "command": {
+    "sp-brainstorm": {
+      "description": "提案前：结合 openspec 已有内容，用 brainstorming 技能探索需求与设计",
+      "template": "先用 skill 工具加载并遵循 brainstorming 技能；探索前先读取 openspec/ 下已有的规格与变更（specs/、changes/）避免重复。围绕用户的想法（$ARGUMENTS）探索意图、需求与设计，产出清晰方案后，如需落地新能力则走 /opsx-propose 提案。"
+    },
+    "sp-debug": {
+      "description": "系统化调试：用 systematic-debugging 技能定位并修复 bug",
+      "template": "先用 skill 工具加载并遵循 systematic-debugging 技能，对问题「$ARGUMENTS」建立假设、复现、定位根因，再提出修复方案，不要跳过诊断直接改代码。"
+    },
+    "sp-tdd": {
+      "description": "测试驱动开发：先写测试再实现",
+      "template": "先用 skill 工具加载并遵循 test-driven-development 技能，针对「$ARGUMENTS」先编写能复现/验证行为的测试，再实现代码使其通过。"
+    },
+    "sp-write-plan": {
+      "description": "为 openspec 变更/多步骤任务细化实施计划",
+      "template": "先用 skill 工具加载并遵循 writing-plans 技能。若存在对应 openspec 变更（openspec/changes/），以其 tasks.md 为基础细化；否则为「$ARGUMENTS」编写分步实施计划（含验证方式），写好后交用户确认再动手。"
+    },
+    "sp-exec-plan": {
+      "description": "执行 openspec 变更/已有实施计划",
+      "template": "先用 skill 工具加载并遵循 executing-plans 技能（本仓库可同时参考 openspec-apply-change 技能）。按计划执行「$ARGUMENTS」对应的实施步骤（缺省为当前 openspec 变更的 tasks），在检查点停下来汇报进展与验证结果。"
+    },
+    "sp-review": {
+      "description": "归档前代码审查（中文项目用 chinese-code-review 话术）",
+      "template": "先用 skill 工具加载并遵循 requesting-code-review 技能；本仓库为中文项目，审查沟通时同时遵循 chinese-code-review 技能。审查对象：$ARGUMENTS（缺省为当前工作区改动），审查通过后再进行 /opsx-archive 归档。"
+    },
+    "sp-simplify": {
+      "description": "简化代码：保持行为不变，降低复杂度",
+      "template": "先用 skill 工具加载并遵循 simplify 技能，对「$ARGUMENTS」涉及的代码做可读性/维护性简化，不改变既有行为。"
+    },
+    "sp-verify": {
+      "description": "完成前验证：构建 + openspec 校验通过再宣称完成",
+      "template": "先用 skill 工具加载并遵循 verification-before-completion 技能，对「$ARGUMENTS」先执行验证（本仓库用 npm run build 做静态校验；涉及 openspec 变更时同时跑 openspec validate 确认规格一致），拿到输出证据后再报告完成。"
+    },
+    "sp-parallel": {
+      "description": "并行拆解任务，派发多个独立子代理",
+      "template": "先用 skill 工具加载并遵循 dispatching-parallel-agents 技能，把「$ARGUMENTS」拆成互不依赖的任务，并行派发给合适子代理并协调汇总结果。"
+    },
+    "sp-commit": {
+      "description": "生成符合 Conventional Commits 的中文提交",
+      "template": "先用 skill 工具加载并遵循 git-commit 技能，同时遵循 chinese-commit-conventions 技能，根据当前改动生成合适的提交信息并提交。"
+    },
+    "sp-reflect": {
+      "description": "回顾近期工作，提炼可复用技能/流程改进",
+      "template": "先用 skill 工具加载并遵循 reflect 技能，回顾近期会话与工作模式，找出重复模式并建议沉淀为技能、命令或配置改进。"
+    }
   }
 }
