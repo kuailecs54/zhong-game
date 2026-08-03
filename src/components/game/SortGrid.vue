@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Process, ColumnInfo, ShelvedBook } from '@/data/types'
-import { buildShelfLayers, layerCapacityFor } from '@/utils/shelfLayout'
+import { buildShelfLayers, layerCapacityFor, spineWidthFor } from '@/utils/shelfLayout'
 import type { MergedSpine, ShelfLayer } from '@/utils/shelfLayout'
 
 const props = defineProps<{
@@ -145,6 +145,7 @@ function hasGhost(colId: string, layer: number): boolean {
                 v-for="(spine, si) in getSpinesAtLayer(col.id, (colLayerCounts.get(col.id) ?? 1) - layerIdx)!"
                 :key="si"
                 class="book-spine"
+                :style="{ width: spineWidthFor(unitWidth) + 'px' }"
               >
                 <span class="spine-text">{{ spine.process.name }}</span>
                 <span v-if="spine.count > 1" class="spine-count">×{{ spine.count }}</span>
@@ -155,6 +156,7 @@ function hasGhost(colId: string, layer: number): boolean {
             <div
               v-if="hasGhost(col.id, (colLayerCounts.get(col.id) ?? 1) - layerIdx)"
               class="ghost-spine"
+              :style="{ width: spineWidthFor(unitWidth) + 'px' }"
             >
               <span class="ghost-text">{{ dragCard?.name }}</span>
             </div>
@@ -311,7 +313,7 @@ function hasGhost(colId: string, layer: number): boolean {
   flex: 1;
   display: flex;
   align-items: stretch;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 2px;
   padding: 2px 4px;
   min-height: 0;
@@ -322,7 +324,6 @@ function hasGhost(colId: string, layer: number): boolean {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
   min-height: 0;
   background: linear-gradient(180deg, #7c4a24, #a9743f);
   border-radius: 3px;
@@ -348,7 +349,9 @@ function hasGhost(colId: string, layer: number): boolean {
   font-size: 9px;
   font-weight: 600;
   color: #f5e6c8;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: clip;
   line-height: 1.1;
   max-height: 100%;
   padding: 2px 0;
@@ -370,7 +373,6 @@ function hasGhost(colId: string, layer: number): boolean {
 
 /* ===== 幽灵书脊 ===== */
 .ghost-spine {
-  width: 18px;
   min-height: 0;
   height: 100%;
   border: 2px dashed rgba(99, 102, 241, 0.55);
@@ -437,10 +439,6 @@ function hasGhost(colId: string, layer: number): boolean {
 
   .header-name {
     font-size: 0.55rem;
-  }
-
-  .book-spine {
-    width: 15px;
   }
 
   .spine-text {
