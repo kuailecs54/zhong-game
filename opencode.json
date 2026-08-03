@@ -40,10 +40,6 @@
       "description": "完成前验证：构建 + openspec 校验通过再宣称完成",
       "template": "先用 skill 工具加载并遵循 verification-before-completion 技能，对「$ARGUMENTS」先执行验证（本仓库用 npm run build 做静态校验；涉及 openspec 变更时同时跑 openspec validate 确认规格一致），拿到输出证据后再报告完成。"
     },
-    "sp-parallel": {
-      "description": "并行拆解任务，派发多个独立子代理",
-      "template": "先用 skill 工具加载并遵循 dispatching-parallel-agents 技能，把「$ARGUMENTS」拆成互不依赖的任务，并行派发给合适子代理并协调汇总结果。"
-    },
     "sp-commit": {
       "description": "生成符合 Conventional Commits 的中文提交",
       "template": "先用 skill 工具加载并遵循 git-commit 技能，同时遵循 chinese-commit-conventions 技能，根据当前改动生成合适的提交信息并提交。"
@@ -51,6 +47,22 @@
     "sp-reflect": {
       "description": "回顾近期工作，提炼可复用技能/流程改进",
       "template": "先用 skill 工具加载并遵循 reflect 技能，回顾近期会话与工作模式，找出重复模式并建议沉淀为技能、命令或配置改进。"
+    },
+    "sp-opsx-explore": {
+      "description": "探索：用 brainstorming 技能 + openspec-explore 技能做思考型探索，不写实现",
+      "template": "先用 skill 工具加载并遵循 brainstorming 技能，同时加载并遵循 openspec-explore 技能。围绕「$ARGUMENTS」做思考型探索：澄清需求、挑战假设、梳理 openspec/ 下已有规格与变更（specs/、changes/）；可读代码库与 openspec 内容，但不写实现代码；思路成形后如需落地，提示用户走 /sp-opsx-propose 提案。"
+    },
+    "sp-opsx-propose": {
+      "description": "提案：brainstorming 探索 → openspec-propose 生成基础文档 → writing-plans 细化 superpowers 实施计划",
+      "template": "先用 skill 工具加载并遵循 brainstorming 技能，围绕「$ARGUMENTS」探索意图、需求与设计（先读取 openspec/ 下已有规格与变更避免重复），方案确认后；再加载并遵循 openspec-propose 技能，按 openspec 工作流创建变更并生成 proposal.md、design.md、specs、tasks.md 等基础文档（openspec 层：长期维护的能力规格与宏观任务）；随后加载并遵循 writing-plans 技能，基于 openspec 产物细化生成 superpowers 实施计划（docs/superpowers/plans/YYYY-MM-DD-<name>.md，增强实现层：bite-sized 任务与 TDD 步骤，作为执行主依据）。两套文档产出后提示用户确认，再走 /sp-opsx-apply。"
+    },
+    "sp-opsx-apply": {
+      "description": "实现：执行以 superpowers 实施计划为主，openspec 文档同步勾选保持一致",
+      "template": "执行以 superpowers 实施计划为主：先加载并遵循 executing-plans 技能（可派子代理时用 subagent-driven-development 技能），读取 docs/superpowers/plans/ 下对应实施计划，逐任务执行与验证（本仓库用 npm run build 校验）；涉及功能/行为变更时加载并遵循 test-driven-development 技能先写测试再实现。同时以 openspec 为基准同步：加载并遵循 openspec-apply-change 技能，读取 openspec/changes/<name>/ 上下文，每完成一个 superpowers 任务即同步勾选 openspec tasks.md 对应项、保持设计文档与实现一致。在检查点停下汇报进展与验证结果。"
+    },
+    "sp-opsx-archive": {
+      "description": "归档：先 requesting-code-review（中文用 chinese-code-review）审查，通过后按 openspec-archive-change 技能归档",
+      "template": "先用 skill 工具加载并遵循 openspec-archive-change 技能；归档前先加载 requesting-code-review 技能对本轮改动做代码审查，本仓库为中文项目，审查沟通同时遵循 chinese-code-review 技能；审查通过并确认规格同步后，再按 openspec 工作流执行归档（含 delta spec 同步评估）。"
     }
   }
 }
