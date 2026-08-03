@@ -37,6 +37,8 @@ interface GameState {
 
   // 卡片池
   processPool: Process[]
+  /** 按目标列（过程组/知识领域）分桶的过程池，正解卡按列均衡抽取用 */
+  processPoolByColumn: Record<string, Process[]>
   distractorPool: Process[]
   distractorCount: number
 
@@ -142,6 +144,7 @@ export const useGameStore = defineStore('game', {
     layoutType: 'columns',
     rowInfos: [],
     processPool: [],
+    processPoolByColumn: {},
     distractorPool: [],
     distractorCount: 0,
     fallingCards: [],
@@ -198,6 +201,13 @@ export const useGameStore = defineStore('game', {
       this.distractorCount = level.distractorCount ?? defaultDistractorCount(level.stage, level.number)
       this.layoutType = level.layoutType
       this.columnType = determineColumnType(level, processGroups)
+
+      // 按目标列（过程组/知识领域）分桶过程池，供正解卡按列均衡抽取
+      this.processPoolByColumn = {}
+      for (const process of processPool) {
+        const colId = this.columnType === 'processGroup' ? process.processGroupId : process.knowledgeAreaId
+        ;(this.processPoolByColumn[colId] ??= []).push(process)
+      }
 
       // 构建列信息
       this.columnInfos = level.columns.map(colId => {
@@ -271,8 +281,17 @@ export const useGameStore = defineStore('game', {
       const maxFalling = Math.max(4, Math.min(14, Math.round(areaHeight / 30)))
       if (this.fallingCards.length >= maxFalling) return
 
-      // 正解卡片
-      const target = this.processPool[Math.floor(Math.random() * this.processPool.length)]
+      // 正解卡片：先均匀随机选一个目标列（保证各列均衡出现），再从该列内随机选一个过程
+      const columnIds = this.columnInfos
+        .map(col => col.id)
+        .filter(id => (this.processPoolByColumn[id]?.length ?? 0) > 0)
+      let target: Process
+      if (columnIds.length > 0) {
+        const columnPool = this.processPoolByColumn[columnIds[Math.floor(Math.random() * columnIds.length)]]
+        target = columnPool[Math.floor(Math.random() * columnPool.length)]
+      } else {
+        target = this.processPool[Math.floor(Math.random() * this.processPool.length)]
+      }
       this.fallingCards.push(this.createCard(target, true, this.pickNonOverlappingX(areaWidth)))
 
       // 干扰项卡片（同波内不重复）
