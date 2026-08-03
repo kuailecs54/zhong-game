@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Process, ColumnInfo, ShelvedBook } from '@/data/types'
+import { buildShelfLayers, layerCapacityFor } from '@/utils/shelfLayout'
+import type { MergedSpine, ShelfLayer } from '@/utils/shelfLayout'
 
 const props = defineProps<{
   columns: ColumnInfo[]
@@ -11,6 +13,8 @@ const props = defineProps<{
   feedback: { columnId: string; type: 'correct' | 'wrong' } | null
   /** 当前拖拽高亮目标 */
   highlightTarget?: { columnId: string; rowId?: string } | null
+  /** 书架单元估算宽度（px），由 GameView 传入 */
+  unitWidth: number
 }>()
 
 const emit = defineEmits<{
@@ -31,59 +35,27 @@ const booksByColumn = computed(() => {
 })
 
 /**
- * 填层算法：每种去重后的书各占一层（按首次放置顺序分配）
+ * 按容量填层：书种少时单层并排；超过每层容量自动加层（自下而上填充）。
+ * 层号 0 = 最底层；同种书在层内合并为 1 本书脊 + ×N 角标（固定宽，不增厚）。
+ * 算法由 @/utils/shelfLayout 的 buildShelfLayers 提供（已单测覆盖）。
  */
 const layerData = computed(() => {
-  const result = new Map<string, { layer: number; spines: MergedSpine[] }[]>()
+  const result = new Map<string, ShelfLayer[]>()
+  const capacity = layerCapacityFor(props.unitWidth)
 
   for (const col of props.columns) {
     const books = booksByColumn.value.get(col.id) ?? []
-    const layerMap = new Map<number, MergedSpine[]>()
-
-    // 按首次出现顺序分配层号
-    const processOrder = new Map<string, { order: number; count: number; process: Process }>()
-
-    for (let idx = 0; idx < books.length; idx++) {
-      const book = books[idx]
-      const existing = processOrder.get(book.process.id)
-      if (existing) {
-        existing.count++
-      } else {
-        processOrder.set(book.process.id, {
-          order: processOrder.size,
-          count: 1,
-          process: book.process,
-        })
-      }
-    }
-
-    for (const [, entry] of processOrder) {
-      const layer = entry.order
-      if (!layerMap.has(layer)) {
-        layerMap.set(layer, [])
-      }
-      layerMap.get(layer)!.push({
-        process: entry.process,
-        count: entry.count,
-      })
-    }
-
-    const layers = Array.from(layerMap.entries())
-      .sort((a, b) => a[0] - b[0])
-      .map(([layer, spines]) => ({ layer, spines }))
-
-    result.set(col.id, layers)
+    result.set(col.id, buildShelfLayers(books.map(b => b.process), capacity))
   }
-
   return result
 })
 
-/** 每列的层数（= 去重书种数，至少 1） */
+/** 每列的层数（= 已用层数，至少 1，无预规划空层板） */
 const colLayerCounts = computed(() => {
   const map = new Map<string, number>()
   for (const col of props.columns) {
-    const entries = layerData.value.get(col.id)
-    map.set(col.id, Math.max(1, entries?.length ?? 0))
+    const layers = layerData.value.get(col.id)
+    map.set(col.id, Math.max(1, layers?.length ?? 0))
   }
   return map
 })
@@ -131,11 +103,6 @@ function getSpinesAtLayer(colId: string, layer: number): MergedSpine[] | undefin
 /** 某列某层是否有幽灵预览 */
 function hasGhost(colId: string, layer: number): boolean {
   return (ghostPreview.value?.get(colId) ?? -1) === layer && isPlaceable(colId)
-}
-
-interface MergedSpine {
-  process: Process
-  count: number
 }
 </script>
 
