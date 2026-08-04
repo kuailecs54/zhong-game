@@ -749,6 +749,7 @@ onUnmounted(() => {
 .start-bg-decor {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   pointer-events: none;
   z-index: 0;
 }
