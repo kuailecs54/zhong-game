@@ -742,7 +742,7 @@ onUnmounted(() => {
   padding: 1rem;
   background: var(--bg-gradient);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 /* 背景装饰 */
@@ -779,6 +779,7 @@ onUnmounted(() => {
 .start-card {
   position: relative;
   z-index: 1;
+  margin: auto;
   background: var(--surface-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
