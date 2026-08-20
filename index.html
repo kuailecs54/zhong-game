@@ -3,10 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- favicon 362KB（public/favicon.ico），体积偏大（建议 <50KB，压缩 ICO/PNG 或改 SVG），本阶段保持现状避免设计回退，后续可用 pngquant/imagemagick 压缩替换 -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <title>PM Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Google Fonts 已带 &display=swap 避免 FOIT；当前 400-900 共 6 字重体积较大，后续可精简为 700,800（标题/加粗常用），本阶段保留字重仅加注释避免视觉回退 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   </head>
   <body>

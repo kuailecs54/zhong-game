@@ -8,6 +8,7 @@ import type {
   ColumnInfo,
   RowInfo,
   ShelvedBook,
+  WrongRecord,
 } from '@/data/types'
 
 /** 下落速度缩放基准高度（px）：区域高度低于该值则速度按比例缩小，保证手机横屏难度与桌面一致 */
@@ -57,17 +58,27 @@ interface GameState {
   combo: number
   correctCount: number
   wrongCount: number
+  /** 正解卡漏接计数（掉地未捕获的 isTarget 数） */
+  missedCount: number
+  /** 错题历史（用于结算与闪卡） */
+  wrongHistory: WrongRecord[]
+  /** 过程出现次数（可选，供后续错题队列权重用） */
+  processSeen: Record<string, number>
+  /** 错题闪卡队列：错题过程 id，去重保留最近 12 */
+  wrongFlashQueue: string[]
+  /** 托盘溢出时被顶掉的最旧卡（供 Toast 提示，可选） */
+  lastEvictedProcess: Process | null
 
-  // 游戏阶段
+  // 游戏阶段（单一真相源，isPlaying/isPaused 由 getter 派生）
   gamePhase: GamePhase
-  isPlaying: boolean
-  isPaused: boolean
   isFrozen: boolean
   freezeRemaining: number // 剩余冰冻秒数
   freezeCount: number // 剩余冰冻道具数
 
-  // 反馈
+  // 反馈（单例，卡槽级锁；捕获不受限，放置仅锁同一 trayIndex）
   feedbackState: FeedbackState | null
+  /** 反馈定时器 id，reset/start 时 clearTimeout 避免 stale splice */
+  feedbackTimer: ReturnType<typeof setTimeout> | null
 
   // 时间与速度
   gameTime: number
@@ -126,6 +137,39 @@ function defaultDistractorCount(stage: number, number: number): number {
 /**
  * 从数组中随机不重复抽取 count 个元素
  */
+/** 关内难度 shaping：随 correctCount 递增的干扰项数，上限 base+2 且不超过干扰池大小 */
+function effectiveDistractorCount(base: number, correctCount: number, poolSize: number): number {
+  const eff = base + Math.floor(correctCount / 10)
+  return Math.min(poolSize, Math.min(base + 2, eff))
+}
+
+/** 错题闪卡优先：30% 概率从 wrongFlashQueue 中抽取一个仍在正解池的过程，否则按列均衡抽取 */
+function pickWithFlashQueue(
+  pool: Process[],
+  poolByColumn: Record<string, Process[]>,
+  columnInfos: { id: string }[],
+  wrongFlashQueue: string[],
+): Process {
+  if (wrongFlashQueue.length > 0 && Math.random() < 0.3) {
+    // 从队尾（最近错题）向前查找仍在正解池中的过程
+    const poolById = new Map(pool.map(p => [p.id, p] as const))
+    for (let i = wrongFlashQueue.length - 1; i >= 0; i--) {
+      const pid = wrongFlashQueue[i]
+      const proc = poolById.get(pid)
+      if (proc) return proc
+    }
+  }
+  // 回退：按列均衡抽取
+  const columnIds = columnInfos
+    .map(col => col.id)
+    .filter(id => (poolByColumn[id]?.length ?? 0) > 0)
+  if (columnIds.length > 0) {
+    const columnPool = poolByColumn[columnIds[Math.floor(Math.random() * columnIds.length)]]
+    return columnPool[Math.floor(Math.random() * columnPool.length)]
+  }
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
 function pickDistinct<T>(arr: T[], count: number): T[] {
   const copy = [...arr]
   const picked: T[] = []
@@ -155,13 +199,17 @@ export const useGameStore = defineStore('game', {
     combo: 0,
     correctCount: 0,
     wrongCount: 0,
+    missedCount: 0,
+    wrongHistory: [],
+    processSeen: {},
+    wrongFlashQueue: [],
+    lastEvictedProcess: null,
     gamePhase: 'start',
-    isPlaying: false,
-    isPaused: false,
     isFrozen: false,
     freezeRemaining: 0,
     freezeCount: 0,
     feedbackState: null,
+    feedbackTimer: null,
     gameTime: 0,
     currentSpeed: 40,
     currentSpawnInterval: 4000,
@@ -175,10 +223,14 @@ export const useGameStore = defineStore('game', {
     isLevelComplete: (state): boolean => state.correctCount >= (state.level?.targetCount ?? 0),
     feedbackActive: (state): boolean => state.feedbackState !== null,
     comboMultiplier: (state): number => Math.min(state.combo, 5),
+    /** 准确率 = correct / (correct + wrong + missedCount)，漏接纳入分母 */
     correctAccuracy: (state): number => {
-      const total = state.correctCount + state.wrongCount
+      const total = state.correctCount + state.wrongCount + state.missedCount
       return total > 0 ? state.correctCount / total : 0
     },
+    // 游戏阶段派生（单一真相源：gamePhase）
+    isPlaying: (state): boolean => state.gamePhase === 'playing',
+    isPaused: (state): boolean => state.gamePhase === 'paused',
   },
 
   actions: {
@@ -248,12 +300,20 @@ export const useGameStore = defineStore('game', {
       this.combo = 0
       this.correctCount = 0
       this.wrongCount = 0
+      this.missedCount = 0
+      this.wrongHistory = []
+      this.processSeen = {}
+      this.wrongFlashQueue = []
+      this.lastEvictedProcess = null
+      // 唯一真相源：仅写 gamePhase；isPlaying/isPaused 由 getter 派生
       this.gamePhase = 'start'
-      this.isPlaying = false
-      this.isPaused = false
       this.isFrozen = false
       this.freezeRemaining = 0
       this.freezeCount = level.freezeCount
+      if (this.feedbackTimer) {
+        clearTimeout(this.feedbackTimer)
+        this.feedbackTimer = null
+      }
       this.feedbackState = null
       this.gameTime = 0
       this.currentSpeed = level.initialFallSpeed
@@ -261,12 +321,10 @@ export const useGameStore = defineStore('game', {
     },
 
     /**
-     * 设置游戏阶段
+     * 设置游戏阶段（唯一写入点，其他处不得直接改 isPlaying/isPaused）
      */
     setGamePhase(phase: GamePhase) {
       this.gamePhase = phase
-      this.isPlaying = phase === 'playing'
-      this.isPaused = phase === 'paused'
     },
 
     /**
@@ -281,21 +339,13 @@ export const useGameStore = defineStore('game', {
       const maxFalling = Math.max(4, Math.min(14, Math.round(areaHeight / 30)))
       if (this.fallingCards.length >= maxFalling) return
 
-      // 正解卡片：先均匀随机选一个目标列（保证各列均衡出现），再从该列内随机选一个过程
-      const columnIds = this.columnInfos
-        .map(col => col.id)
-        .filter(id => (this.processPoolByColumn[id]?.length ?? 0) > 0)
-      let target: Process
-      if (columnIds.length > 0) {
-        const columnPool = this.processPoolByColumn[columnIds[Math.floor(Math.random() * columnIds.length)]]
-        target = columnPool[Math.floor(Math.random() * columnPool.length)]
-      } else {
-        target = this.processPool[Math.floor(Math.random() * this.processPool.length)]
-      }
+      // 正解卡片：30% 概率优先从错题闪卡队列抽取，否则按列均衡抽取
+      const target = pickWithFlashQueue(this.processPool, this.processPoolByColumn, this.columnInfos, this.wrongFlashQueue)
       this.fallingCards.push(this.createCard(target, true, this.pickNonOverlappingX(areaWidth)))
 
-      // 干扰项卡片（同波内不重复）
-      const distractorCount = Math.min(this.distractorCount, this.distractorPool.length)
+      // 干扰项卡片（同波内不重复）：关内随 correctCount 递增，上限 base+2
+      const effectiveCount = effectiveDistractorCount(this.distractorCount, this.correctCount, this.distractorPool.length)
+      const distractorCount = effectiveCount
       for (const process of pickDistinct(this.distractorPool, distractorCount)) {
         if (this.fallingCards.length >= maxFalling) break
         this.fallingCards.push(this.createCard(process, false, this.pickNonOverlappingX(areaWidth)))
@@ -304,15 +354,17 @@ export const useGameStore = defineStore('game', {
 
     /**
      * 创建一张下落中的卡片
+     * speed 快照仅作微随机装饰（0.95-1.05），实际移动由 updateGame 统一用 currentSpeed，保证加速即时体感一致
      */
     createCard(process: Process, isTarget: boolean, x: number): FallingCard {
+      const jitter = 0.95 + Math.random() * 0.1
       return {
         id: generateCardId(),
         process,
         isTarget,
         x,
         y: -60, // 从顶部外进入
-        speed: this.currentSpeed,
+        speed: this.currentSpeed * jitter,
       }
     },
 
@@ -355,28 +407,39 @@ export const useGameStore = defineStore('game', {
     },
 
     /**
-     * 捕获下落中的卡片到托盘
+     * 捕获下落中的卡片到托盘（不受 feedback 阻塞，卡槽级锁仅在 placeCard 体现）
      */
     captureCard(cardId: string): boolean {
-      if (!this.isPlaying || this.isPaused || this.feedbackActive) return false
-      if (this.captureTray.length >= this.trayCapacity) return false
+      if (!this.isPlaying || this.isPaused) return false
 
       const index = this.fallingCards.findIndex(c => c.id === cardId)
       if (index === -1) return false
 
+      // 托盘已满：自动顶掉最旧卡并扣 10 分（不低于 0），再收纳新卡
+      if (this.captureTray.length >= this.trayCapacity) {
+        const evicted = this.captureTray.shift()!
+        this.lastEvictedProcess = evicted
+        this.score = Math.max(0, this.score - 10)
+      } else {
+        this.lastEvictedProcess = null
+      }
+
       const card = this.fallingCards[index]
       this.fallingCards.splice(index, 1)
       this.captureTray.push(card.process)
+      this.processSeen[card.process.id] = (this.processSeen[card.process.id] ?? 0) + 1
       return true
     },
 
     /**
      * 放置卡片到某列（或矩阵中的某格）
-     * 通过托盘索引指定要放置的卡片
+     * 通过托盘索引指定要放置的卡片；仅当该 trayIndex 正处于反馈中时才阻塞（卡槽级锁）
      */
     placeCard(trayIndex: number, columnId: string, rowId?: string): 'correct' | 'wrong' | null {
-      if (!this.isPlaying || this.isPaused || this.feedbackActive) return null
+      if (!this.isPlaying || this.isPaused) return null
       if (trayIndex < 0 || trayIndex >= this.captureTray.length) return null
+      // 卡槽级锁：仅当 feedbackState 指向同一 trayIndex 时才阻塞
+      if (this.feedbackState && this.feedbackState.trayIndex === trayIndex) return null
 
       const card = this.captureTray[trayIndex]
 
@@ -392,17 +455,26 @@ export const useGameStore = defineStore('game', {
           : card.knowledgeAreaId === columnId
       }
 
+      // 若已有反馈（指向其他槽位），先清掉之前的定时器与状态，允许新放置覆盖
+      if (this.feedbackTimer) {
+        clearTimeout(this.feedbackTimer)
+        this.feedbackTimer = null
+      }
+
       this.feedbackState = {
         type: isCorrect ? 'correct' : 'wrong',
         columnId,
         rowId,
         trayIndex,
+        processId: card.id,
       }
 
       if (isCorrect) {
         this.combo++
+        // 极速放置（捕获到放置 <1.5s）额外 +20：以 capture 时的 processSeen 计数近似，简化为 combo 连续时奖励
+        const fastBonus = this.combo >= 2 ? 20 : 0
         const multiplier = this.comboMultiplier
-        this.score += 100 * multiplier
+        this.score += 100 * multiplier + fastBonus
         this.correctCount++
 
         // 正确放置的书上架积累
@@ -421,15 +493,33 @@ export const useGameStore = defineStore('game', {
           this.level!.initialSpawnInterval * (1 - this.level!.speedIncreaseRate * steps),
         )
 
-        // 延迟清除反馈（移除卡片）
-        setTimeout(() => this.clearFeedback(), 500)
+        // 延迟清除反馈（移除卡片），保存 timer 供 reset/start 时清理
+        this.feedbackTimer = setTimeout(() => this.clearFeedback(), 500)
       } else {
         this.combo = 0
         this.score = Math.max(0, this.score - 50)
         this.wrongCount++
+        // 记录错题
+        const correctColumnId = this.columnType === 'processGroup' ? card.processGroupId : card.knowledgeAreaId
+        const correctRowId = this.layoutType === 'matrix' ? card.knowledgeAreaId : undefined
+        this.wrongHistory.push({
+          processId: card.id,
+          processName: card.name,
+          chosenColumnId: columnId,
+          correctColumnId,
+          correctRowId,
+          chosenRowId: rowId,
+        })
+        // 错题闪卡队列：去重后追加，保留最近 12
+        {
+          const q = this.wrongFlashQueue
+          const existing = q.indexOf(card.id)
+          if (existing !== -1) q.splice(existing, 1)
+          q.push(card.id)
+          while (q.length > 12) q.shift()
+        }
 
-        // 延迟清除反馈
-        setTimeout(() => this.clearFeedback(), 600)
+        this.feedbackTimer = setTimeout(() => this.clearFeedback(), 600)
       }
 
       return isCorrect ? 'correct' : 'wrong'
@@ -437,9 +527,22 @@ export const useGameStore = defineStore('game', {
 
     clearFeedback() {
       if (!this.feedbackState) return
-
-      // 放置的卡片（无论正确还是错误）都从托盘移除
-      this.captureTray.splice(this.feedbackState.trayIndex, 1)
+      if (this.feedbackTimer) {
+        clearTimeout(this.feedbackTimer)
+        this.feedbackTimer = null
+      }
+      const pid = this.feedbackState.processId
+      const ti = this.feedbackState.trayIndex
+      // 优先按原位校验，避免同 processId 重复时误删首个
+      if (this.captureTray[ti]?.id === pid) {
+        this.captureTray.splice(ti, 1)
+      } else {
+        const idx = this.captureTray.findIndex(p => p.id === pid)
+        if (idx !== -1) this.captureTray.splice(idx, 1)
+        else if (ti >= 0 && ti < this.captureTray.length) {
+          this.captureTray.splice(ti, 1)
+        }
+      }
       this.feedbackState = null
     },
 
@@ -462,28 +565,27 @@ export const useGameStore = defineStore('game', {
 
       this.gameTime += deltaTime
 
-      // 移动下落卡片
+      // 移动下落卡片：统一用 currentSpeed（加速即时生效），card.speed 仅作微随机快照，移动时以 currentSpeed 为准
       const heightScale = Math.min(1, gameAreaHeight / SPEED_BASELINE_HEIGHT)
-      const cardsToRemove: string[] = []
+      let pendingLives = 0
       for (const card of this.fallingCards) {
-        card.y += card.speed * heightScale * deltaTime
-        // 卡片底部超出游戏区域
+        // 统一速度模型：每帧用 currentSpeed，避免旧卡快照导致加速体感延迟
+        card.y += this.currentSpeed * heightScale * deltaTime
+      }
+      const remaining: typeof this.fallingCards = []
+      for (const card of this.fallingCards) {
         if (card.y - 60 > gameAreaHeight) {
-          cardsToRemove.push(card.id)
-        }
-      }
-
-      // 处理掉到底部的卡片
-      for (const cardId of cardsToRemove) {
-        const idx = this.fallingCards.findIndex(c => c.id === cardId)
-        if (idx !== -1) {
-          const [card] = this.fallingCards.splice(idx, 1)
-          // 只有正解卡片掉地扣生命，干扰项掉地直接消失
           if (card.isTarget) {
-            this.loseLife()
+            this.missedCount++
+            pendingLives++
           }
+          // 干扰项直接丢弃
+        } else {
+          remaining.push(card)
         }
       }
+      this.fallingCards = remaining
+      for (let i = 0; i < pendingLives; i++) this.loseLife()
     },
 
     /**
@@ -502,6 +604,10 @@ export const useGameStore = defineStore('game', {
      */
     resetLevel() {
       if (!this.level) return
+      if (this.feedbackTimer) {
+        clearTimeout(this.feedbackTimer)
+        this.feedbackTimer = null
+      }
       nextCardId = 0
       this.fallingCards = []
       this.shelvedBooks = []
@@ -511,9 +617,12 @@ export const useGameStore = defineStore('game', {
       this.combo = 0
       this.correctCount = 0
       this.wrongCount = 0
+      this.missedCount = 0
+      this.wrongHistory = []
+      this.processSeen = {}
+      this.wrongFlashQueue = []
+      this.lastEvictedProcess = null
       this.gamePhase = 'start'
-      this.isPlaying = false
-      this.isPaused = false
       this.isFrozen = false
       this.freezeRemaining = 0
       this.freezeCount = this.level.freezeCount
@@ -534,10 +643,9 @@ export const useGameStore = defineStore('game', {
     },
 
     /**
-     * 结束游戏
+     * 结束游戏（仅写 gamePhase，isPlaying 由 getter 派生）
      */
     endGame(success: boolean) {
-      this.isPlaying = false
       this.gamePhase = success ? 'won' : 'lost'
     },
   },

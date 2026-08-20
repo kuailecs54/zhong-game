@@ -123,6 +123,22 @@ function showDropHint() {
   dropHintTimer = setTimeout(() => { dropHint.value = false }, 1200)
 }
 
+// 托盘溢出与错题闪卡提示
+const overflowToast = ref('')
+let overflowToastTimer: ReturnType<typeof setTimeout> | null = null
+function showOverflowToast(msg: string) {
+  if (overflowToastTimer) clearTimeout(overflowToastTimer)
+  overflowToast.value = msg
+  overflowToastTimer = setTimeout(() => { overflowToast.value = '' }, 1500)
+}
+const lastCorrectHint = ref('')
+let lastCorrectHintTimer: ReturnType<typeof setTimeout> | null = null
+function showCorrectHint(msg: string) {
+  if (lastCorrectHintTimer) clearTimeout(lastCorrectHintTimer)
+  lastCorrectHint.value = msg
+  lastCorrectHintTimer = setTimeout(() => { lastCorrectHint.value = '' }, 1400)
+}
+
 // 检查游戏结束/胜利
 watch(
   () => gameStore.isLevelComplete,
@@ -185,18 +201,27 @@ function navigateToResult(won: boolean) {
     }
   }
 
+  const payload = {
+    won,
+    stars,
+    score: gameStore.score,
+    correctCount: gameStore.correctCount,
+    wrongCount: gameStore.wrongCount,
+    missedCount: gameStore.missedCount,
+    accuracy: gameStore.correctAccuracy,
+    nextLevelId,
+    wrongHistory: gameStore.wrongHistory.slice(0, 10),
+  }
+  // sessionStorage 兜底：刷新后 ResultView 仍可恢复
+  try {
+    sessionStorage.setItem(`result:${level.id}`, JSON.stringify(payload))
+  } catch {
+    // ignore
+  }
   router.push({
     name: 'Result',
     params: { levelId: level.id },
-    state: {
-      won,
-      stars,
-      score: gameStore.score,
-      correctCount: gameStore.correctCount,
-      wrongCount: gameStore.wrongCount,
-      accuracy: gameStore.correctAccuracy,
-      nextLevelId,
-    },
+    state: payload,
   })
 }
 
@@ -269,6 +294,9 @@ function onFallingPointerDown(e: PointerEvent, cardId: string) {
 
   // 调用 store 真正捕获（移除下落卡片并加入书桌托盘）
   gameStore.captureCard(cardId)
+  if (gameStore.lastEvictedProcess) {
+    showOverflowToast(`已替换最旧卡 -10：${gameStore.lastEvictedProcess.name}`)
+  }
 }
 
 function handleFreeze() {
@@ -282,7 +310,9 @@ function handlePause() {
 // ===== 拖拽处理 =====
 
 function onDragStart(trayIndex: number, process: Process) {
-  if (!gameStore.isPlaying || gameStore.isPaused || gameStore.feedbackActive) return
+  // 卡槽级锁：仅当该槽位正处于反馈中才阻塞，其他槽位可并行操作
+  if (!gameStore.isPlaying || gameStore.isPaused) return
+  if (gameStore.feedbackState?.trayIndex === trayIndex) return
   dragCard.value = process
   dragTrayIndex.value = trayIndex
   isDragging.value = true
@@ -404,6 +434,13 @@ function onDragEnd(e: PointerEvent | TouchEvent) {
   // 未成功放置或放错 → 显示提示
   if (!placed || result === 'wrong') {
     showDropHint()
+    if (result === 'wrong') {
+      const rec = gameStore.wrongHistory[gameStore.wrongHistory.length - 1]
+      if (rec) {
+        const target = rec.correctRowId ? `${rec.correctColumnId} / ${rec.correctRowId}` : rec.correctColumnId
+        showCorrectHint(`正确归属：${target}`)
+      }
+    }
   }
 
   // 清理拖拽状态
@@ -445,6 +482,8 @@ onUnmounted(() => {
   document.removeEventListener('touchmove', onTouchMove)
   document.removeEventListener('touchend', onDragEnd)
   if (dropHintTimer) clearTimeout(dropHintTimer)
+  if (overflowToastTimer) clearTimeout(overflowToastTimer)
+  if (lastCorrectHintTimer) clearTimeout(lastCorrectHintTimer)
 })
 </script>
 
@@ -666,6 +705,16 @@ onUnmounted(() => {
       >
         {{ ft.text }}
       </div>
+    </Teleport>
+
+    <!-- 托盘溢出提示 -->
+    <Teleport to="body">
+      <transition name="toast-pop">
+        <div v-if="overflowToast" class="overflow-toast">{{ overflowToast }}</div>
+      </transition>
+      <transition name="toast-pop">
+        <div v-if="lastCorrectHint" class="correct-hint">{{ lastCorrectHint }}</div>
+      </transition>
     </Teleport>
   </div>
 </template>
@@ -1069,7 +1118,9 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #818cf8, var(--color-primary-strong));
 }
 
-/* 下落卡片容器（扩大点击命中区域） */
+/* 下落卡片容器（扩大点击命中区域）
+   合成分层优化：高频 y 移动当前仍为 top 直写（store card.y 每帧变更），
+   先以 will-change/contain 提升为合成层，后续可精化为 transform: translate3d(x,y,0) 以完全走合成器。 */
 .falling-card-container {
   position: absolute;
   transform: translateX(-50%);
@@ -1077,9 +1128,11 @@ onUnmounted(() => {
   transition: none;
   padding: 12px;
   margin: -12px;
+  will-change: transform;
+  contain: layout paint;
 }
 
-/* 捕获飞入动画卡片 */
+/* 捕获飞入动画卡片 — Teleport 到 body 的飞行副本，fixed+translate 已走合成器，补 will-change */
 .capture-flyer {
   position: fixed;
   transform: translateX(-50%);
@@ -1087,6 +1140,8 @@ onUnmounted(() => {
   pointer-events: none;
   padding: 12px;
   margin: -12px;
+  will-change: transform, opacity;
+  contain: layout paint;
 }
 
 /* 目标区域容器（matrix 模式底部） */
@@ -1098,7 +1153,7 @@ onUnmounted(() => {
   z-index: 5;
 }
 
-/* ===== 拖拽浮层 ===== */
+/* ===== 拖拽浮层 — Teleport fixed，已为 translate 跟手，补 will-change/contain 固化合成层 ===== */
 .drag-ghost {
   position: fixed;
   transform: translate(-50%, -50%) scale(1.08);
@@ -1107,6 +1162,8 @@ onUnmounted(() => {
   opacity: 0.92;
   filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
   transition: transform 0.15s var(--ease-soft), filter 0.15s var(--ease-soft);
+  will-change: transform;
+  contain: layout paint;
 }
 
 .drag-ghost.over-target {
@@ -1114,7 +1171,7 @@ onUnmounted(() => {
   filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px rgba(99, 102, 241, 0.35));
 }
 
-/* 浮动得分文字 */
+/* 浮动得分文字 — Teleport fixed + transform 动画，已走合成器，补 will-change */
 .floating-text {
   position: fixed;
   transform: translate(-50%, -50%);
@@ -1126,6 +1183,8 @@ onUnmounted(() => {
     0 2px 8px rgba(0, 0, 0, 0.5),
     0 0 20px currentColor;
   animation: floatTextUp 1s var(--ease-out-expo) forwards;
+  will-change: transform, opacity;
+  contain: layout paint;
 }
 
 @keyframes floatTextUp {
@@ -1191,4 +1250,39 @@ onUnmounted(() => {
     font-size: 1.5rem;
   }
 }
+
+/* 托盘溢出与正确归属提示 */
+.overflow-toast,
+.correct-hint {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-drag-ghost);
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  pointer-events: none;
+  text-align: center;
+  max-width: 90vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.overflow-toast {
+  bottom: 88px;
+  background: rgba(239, 68, 68, 0.92);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+}
+.correct-hint {
+  bottom: 52px;
+  background: rgba(16, 185, 129, 0.92);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+}
+.toast-pop-enter-active { transition: opacity 0.18s ease, transform 0.18s var(--ease-spring); }
+.toast-pop-leave-active { transition: opacity 0.3s ease; }
+.toast-pop-enter-from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.98); }
+.toast-pop-leave-to { opacity: 0; }
 </style>

@@ -25,6 +25,18 @@ export interface CardPoolConfig {
   processIds?: string[]
   /** 难度范围 [最小值, 最大值] */
   difficultyRange?: [number, number]
+  /** 仅保留指定的过程ID（白名单，向后兼容可选） */
+  includeIds?: string[]
+  /** 排除指定的过程ID（黑名单） */
+  excludeIds?: string[]
+  /** 易混淆对ID列表，干扰项加权使用，本阶段仅保留结构 */
+  confusingPairIds?: string[][]
+  /** 速度曲线类型（向后兼容） */
+  speedCurve?: 'linear' | 'easeOut' | 'exp'
+  /** 干扰项随进度增长系数（向后兼容） */
+  distractorGrowth?: number
+  /** 是否按目标分段判定生命（向后兼容） */
+  livesByTarget?: boolean
 }
 
 /** 关卡配置 */
@@ -69,6 +81,12 @@ export interface LevelConfig {
   trayCapacity: number
   /** 星级评定阈值 */
   starThresholds: StarThresholds
+  /** 速度曲线类型（可选，向后兼容） */
+  speedCurve?: 'linear' | 'easeOut' | 'exp'
+  /** 干扰项随进度增长系数（可选） */
+  distractorGrowth?: number
+  /** 是否按目标分段判定生命（可选） */
+  livesByTarget?: boolean
 }
 
 /** 过程组数据 */
@@ -93,6 +111,8 @@ export interface Process {
   processGroupId: string
   knowledgeAreaId: string
   difficulty: number
+  /** 难度权重覆盖（可选，向后兼容） */
+  difficultyWeight?: number
 }
 
 /** ITTO 单项 */
@@ -141,12 +161,24 @@ export interface FallingCard {
   isTarget: boolean
 }
 
-/** 反馈状态 */
+/** 反馈状态（processId 用于定向移除，避免 trayIndex 漂移） */
 export interface FeedbackState {
   type: 'correct' | 'wrong'
   columnId: string
   rowId?: string
   trayIndex: number
+  /** 放置时托盘内过程 id，用于 clearFeedback 定向移除 */
+  processId: string
+}
+
+/** 错题记录 */
+export interface WrongRecord {
+  processId: string
+  processName: string
+  chosenColumnId: string
+  correctColumnId: string
+  correctRowId?: string
+  chosenRowId?: string
 }
 
 /** 已上架的书（正确放置的卡片积累） */

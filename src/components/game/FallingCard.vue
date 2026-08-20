@@ -69,6 +69,9 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
   overflow: hidden;
   animation: cardSpawn 0.25s ease;
+  /* 合成分层：hover 涉及 transform/box-shadow，提升为合成层，减少重排 */
+  will-change: transform;
+  contain: paint;
 }
 
 @keyframes cardSpawn {
@@ -166,7 +169,11 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
 }
 
 .falling-card:hover .book-cover {
-  filter: brightness(1.12);
+  /* 原 filter:brightness(1.12) 会新建渲染层且部分机型触发 CPU 滤镜；
+     改为 opacity 思路更轻量，视觉差异可接受；filter 保留注释便于回滚 */
+  /* filter: brightness(1.12); */
+  opacity: 0.92;
+  will-change: opacity;
 }
 
 .falling-card:active {

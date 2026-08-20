@@ -19,6 +19,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    // 评估：noUncheckedIndexedAccess / exactOptionalPropertyTypes 已试开，vue-tsc 暴露 ~40 处
+    // 索引访问/可选属性未判空（如 loader.ts / stores/game.ts / MatrixGrid.vue / GameView.vue 等），
+    // 需全量补可选链/显式判空与 exactOptional 收窄；为保持最小侵入、避免大范围重构风险，暂不强行开启。
 
     /* Path alias */
     "baseUrl": ".",

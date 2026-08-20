@@ -72,6 +72,13 @@ const stages = computed(() => {
 function goToLevel(levelId: string) {
   router.push(`/game/${levelId}`)
 }
+
+function onLevelKeydown(e: KeyboardEvent, levelId: string) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault()
+    if (userStore.isLevelUnlocked(levelId, levels.value)) goToLevel(levelId)
+  }
+}
 </script>
 
 <template>
@@ -123,7 +130,12 @@ function goToLevel(levelId: string) {
             class="level-card"
             :class="{ 'level-card--locked': !userStore.isLevelUnlocked(level.id, levels) }"
             :style="{ '--stage-color': STAGE_COLORS[stage], animationDelay: `${idx * 0.06}s` }"
+            role="button"
+            :tabindex="userStore.isLevelUnlocked(level.id, levels) ? 0 : -1"
+            :aria-label="userStore.isLevelUnlocked(level.id, levels) ? `关卡：${level.name}，${level.description}` : `未解锁：${getUnlockHint(level.id)}`"
+            :aria-disabled="!userStore.isLevelUnlocked(level.id, levels) ? 'true' : 'false'"
             @click="userStore.isLevelUnlocked(level.id, levels) && goToLevel(level.id)"
+            @keydown="onLevelKeydown($event, level.id)"
           >
             <template v-if="userStore.isLevelUnlocked(level.id, levels)">
               <div class="level-card__accent" :style="{ backgroundColor: STAGE_COLORS[stage] }"></div>
@@ -431,6 +443,11 @@ function goToLevel(levelId: string) {
   text-align: center;
   gap: 0.25rem;
   min-height: 120px;
+}
+
+.level-card:focus-visible:not(.level-card--locked) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .level-card--locked:hover {

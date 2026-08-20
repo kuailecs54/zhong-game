@@ -34,7 +34,9 @@ export async function loadProcesses(): Promise<Process[]> {
 }
 
 /**
- * 加载 ITTO 数据
+ * 加载 ITTO 数据（约 51KB）
+ * 懒加载思路：itto 为非首屏数据，仅在卡片副标题/详情需要时按需加载，不随首屏 levels/processes 预拉；
+ * 当前仅在需要 ITTO 详情时调用 loadITTO，避免首屏额外 51KB 传输与解析成本。
  */
 export async function loadITTO(): Promise<Record<string, ITTO>> {
   const response = await fetch('/data/itto.json')
@@ -46,6 +48,11 @@ export async function loadITTO(): Promise<Record<string, ITTO>> {
 
 /**
  * 加载所有关卡配置
+ * 预留：levels 按 stage 拆或 prefetch 下一关
+ * - 思路 A：levels.json 按 stage 拆为 levels/stage-1.json…stage-4.json，首屏仅拉当前 stage，
+ *   下一关用 requestIdleCallback / link prefetch 预取；
+ * - 思路 B：保持单文件，但在 LevelSelect 进关前 idle 预取下一关的 processes 视口；
+ * 本阶段保持单文件以避免数据迁移风险，仅以注释预留演进方向。
  */
 export async function loadLevels(): Promise<LevelConfig[]> {
   const response = await fetch('/data/levels.json')
@@ -73,43 +80,62 @@ export function getLevelsByStage(stage: number, levels: LevelConfig[]): LevelCon
 
 /**
  * 根据关卡配置筛选出对应的过程列表
+ * 支持 difficultyRange / includeIds / excludeIds 后过滤（最小侵入，不影响现有 source 分支）
  */
 export function getProcessesForLevel(level: LevelConfig, processes: Process[]): Process[] {
   const { cardPool } = level
 
+  let result: Process[]
   switch (cardPool.source) {
     case 'all':
-      return processes
+      result = processes
+      break
 
     case 'processGroups': {
       const groupIds = cardPool.processGroupIds ?? []
-      return processes.filter(p => groupIds.includes(p.processGroupId))
+      result = processes.filter(p => groupIds.includes(p.processGroupId))
+      break
     }
 
     case 'knowledgeAreas': {
       const areaIds = cardPool.knowledgeAreaIds ?? []
-      return processes.filter(p => areaIds.includes(p.knowledgeAreaId))
+      result = processes.filter(p => areaIds.includes(p.knowledgeAreaId))
+      break
     }
 
     case 'specific': {
-      let result = processes
-
+      let filtered = processes
       if (cardPool.processGroupIds && cardPool.processGroupIds.length > 0) {
-        result = result.filter(p => cardPool.processGroupIds!.includes(p.processGroupId))
+        filtered = filtered.filter(p => cardPool.processGroupIds!.includes(p.processGroupId))
       }
       if (cardPool.knowledgeAreaIds && cardPool.knowledgeAreaIds.length > 0) {
-        result = result.filter(p => cardPool.knowledgeAreaIds!.includes(p.knowledgeAreaId))
+        filtered = filtered.filter(p => cardPool.knowledgeAreaIds!.includes(p.knowledgeAreaId))
       }
       if (cardPool.processIds && cardPool.processIds.length > 0) {
-        result = result.filter(p => cardPool.processIds!.includes(p.id))
+        filtered = filtered.filter(p => cardPool.processIds!.includes(p.id))
       }
-
-      return result
+      result = filtered
+      break
     }
 
     default:
-      return processes
+      result = processes
+      break
   }
+
+  if (cardPool.includeIds && cardPool.includeIds.length > 0) {
+    const includeSet = new Set(cardPool.includeIds)
+    result = result.filter(p => includeSet.has(p.id))
+  }
+  if (cardPool.excludeIds && cardPool.excludeIds.length > 0) {
+    const excludeSet = new Set(cardPool.excludeIds)
+    result = result.filter(p => !excludeSet.has(p.id))
+  }
+  if (cardPool.difficultyRange) {
+    const [min, max] = cardPool.difficultyRange
+    result = result.filter(p => p.difficulty >= min && p.difficulty <= max)
+  }
+  return result
 }
 
 /**

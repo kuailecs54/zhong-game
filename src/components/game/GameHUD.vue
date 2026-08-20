@@ -108,6 +108,10 @@ const progress = computed(() => {
   align-items: center;
   justify-content: space-between;
   padding: 0.55rem 1rem;
+  /* 安全区：刘海屏左右与顶部回退，env 无支持时 0 */
+  padding-top: max(0.55rem, env(safe-area-inset-top, 0px));
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
   background: rgba(15, 12, 41, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -323,9 +327,15 @@ const progress = computed(() => {
   cursor: pointer;
   font-size: 0.9rem;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  min-height: 36px;
+  min-height: 44px;
   min-width: 44px;
   justify-content: center;
+}
+
+/* 键盘焦点可见性（WCAG） */
+.hud-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .hud-btn:hover:not(.is-disabled) {
@@ -406,8 +416,8 @@ const progress = computed(() => {
   }
 
   .hud-btn {
-    min-height: 34px;
-    min-width: 38px;
+    min-height: 44px;
+    min-width: 44px;
     padding: 0.3rem 0.45rem;
   }
 }

@@ -52,8 +52,11 @@ function handleSubmit() {
           placeholder="你的名字"
           maxlength="20"
           autocomplete="off"
+          aria-label="用户名"
+          :aria-invalid="error ? 'true' : 'false'"
+          aria-describedby="username-error"
         />
-        <p v-if="error" class="form-error">{{ error }}</p>
+        <p v-if="error" id="username-error" class="form-error" role="alert" aria-live="assertive">{{ error }}</p>
         <button type="submit" class="form-btn">
           <span class="btn-text">开始游戏</span>
           <span class="btn-shimmer"></span>

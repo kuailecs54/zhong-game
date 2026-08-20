@@ -3,9 +3,19 @@ const emit = defineEmits<{ requestLandscape: [] }>()
 
 // 支持全屏 + orientation.lock 的浏览器（Android Chrome/夸克等）才显示强制横屏按钮；
 // iOS Safari 无 lock API 时不显示，仍靠旋转设备引导
+// 前缀兼容：Safari/旧 WebKit 用 webkitRequestFullscreen
+function hasFullscreenSupport(): boolean {
+  if (typeof document === 'undefined') return false
+  const el = document.documentElement as unknown as Record<string, unknown>
+  return (
+    typeof document.documentElement.requestFullscreen === 'function' ||
+    typeof el['webkitRequestFullscreen'] === 'function' ||
+    typeof el['webkitEnterFullscreen'] === 'function'
+  )
+}
 const canForceLandscape =
   typeof document !== 'undefined' &&
-  typeof document.documentElement.requestFullscreen === 'function' &&
+  hasFullscreenSupport() &&
   typeof (screen.orientation as { lock?: unknown }).lock === 'function'
 </script>
 

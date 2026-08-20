@@ -13,7 +13,7 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  dragstart: [trayIndex: number, process: Process]
+  dragstart: [trayIndex: number, process: Process, pointerId: number]
   dragend: []
 }>()
 
@@ -21,7 +21,20 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
   // 右键不启动拖拽
   if (e.button !== 0) return
   e.preventDefault()
-  emit('dragstart', index, process)
+  // 移动端拖拽稳定性：尝试捕获指针，避免手指划出元素后丢失 move/up
+  try {
+    ;(e.currentTarget as HTMLElement)?.setPointerCapture?.(e.pointerId)
+  } catch {
+    // 忽略不支持 setPointerCapture 的环境
+  }
+  emit('dragstart', index, process, e.pointerId)
+}
+
+function onDeskKeydown(e: KeyboardEvent, index: number, process: Process) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault()
+    emit('dragstart', index, process, -1)
+  }
 }
 </script>
 
@@ -44,7 +57,11 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
             'feedback-shake': feedbackIndex === index && feedbackType === 'wrong',
             'is-dragging': draggingIndex === index,
           }"
+          role="button"
+          tabindex="0"
+          :aria-label="`书桌卡片：${card.name}，按回车拖拽`"
           @pointerdown="onPointerDown($event, index, card)"
+          @keydown="onDeskKeydown($event, index, card)"
         >
           <FallingCard
             :process="card"
@@ -197,6 +214,17 @@ function onPointerDown(e: PointerEvent, index: number, process: Process) {
   touch-action: none;
   cursor: grab;
   transition: opacity 0.15s ease, transform 0.15s var(--ease-spring);
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.desk-card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .desk-card:active {

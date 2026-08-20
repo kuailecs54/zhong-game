@@ -1,4 +1,4 @@
-import { onUnmounted, type Ref } from 'vue'
+import { onMounted, onUnmounted, type Ref } from 'vue'
 import { useGameStore } from '@/stores/game'
 
 /**
@@ -79,6 +79,7 @@ export function useGameLoop(gameAreaRef: Ref<HTMLElement | null>) {
 
   /**
    * 暂停/继续
+   * 暂停时 cancelAnimationFrame 避免空转 rAF，恢复时重启动并重置 lastTimestamp 避免跳帧
    */
   function togglePause() {
     // 仅在游戏运行或已暂停时允许切换；暂停时 isPlaying 为 false，不能据此拦截
@@ -86,12 +87,52 @@ export function useGameLoop(gameAreaRef: Ref<HTMLElement | null>) {
     const isPausing = !store.isPaused
     store.setGamePhase(isPausing ? 'paused' : 'playing')
     if (isPausing) {
-      // 暂停时重置 lastTimestamp，避免恢复时跳帧
+      // 暂停：取消 rAF，避免后台空转
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId)
+        animationId = null
+      }
+      // 重置 lastTimestamp，避免恢复时 deltaTime 过大导致跳帧
       lastTimestamp = 0
+    } else {
+      // 恢复：重启动 rAF
+      lastTimestamp = 0
+      if (animationId === null) {
+        // 保持 isRunning 为 true 的语义（循环应处于运行态）
+        isRunning = true
+        animationId = requestAnimationFrame(gameLoop)
+      }
     }
   }
 
+  // visibilitychange 暂停/恢复 rAF，省电且避免切后台后 deltaTime 过大
+  function onVisibilityChange() {
+    if (typeof document === 'undefined') return
+    if (document.hidden) {
+      if (isRunning && animationId !== null) {
+        cancelAnimationFrame(animationId)
+        animationId = null
+      }
+      // 避免切回时跳帧
+      lastTimestamp = 0
+    } else {
+      if (isRunning && animationId === null && store.isPlaying && !store.isPaused) {
+        lastTimestamp = 0
+        animationId = requestAnimationFrame(gameLoop)
+      }
+    }
+  }
+
+  onMounted(() => {
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisibilityChange)
+    }
+  })
+
   onUnmounted(() => {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
     stop()
   })
 

@@ -230,7 +230,7 @@ button {
   z-index: 0;
 }
 
-/* ===== 微光边框 ===== */
+/* ===== 微光边框（mask-composite 需 -webkit 前缀兼容 Safari，已保留双前缀，勿删） ===== */
 .glow-border {
   position: relative;
 }
@@ -245,6 +245,16 @@ button {
   mask-composite: exclude;
   padding: 1px;
   pointer-events: none;
+}
+/* mask-composite 兼容回退：不支持时用半透明边框近似微光边框 */
+@supports not (mask-composite: exclude) {
+  .glow-border::after {
+    background: transparent;
+    -webkit-mask: none;
+    mask: none;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0;
+  }
 }
 
 /* ===== 减少动效偏好 ===== */

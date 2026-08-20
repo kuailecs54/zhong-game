@@ -11,16 +11,35 @@ const gameStore = useGameStore()
 
 const levelId = route.params.levelId as string
 
-// 从路由 state 读取结果数据，fallback 到 store
-const resultData = history.state as {
+interface ResultPayload {
   won?: boolean
   stars?: number
   score?: number
   correctCount?: number
   wrongCount?: number
+  missedCount?: number
   accuracy?: number
   nextLevelId?: string
-} | null
+  wrongHistory?: { processName: string; chosenColumnId: string; correctColumnId: string; correctRowId?: string }[]
+}
+
+function readResultPayload(): ResultPayload | null {
+  // 1) 优先 history.state（同次导航）
+  const hs = history.state as ResultPayload | null
+  if (hs && (hs.won !== undefined || hs.stars !== undefined)) return hs
+  // 2) sessionStorage 兜底（刷新后）
+  try {
+    const raw = sessionStorage.getItem(`result:${levelId}`)
+    if (raw) return JSON.parse(raw) as ResultPayload
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+
+
+const resultData = readResultPayload()
 
 const won = ref(resultData?.won ?? false)
 const stars = ref(resultData?.stars ?? 0)
@@ -29,6 +48,10 @@ const correctCount = ref(resultData?.correctCount ?? 0)
 const wrongCount = ref(resultData?.wrongCount ?? 0)
 const accuracy = ref(resultData?.accuracy ?? 0)
 const nextLevelId = ref(resultData?.nextLevelId ?? '')
+const missedCount = ref(resultData?.missedCount ?? 0)
+const wrongItems = ref<{ processName: string; chosenColumnId: string; correctColumnId: string; correctRowId?: string }[]>(resultData?.wrongHistory ?? [])
+// 错题记录在导航时写入 sessionStorage，不依赖 gameStore 存活；此处仅展示
+// gameStore.resetLevel 会清空内存队列，不影响本次展示
 
 const levelName = ref('')
 const loading = ref(true)
@@ -37,6 +60,7 @@ const statItems = computed(() => [
   { label: '得分', value: score.value.toLocaleString(), type: 'neutral' as const },
   { label: '正确', value: String(correctCount.value), type: 'correct' as const },
   { label: '错误', value: String(wrongCount.value), type: 'wrong' as const },
+  { label: '漏接', value: String(missedCount.value), type: 'wrong' as const },
   { label: '准确率', value: `${(accuracy.value * 100).toFixed(0)}%`, type: 'neutral' as const },
 ])
 
@@ -146,6 +170,18 @@ function handleBackToLevels() {
               'stat-wrong': item.type === 'wrong',
             }">{{ item.value }}</span>
           </div>
+        </div>
+
+        <!-- 错题回顾（TOP3） -->
+        <div v-if="wrongItems.length > 0" class="wrong-review">
+          <h3 class="wrong-review-title">错题回顾 · TOP{{ Math.min(3, wrongItems.length) }}</h3>
+          <ul class="wrong-review-list">
+            <li v-for="(w, i) in wrongItems.slice(0, 3)" :key="i" class="wrong-review-item">
+              <span class="wrong-name">{{ w.processName }}</span>
+              <span class="wrong-detail">选中 {{ w.chosenColumnId }} → 正确 {{ w.correctRowId ? `${w.correctColumnId} / ${w.correctRowId}` : w.correctColumnId }}</span>
+            </li>
+          </ul>
+          <p class="wrong-review-tip">已加入错题闪卡，下一局优先出现</p>
         </div>
 
         <!-- 操作按钮 -->
@@ -374,13 +410,47 @@ function handleBackToLevels() {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   text-align: left;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 1rem 1.25rem;
 }
+
+.wrong-review {
+  text-align: left;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+}
+.wrong-review-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #fca5a5;
+  margin: 0 0 0.5rem;
+}
+.wrong-review-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.wrong-review-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.wrong-review-item:last-child { border-bottom: none; }
+.wrong-name { font-size: 0.85rem; font-weight: 700; color: #fff; }
+.wrong-detail { font-size: 0.72rem; color: var(--text-muted); }
+.wrong-review-tip { margin: 0.5rem 0 0; font-size: 0.7rem; color: var(--text-faint); }
 
 .stat-row {
   display: flex;

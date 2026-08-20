@@ -5,14 +5,19 @@ dist
 *.local
 tsconfig.tsbuildinfo
 
-# 浏览器测试/UI 记录，非源码
+# 浏览器测试/UI 记录，非源码（根目录捕获勿用 /*.png，会误忽略运行时截图；docs/images 白名单除外）
 .playwright-mcp/
-/*.png
+*.png
+!docs/images/*.png
+*.jpg
+!docs/images/*.jpg
+coverage/
+.env
+.env.*
+!.env.example
 
 # 代码知识图谱索引，非源码
 .codegraph/
 .superpowers
 .fastRequest
-/docs/images/game-01.jpg
-/docs/images/game-02.jpg
 .idea
