@@ -5,7 +5,6 @@
 Defines the landscape-only experience on touch devices: a rotation gate that blocks portrait play, the side-by-side landscape layout with compact UI, and fall speed scaling to keep mobile difficulty consistent with desktop.
 
 ## Requirements
-
 ### Requirement: 竖屏旋转门
 触摸设备（`pointer: coarse`）且视口为竖屏且宽度小于 768px 时，系统 MUST 显示全屏旋转遮罩，提示玩家旋转至横屏；游戏进行中时 MUST 自动暂停。遮罩不提供「仍然竖屏游玩」的入口。触摸设备横屏（含宽度 667~767px）时 MUST 不显示遮罩。
 
@@ -28,47 +27,22 @@ Defines the landscape-only experience on touch devices: a rotation gate that blo
 #### Scenario: 桌面端不受影响
 - **WHEN** 桌面浏览器（精确指针）任意窗口尺寸下打开游戏
 - **THEN** 永不显示旋转遮罩
-
-### Requirement: 触摸设备横屏并排布局
-触摸设备横屏时，主区域 MUST 采用「下落区 + 书架/矩阵」的并排布局，不得退化为竖屏压缩布局（书架 28vh 滚动条带）。书架侧面板宽度 MUST 封顶（不超过视口宽度约 45%），保证下落区保留足够宽度。
-
-#### Scenario: 横屏小屏手机使用并排布局
-- **WHEN** 触摸设备横屏且宽度小于 768px（如 667×375）
-- **THEN** 下落区与书架并排显示，书架不出现纵向滚动条带压缩
-
-#### Scenario: 书架宽度封顶
-- **WHEN** 触摸设备横屏、关卡列数较多（书架自然宽度超过视口 45%）
-- **THEN** 书架实际宽度不超过视口宽度的 45%，下落区宽度不小于剩余空间
-
 ### Requirement: 触摸横屏紧凑化
-触摸设备横屏时，HUD、书桌托盘、书架格子、矩阵格子 MUST 使用紧凑尺寸，保证在约 375px 高的视口内主游戏区有足够的可用高度。
+触摸设备横屏时，HUD、居中大卡、答案卡、矩阵格子 MUST 使用紧凑尺寸，保证在约 375px 高的视口内大卡与作答区同时可用。
 
 #### Scenario: 横屏高度受限下的布局可用
 - **WHEN** 触摸设备横屏（视口高度约 375px）打开任意关卡
-- **THEN** HUD 与书桌合计占高不超过约 100px，主游戏区高度不低于约 250px，书架与矩阵格子内容不重叠、可正常拖放
+- **THEN** HUD 与居中大卡合计占高不超过约 100px，答案卡组在剩余空间内完整可见可点选，矩阵格子内容不重叠、可正常点选作答
 
 #### Scenario: 矩阵模式安全高度
 - **WHEN** 触摸设备横屏游玩 matrix 模式关卡、矩阵网格内容超出可用高度
-- **THEN** 矩阵网格在安全高度内可滚动浏览，不影响上方下落区
-
-### Requirement: 下落速度按游戏区高度缩放
-下落卡片 MUST 按游戏区实际高度缩放移动速度，缩放系数为 `min(1, gameAreaHeight / 700)`，仅缩不增。桌面端（区域高度 ≥ 700px）行为 MUST 与当前完全一致；触摸横屏手机（区域高度远小于 700px）卡片穿越时间 MUST 与桌面同量级（约 15~25s），不出现约 3 倍难度放大。
-
-#### Scenario: 桌面速度不变
-- **WHEN** 桌面端游戏区高度 ≥ 700px
-- **THEN** 卡片移动速度等于关卡配置的 `initialFallSpeed`，难度与当前版本一致
-
-#### Scenario: 横屏手机难度与桌面一致
-- **WHEN** 触摸横屏手机游戏区高度约 275px、关卡 `initialFallSpeed` 为 40
-- **THEN** 卡片穿越游戏区的耗时约 17s（与桌面同量级），而非未缩放时的约 7s
-
+- **THEN** 矩阵网格在安全高度内可滚动浏览，不影响上方卡片区
 ### Requirement: 刘海屏横屏适配
 页面 viewport 配置 MUST 包含 `viewport-fit=cover`，保证横屏下刘海设备内容不被裁切。
 
 #### Scenario: 刘海设备横屏显示完整
 - **WHEN** 带刘海的触摸设备横屏打开游戏
 - **THEN** 页面内容延伸至安全区，HUD 与遮罩不被刘海遮挡裁切
-
 ### Requirement: 触摸横屏开始界面可滚动
 开始界面在触摸设备横屏下 MUST 允许内容超高时纵向滚动，保证"开始游戏"按钮始终可达；内容未超高时开始卡片 MUST 保持垂直居中；桌面端 MUST 不因该滚动能力出现多余滚动条。
 
@@ -85,3 +59,13 @@ Defines the landscape-only experience on touch devices: a rotation gate that blo
 - **WHEN** 桌面浏览器（视口高度 900px）打开开始界面
 - **THEN** 开始界面纵向内容不超出视口，不显示滚动条
 - **AND** 背景装饰光球溢出部分被裁切，不产生 60px 的纵向滚动空间
+### Requirement: 触摸设备横屏布局
+触摸设备横屏时，主区域 MUST 采用「HUD + 居中大卡 + 底部答案卡组」的纵向堆叠布局（矩阵关为 HUD + 大卡 + 矩阵网格），居中大卡区域 MUST 保留最大可用高度；SHALL NOT 出现侧边面板挤压卡片区宽度的布局。
+
+#### Scenario: 横屏小屏手机布局可用
+- **WHEN** 触摸设备横屏且宽度小于 768px（如 667×375）
+- **THEN** HUD、大卡与底部答案卡组纵向堆叠，互不遮挡，答案卡自动换行分布可正常点选
+
+#### Scenario: 大卡区域高度保障
+- **WHEN** 触摸设备横屏打开任意列布局关卡
+- **THEN** 居中大卡区域保留最大可用高度，不被作答区压缩为条带
