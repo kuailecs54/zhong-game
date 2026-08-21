@@ -80,37 +80,60 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
 </template>
 
 <style scoped>
-.itto-quiz { padding: 16px; max-width: 640px; margin: 0 auto; }
-.process-name { font-size: 22px; font-weight: 800; margin-bottom: 4px; color: #1e293b; }
-.hint { color: #888; margin-bottom: 16px; font-size: 14px; }
-.itto-section { margin-bottom: 16px; }
-.itto-section h3 { font-size: 14px; font-weight: 700; color: #475569; margin-bottom: 8px; }
+.itto-quiz { padding: 20px; max-width: 640px; margin: 0 auto; }
+.process-name {
+  font-size: 22px; font-weight: 800; margin-bottom: 6px;
+  color: var(--text-primary, #f1f5f9);
+}
+.hint {
+  color: var(--text-muted, #94a3b8);
+  margin-bottom: 20px; font-size: 14px;
+}
+.itto-section { margin-bottom: 18px; }
+.itto-section h3 {
+  font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted, #94a3b8); margin-bottom: 10px;
+}
 .option-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .option {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 10px 14px; border: 2px solid #d1d5db; border-radius: 8px; background: #fff;
+  padding: 10px 14px; border: 2px solid var(--border-subtle, rgba(255,255,255,0.12));
+  border-radius: 8px; background: var(--surface-glass-strong, rgba(255,255,255,0.12));
+  color: var(--text-primary, #f1f5f9);
   cursor: pointer; font-size: 14px; transition: all 0.2s; text-align: left;
   min-width: 0; flex: 1 1 auto; max-width: 100%;
 }
-.option:hover:not(:disabled) { border-color: #3498db; background: #f0f9ff; }
-.option.selected { border-color: #3498db; background: #eaf4ff; }
+.option:hover:not(:disabled) {
+  border-color: var(--color-accent, #22d3ee);
+  background: rgba(34,211,238,0.1);
+}
+.option.selected {
+  border-color: var(--color-accent, #22d3ee);
+  background: rgba(34,211,238,0.15);
+}
 
 .option.correct {
-  border-color: #22c55e; background: #dcfce7; color: #15803d;
-  box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+  border-color: var(--color-success, #10b981);
+  background: rgba(16,185,129,0.15);
+  color: #6ee7b7;
+  box-shadow: 0 0 0 2px rgba(16,185,129,0.2);
 }
 .option.wrong {
-  border-color: #ef4444; background: #fef2f2; color: #b91c1c;
+  border-color: var(--color-error, #ef4444);
+  background: rgba(239,68,68,0.15);
+  color: #fca5a5;
   box-shadow: 0 0 0 2px rgba(239,68,68,0.25);
   animation: shakeWrong 0.45s ease;
 }
 .option.missing {
-  border-color: #f59e0b; background: #fffbeb; color: #92400e;
+  border-color: var(--color-warning, #f59e0b);
+  background: rgba(245,158,11,0.12);
+  color: #fcd34d;
   border-style: dashed;
   box-shadow: 0 0 0 2px rgba(245,158,11,0.2);
 }
-.option.dimmed { opacity: 0.3; }
+.option.dimmed { opacity: 0.25; }
 .option:disabled { cursor: default; }
 
 @keyframes shakeWrong {
@@ -128,19 +151,19 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
-.badge-correct { color: #16a34a; }
-.badge-wrong { color: #dc2626; }
-.badge-missing { color: #d97706; }
+.badge-correct { color: #34d399; }
+.badge-wrong { color: #f87171; }
+.badge-missing { color: #fbbf24; }
 
-.actions { margin-top: 16px; text-align: center; }
+.actions { margin-top: 20px; text-align: center; }
 .submit-btn, .next-btn {
-  padding: 10px 24px; border: none; border-radius: 8px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  padding: 10px 28px; border: none; border-radius: 8px;
+  background: linear-gradient(135deg, var(--color-primary, #6366f1), var(--color-primary-strong, #4f46e5));
   color: #fff; cursor: pointer; font-size: 15px; font-weight: 600;
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.submit-btn:hover, .next-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
-.done { color: #888; font-size: 14px; }
+.submit-btn:hover, .next-btn:hover { transform: translateY(-1px); box-shadow: var(--glow-primary, 0 4px 20px rgba(99,102,241,0.35)); }
+.done { color: var(--text-muted, #94a3b8); font-size: 14px; }
 
 @media (max-width: 480px) {
   .itto-quiz { padding: 12px; }
