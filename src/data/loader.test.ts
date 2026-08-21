@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { getProcessesForLevel } from './loader'
-import type { LevelConfig, Process, CardPoolConfig } from './types'
+import { describe, it, expect, test } from 'vitest'
+import { getProcessesForLevel, getITTOForLevel } from './loader'
+import type { LevelConfig, Process, CardPoolConfig, ITTO } from './types'
 
 function proc(id: string, difficulty = 3, pg = 'planning', ka = 'scope'): Process {
   return { id, name: id, processGroupId: pg, knowledgeAreaId: ka, difficulty } as Process
@@ -73,5 +73,24 @@ describe('getProcessesForLevel', () => {
   it('空池不抛错返回空数组（白名单无匹配）', () => {
     const result = getProcessesForLevel(level({ includeIds: ['nonexistent'] }), processes)
     expect(result).toEqual([])
+  })
+})
+
+describe('getITTOForLevel', () => {
+  const processes = [
+    { id: 'p001', name: '制定项目章程', processGroupId: 'initiating', knowledgeAreaId: 'integration', difficulty: 2 },
+    { id: 'p002', name: '制定项目管理计划', processGroupId: 'planning', knowledgeAreaId: 'integration', difficulty: 3 },
+  ]
+  const itto: Record<string, ITTO> = {
+    p001: { inputs: [{ name: '协议' }], toolsAndTechniques: [{ name: '专家判断' }], outputs: [{ name: '项目章程' }] },
+    p002: { inputs: [{ name: '项目章程' }], toolsAndTechniques: [{ name: '专家判断' }], outputs: [{ name: '项目管理计划' }] },
+  }
+  const level = { id: 'itto-1', mode: 'itto' as const, cardPool: { source: 'specific' as const, processIds: ['p001'] } }
+
+  test('仅返回关卡池内过程对应的 ITTO', () => {
+    const result = getITTOForLevel(level as any, processes as any, itto)
+    expect(result).toHaveLength(1)
+    expect(result[0].process.id).toBe('p001')
+    expect(result[0].itto.outputs[0].name).toBe('项目章程')
   })
 })

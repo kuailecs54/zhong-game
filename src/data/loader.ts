@@ -139,6 +139,21 @@ export function getProcessesForLevel(level: LevelConfig, processes: Process[]): 
 }
 
 /**
+ * 返回本关过程池每个过程对应的 ITTO 数据，供 ITTO 测验模式出题库。
+ * 仅保留在 itto 数据中存在对应条目的过程（缺失则跳过，避免空题）。
+ */
+export function getITTOForLevel(
+  level: LevelConfig,
+  processes: Process[],
+  itto: Record<string, ITTO>,
+): { process: Process; itto: ITTO }[] {
+  const pool = getProcessesForLevel(level, processes)
+  return pool
+    .filter((p) => itto[p.id])
+    .map((p) => ({ process: p, itto: itto[p.id] }))
+}
+
+/**
  * 预期矩阵分布（知识领域 -> 按过程组顺序的过程数）
  * 过程组顺序：initiating, planning, executing, monitoring_controlling, closing
  */
