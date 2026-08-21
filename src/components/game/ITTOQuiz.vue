@@ -101,6 +101,7 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
               <span v-if="item.tags?.length" class="kc-tags">
                 <span v-for="tag in item.tags" :key="tag" class="kc-tag" :class="tag === 'core' ? 'tag-core' : 'tag-common'">{{ tag }}</span>
               </span>
+              <p v-if="item.description" class="kc-desc">{{ item.description }}</p>
             </li>
           </ul>
         </div>
@@ -113,6 +114,7 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
               <span v-if="item.tags?.length" class="kc-tags">
                 <span v-for="tag in item.tags" :key="tag" class="kc-tag" :class="tag === 'core' ? 'tag-core' : 'tag-common'">{{ tag }}</span>
               </span>
+              <p v-if="item.description" class="kc-desc">{{ item.description }}</p>
             </li>
           </ul>
         </div>
@@ -125,6 +127,7 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
               <span v-if="item.tags?.length" class="kc-tags">
                 <span v-for="tag in item.tags" :key="tag" class="kc-tag" :class="tag === 'core' ? 'tag-core' : 'tag-common'">{{ tag }}</span>
               </span>
+              <p v-if="item.description" class="kc-desc">{{ item.description }}</p>
             </li>
           </ul>
         </div>
@@ -248,13 +251,19 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
 
 .kc-list { list-style: none; padding: 0; margin: 0; }
 .kc-item {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
-  padding: 5px 0;
+  display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 6px;
+  padding: 6px 0;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 .kc-item:last-child { border-bottom: none; }
 .kc-name {
-  font-size: 13px; color: var(--text-secondary, #cbd5e1); line-height: 1.4;
+  font-size: 13px; color: var(--text-secondary, #cbd5e1); line-height: 1.4; flex: 1;
+}
+.kc-desc {
+  width: 100%;
+  font-size: 12px; color: var(--text-muted, #94a3b8); line-height: 1.5;
+  margin: 2px 0 0 0; padding-left: 8px;
+  border-left: 2px solid rgba(255,255,255,0.08);
 }
 
 .kc-tags { display: flex; gap: 3px; flex-shrink: 0; align-items: center; }

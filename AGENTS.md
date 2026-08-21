@@ -39,13 +39,6 @@ npm run preview  # 预览构建产物
 - 代码内注释、UI 文案均用中文；代码类内容（标识符、命令、术语）用英文。
 - openspec 文档类内容以中文为主，仅代码内容用英文（见 `openspec/config.yaml` 的 context）。
 
-## superpowers 使用
-
-- superpowers 技能已内置在本仓库 `.opencode/skills/`（brainstorming、systematic-debugging、test-driven-development、writing-plans 等），以及中文适配版（chinese-code-review、chinese-documentation、chinese-commit-conventions、chinese-git-workflow）。
-- **在做出任何响应或操作之前，必须先检查并调用适用的技能**（见 `.opencode/skills/using-superpowers/SKILL.md`），包括提问前。
-- 流程技能优先："让我们构建 X" → 先 brainstorming；"修复这个 bug" → 先 systematic-debugging。
-- 中文项目自动路由：代码审查/写中文文档/写 commit 时用对应 chinese-* 技能。
-
 ## codegraph 使用
 
 - codegraph 是本仓库的代码知识图谱，索引在 `.codegraph/`（已 gitignore，勿提交）。

@@ -121,6 +121,7 @@ export interface Process {
 export interface ITTOItem {
   name: string
   tags?: string[]
+  description?: string
 }
 
 /** ITTO 数据 */
