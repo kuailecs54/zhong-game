@@ -43,7 +43,6 @@ const resultData = readResultPayload()
 
 const won = ref(resultData?.won ?? false)
 const stars = ref(resultData?.stars ?? 0)
-const score = ref(resultData?.score ?? 0)
 const correctCount = ref(resultData?.correctCount ?? 0)
 const wrongCount = ref(resultData?.wrongCount ?? 0)
 const accuracy = ref(resultData?.accuracy ?? 0)
@@ -56,13 +55,17 @@ const wrongItems = ref<{ processName: string; chosenColumnId: string; correctCol
 const levelName = ref('')
 const loading = ref(true)
 
-const statItems = computed(() => [
-  { label: '得分', value: score.value.toLocaleString(), type: 'neutral' as const },
-  { label: '正确', value: String(correctCount.value), type: 'correct' as const },
-  { label: '错误', value: String(wrongCount.value), type: 'wrong' as const },
-  { label: '漏接', value: String(missedCount.value), type: 'wrong' as const },
-  { label: '准确率', value: `${(accuracy.value * 100).toFixed(0)}%`, type: 'neutral' as const },
-])
+const statItems = computed(() => {
+  const items = [
+    { label: '正确', value: String(correctCount.value), type: 'correct' as const },
+    { label: '错误', value: String(wrongCount.value), type: 'wrong' as const },
+  ]
+  if (missedCount.value > 0) {
+    items.push({ label: '漏接', value: String(missedCount.value), type: 'wrong' as const })
+  }
+  items.push({ label: '准确率', value: `${(accuracy.value * 100).toFixed(0)}%`, type: 'correct' as const })
+  return items
+})
 
 onMounted(async () => {
   try {
@@ -181,7 +184,7 @@ function handleBackToLevels() {
               <span class="wrong-detail">选中 {{ w.chosenColumnId }} → 正确 {{ w.correctRowId ? `${w.correctColumnId} / ${w.correctRowId}` : w.correctColumnId }}</span>
             </li>
           </ul>
-          <p class="wrong-review-tip">已加入错题闪卡，下一局优先出现</p>
+          <p class="wrong-review-tip">建议重点复习这些过程</p>
         </div>
 
         <!-- 操作按钮 -->

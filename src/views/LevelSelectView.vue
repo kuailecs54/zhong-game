@@ -144,6 +144,8 @@ function onLevelKeydown(e: KeyboardEvent, levelId: string) {
                 <StarRating :stars="userStore.getLevelStars(level.id)" />
               </div>
               <div class="level-name">{{ level.name }}</div>
+              <span v-if="level.mode === 'itto'" class="level-mode-tag itto-tag">ITTO</span>
+              <span v-else class="level-mode-tag sort-tag">归类</span>
               <div class="level-description">{{ level.description }}</div>
               <div class="level-meta">
                 <span v-if="userStore.getLevelBestScore(level.id) > 0" class="level-score">
@@ -541,6 +543,25 @@ function onLevelKeydown(e: KeyboardEvent, levelId: string) {
   color: var(--text-faint);
   opacity: 0;
   transition: opacity 0.2s ease;
+}
+
+.level-mode-tag {
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.itto-tag {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+.sort-tag {
+  background: rgba(99, 102, 241, 0.12);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.25);
 }
 
 .level-card:hover .play-hint {
