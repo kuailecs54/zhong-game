@@ -12,6 +12,8 @@ interface QuizQuestion {
   optionsInputs: string[]
   optionsTools: string[]
   optionsOutputs: string[]
+  /** 原始 ITTO 数据，含 tags，供知识卡片展示 */
+  ittoRaw: ITTO
 }
 
 export interface QuizResult {
@@ -73,6 +75,7 @@ export const useIttoStore = defineStore('itto', {
           optionsInputs: shuffle([...correctInputs, ...sampleExcept(gp.inputs, correctInputs, optsPerCat)]),
           optionsTools: shuffle([...correctTools, ...sampleExcept(gp.tools, correctTools, optsPerCat)]),
           optionsOutputs: shuffle([...correctOutputs, ...sampleExcept(gp.outputs, correctOutputs, optsPerCat)]),
+          ittoRaw: itto,
         }
       })
 
