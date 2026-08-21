@@ -1,4 +1,4 @@
-import { describe, it, expect, test, beforeEach } from 'vitest'
+import { expect, test, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useIttoStore } from './itto'
 import type { ITTO } from '@/data/types'

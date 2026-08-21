@@ -34,12 +34,6 @@ function sampleExcept(pool: string[], correct: string[], n: number): string[] {
   return candidates.slice(0, Math.max(0, n - correct.length))
 }
 
-const CATEGORY_MAP = {
-  inputs: { correct: 'correctInputs', options: 'optionsInputs' },
-  tools: { correct: 'correctTools', options: 'optionsTools' },
-  outputs: { correct: 'correctOutputs', options: 'optionsOutputs' },
-} as const
-
 export const useIttoStore = defineStore('itto', {
   state: () => ({
     questions: [] as QuizQuestion[],
@@ -54,7 +48,7 @@ export const useIttoStore = defineStore('itto', {
     currentQuestion: (s): QuizQuestion | null => s.questions[s.index] ?? null,
     total: (s): number => s.questions.length,
     isLast: (s): boolean => s.index >= s.questions.length - 1,
-    accuracy: (s): number => (s.total > 0 ? s.score / s.total : 0),
+    accuracy: (s): number => (s.questions.length > 0 ? s.score / s.questions.length : 0),
   },
 
   actions: {
