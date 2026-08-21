@@ -6,13 +6,22 @@
     "number": 1,
     "description": "区分启动和收尾过程组，迈出项目管理第一步",
     "layoutType": "columns",
-    "columns": ["initiating", "closing"],
+    "columns": [
+      "initiating",
+      "closing"
+    ],
     "cardPool": {
       "source": "processGroups",
-      "processGroupIds": ["initiating", "closing"],
-      "difficultyRange": [1, 2]
+      "processGroupIds": [
+        "initiating",
+        "closing"
+      ],
+      "difficultyRange": [
+        1,
+        2
+      ]
     },
-    "targetCount": 10,
+    "targetCount": 3,
     "initialFallSpeed": 40,
     "initialSpawnInterval": 4000,
     "minSpawnInterval": 2000,
@@ -36,13 +45,22 @@
     "number": 2,
     "description": "区分规划与执行过程组，理解计划与行动的区别",
     "layoutType": "columns",
-    "columns": ["planning", "executing"],
+    "columns": [
+      "planning",
+      "executing"
+    ],
     "cardPool": {
       "source": "processGroups",
-      "processGroupIds": ["planning", "executing"],
-      "difficultyRange": [1, 2]
+      "processGroupIds": [
+        "planning",
+        "executing"
+      ],
+      "difficultyRange": [
+        1,
+        2
+      ]
     },
-    "targetCount": 15,
+    "targetCount": 20,
     "initialFallSpeed": 42,
     "initialSpawnInterval": 3800,
     "minSpawnInterval": 2000,
@@ -66,13 +84,24 @@
     "number": 3,
     "description": "在启动、规划、执行三个过程组之间快速切换",
     "layoutType": "columns",
-    "columns": ["initiating", "planning", "executing"],
+    "columns": [
+      "initiating",
+      "planning",
+      "executing"
+    ],
     "cardPool": {
       "source": "processGroups",
-      "processGroupIds": ["initiating", "planning", "executing"],
-      "difficultyRange": [1, 2]
+      "processGroupIds": [
+        "initiating",
+        "planning",
+        "executing"
+      ],
+      "difficultyRange": [
+        1,
+        2
+      ]
     },
-    "targetCount": 15,
+    "targetCount": 21,
     "initialFallSpeed": 46,
     "initialSpawnInterval": 3600,
     "minSpawnInterval": 1800,
@@ -96,13 +125,28 @@
     "number": 1,
     "description": "首次面对全部五个过程组，建立完整认知",
     "layoutType": "columns",
-    "columns": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
+    "columns": [
+      "initiating",
+      "planning",
+      "executing",
+      "monitoring_controlling",
+      "closing"
+    ],
     "cardPool": {
       "source": "processGroups",
-      "processGroupIds": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
-      "difficultyRange": [1, 3]
+      "processGroupIds": [
+        "initiating",
+        "planning",
+        "executing",
+        "monitoring_controlling",
+        "closing"
+      ],
+      "difficultyRange": [
+        1,
+        3
+      ]
     },
-    "targetCount": 20,
+    "targetCount": 29,
     "initialFallSpeed": 50,
     "initialSpawnInterval": 3400,
     "minSpawnInterval": 1600,
@@ -126,13 +170,28 @@
     "number": 2,
     "description": "提高难度，在更多卡片中准确识别五个过程组",
     "layoutType": "columns",
-    "columns": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
+    "columns": [
+      "initiating",
+      "planning",
+      "executing",
+      "monitoring_controlling",
+      "closing"
+    ],
     "cardPool": {
       "source": "processGroups",
-      "processGroupIds": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
-      "difficultyRange": [1, 3]
+      "processGroupIds": [
+        "initiating",
+        "planning",
+        "executing",
+        "monitoring_controlling",
+        "closing"
+      ],
+      "difficultyRange": [
+        1,
+        3
+      ]
     },
-    "targetCount": 25,
+    "targetCount": 29,
     "initialFallSpeed": 55,
     "initialSpawnInterval": 3200,
     "minSpawnInterval": 1500,
@@ -156,13 +215,28 @@
     "number": 3,
     "description": "高速模式下准确归类五个过程组，检验真功夫",
     "layoutType": "columns",
-    "columns": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
+    "columns": [
+      "initiating",
+      "planning",
+      "executing",
+      "monitoring_controlling",
+      "closing"
+    ],
     "cardPool": {
       "source": "processGroups",
-      "processGroupIds": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
-      "difficultyRange": [1, 3]
+      "processGroupIds": [
+        "initiating",
+        "planning",
+        "executing",
+        "monitoring_controlling",
+        "closing"
+      ],
+      "difficultyRange": [
+        1,
+        3
+      ]
     },
-    "targetCount": 30,
+    "targetCount": 29,
     "initialFallSpeed": 60,
     "initialSpawnInterval": 2800,
     "minSpawnInterval": 1200,
@@ -186,13 +260,28 @@
     "number": 1,
     "description": "按知识领域归类：整合、范围、进度、成本、质量管理",
     "layoutType": "columns",
-    "columns": ["integration", "scope", "schedule", "cost", "quality"],
+    "columns": [
+      "integration",
+      "scope",
+      "schedule",
+      "cost",
+      "quality"
+    ],
     "cardPool": {
       "source": "knowledgeAreas",
-      "knowledgeAreaIds": ["integration", "scope", "schedule", "cost", "quality"],
-      "difficultyRange": [1, 3]
+      "knowledgeAreaIds": [
+        "integration",
+        "scope",
+        "schedule",
+        "cost",
+        "quality"
+      ],
+      "difficultyRange": [
+        1,
+        3
+      ]
     },
-    "targetCount": 20,
+    "targetCount": 15,
     "initialFallSpeed": 62,
     "initialSpawnInterval": 2600,
     "minSpawnInterval": 1600,
@@ -216,13 +305,28 @@
     "number": 2,
     "description": "按知识领域归类：资源、沟通、风险、采购、干系人管理",
     "layoutType": "columns",
-    "columns": ["resources", "communications", "risk", "procurement", "stakeholders"],
+    "columns": [
+      "resources",
+      "communications",
+      "risk",
+      "procurement",
+      "stakeholders"
+    ],
     "cardPool": {
       "source": "knowledgeAreas",
-      "knowledgeAreaIds": ["resources", "communications", "risk", "procurement", "stakeholders"],
-      "difficultyRange": [1, 3]
+      "knowledgeAreaIds": [
+        "resources",
+        "communications",
+        "risk",
+        "procurement",
+        "stakeholders"
+      ],
+      "difficultyRange": [
+        1,
+        3
+      ]
     },
-    "targetCount": 20,
+    "targetCount": 13,
     "initialFallSpeed": 64,
     "initialSpawnInterval": 2400,
     "minSpawnInterval": 1500,
@@ -246,13 +350,38 @@
     "number": 3,
     "description": "挑战全部十个知识领域，全面掌握项目管理知识体系",
     "layoutType": "columns",
-    "columns": ["integration", "scope", "schedule", "cost", "quality", "resources", "communications", "risk", "procurement", "stakeholders"],
+    "columns": [
+      "integration",
+      "scope",
+      "schedule",
+      "cost",
+      "quality",
+      "resources",
+      "communications",
+      "risk",
+      "procurement",
+      "stakeholders"
+    ],
     "cardPool": {
       "source": "knowledgeAreas",
-      "knowledgeAreaIds": ["integration", "scope", "schedule", "cost", "quality", "resources", "communications", "risk", "procurement", "stakeholders"],
-      "difficultyRange": [1, 3]
+      "knowledgeAreaIds": [
+        "integration",
+        "scope",
+        "schedule",
+        "cost",
+        "quality",
+        "resources",
+        "communications",
+        "risk",
+        "procurement",
+        "stakeholders"
+      ],
+      "difficultyRange": [
+        1,
+        3
+      ]
     },
-    "targetCount": 30,
+    "targetCount": 29,
     "initialFallSpeed": 66,
     "initialSpawnInterval": 2200,
     "minSpawnInterval": 1200,
@@ -275,15 +404,38 @@
     "number": 1,
     "description": "矩阵模式入门：5过程组 × 3知识领域（整合、范围、进度）",
     "layoutType": "matrix",
-    "columns": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
-    "rows": ["integration", "scope", "schedule"],
+    "columns": [
+      "initiating",
+      "planning",
+      "executing",
+      "monitoring_controlling",
+      "closing"
+    ],
+    "rows": [
+      "integration",
+      "scope",
+      "schedule"
+    ],
     "cardPool": {
       "source": "specific",
-      "processGroupIds": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
-      "knowledgeAreaIds": ["integration", "scope", "schedule"],
-      "difficultyRange": [1, 3]
+      "processGroupIds": [
+        "initiating",
+        "planning",
+        "executing",
+        "monitoring_controlling",
+        "closing"
+      ],
+      "knowledgeAreaIds": [
+        "integration",
+        "scope",
+        "schedule"
+      ],
+      "difficultyRange": [
+        1,
+        3
+      ]
     },
-    "targetCount": 20,
+    "targetCount": 0,
     "initialFallSpeed": 66,
     "initialSpawnInterval": 2200,
     "minSpawnInterval": 1600,
@@ -307,15 +459,42 @@
     "number": 2,
     "description": "矩阵模式进阶：5过程组 × 5知识领域（成本、质量、资源、沟通、风险）",
     "layoutType": "matrix",
-    "columns": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
-    "rows": ["cost", "quality", "resources", "communications", "risk"],
+    "columns": [
+      "initiating",
+      "planning",
+      "executing",
+      "monitoring_controlling",
+      "closing"
+    ],
+    "rows": [
+      "cost",
+      "quality",
+      "resources",
+      "communications",
+      "risk"
+    ],
     "cardPool": {
       "source": "specific",
-      "processGroupIds": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
-      "knowledgeAreaIds": ["cost", "quality", "resources", "communications", "risk"],
-      "difficultyRange": [1, 3]
+      "processGroupIds": [
+        "initiating",
+        "planning",
+        "executing",
+        "monitoring_controlling",
+        "closing"
+      ],
+      "knowledgeAreaIds": [
+        "cost",
+        "quality",
+        "resources",
+        "communications",
+        "risk"
+      ],
+      "difficultyRange": [
+        1,
+        3
+      ]
     },
-    "targetCount": 25,
+    "targetCount": 0,
     "initialFallSpeed": 68,
     "initialSpawnInterval": 2000,
     "minSpawnInterval": 1500,
@@ -339,13 +518,33 @@
     "number": 3,
     "description": "完整5×10矩阵，综合全部过程组和知识领域，挑战巅峰",
     "layoutType": "matrix",
-    "columns": ["initiating", "planning", "executing", "monitoring_controlling", "closing"],
-    "rows": ["integration", "scope", "schedule", "cost", "quality", "resources", "communications", "risk", "procurement", "stakeholders"],
+    "columns": [
+      "initiating",
+      "planning",
+      "executing",
+      "monitoring_controlling",
+      "closing"
+    ],
+    "rows": [
+      "integration",
+      "scope",
+      "schedule",
+      "cost",
+      "quality",
+      "resources",
+      "communications",
+      "risk",
+      "procurement",
+      "stakeholders"
+    ],
     "cardPool": {
       "source": "all",
-      "difficultyRange": [1, 3]
+      "difficultyRange": [
+        1,
+        3
+      ]
     },
-    "targetCount": 35,
+    "targetCount": 29,
     "initialFallSpeed": 68,
     "initialSpawnInterval": 1800,
     "minSpawnInterval": 1200,
@@ -370,8 +569,18 @@
     "mode": "itto",
     "description": "区分启动与收尾过程组的输入/工具与输出",
     "layoutType": "columns",
-    "columns": ["initiating", "closing"],
-    "cardPool": { "source": "specific", "processIds": ["p001", "p007", "p046"] },
+    "columns": [
+      "initiating",
+      "closing"
+    ],
+    "cardPool": {
+      "source": "specific",
+      "processIds": [
+        "p001",
+        "p007",
+        "p046"
+      ]
+    },
     "targetCount": 3,
     "initialFallSpeed": 40,
     "initialSpawnInterval": 4000,
@@ -381,7 +590,12 @@
     "lives": 3,
     "freezeCount": 1,
     "trayCapacity": 6,
-    "starThresholds": { "oneStar": 1, "twoStarAccuracy": 0.8, "threeStarAccuracy": 1, "threeStarMinLives": 2 }
+    "starThresholds": {
+      "oneStar": 1,
+      "twoStarAccuracy": 0.8,
+      "threeStarAccuracy": 1,
+      "threeStarMinLives": 2
+    }
   },
   {
     "id": "itto-2-1",
@@ -391,8 +605,19 @@
     "mode": "itto",
     "description": "掌握规划过程组各过程的输入/工具与技术/输出",
     "layoutType": "columns",
-    "columns": ["planning"],
-    "cardPool": { "source": "specific", "processIds": ["p008", "p009", "p010", "p011", "p014"] },
+    "columns": [
+      "planning"
+    ],
+    "cardPool": {
+      "source": "specific",
+      "processIds": [
+        "p008",
+        "p009",
+        "p010",
+        "p011",
+        "p014"
+      ]
+    },
     "targetCount": 5,
     "initialFallSpeed": 40,
     "initialSpawnInterval": 4000,
@@ -402,7 +627,12 @@
     "lives": 3,
     "freezeCount": 1,
     "trayCapacity": 6,
-    "starThresholds": { "oneStar": 1, "twoStarAccuracy": 0.8, "threeStarAccuracy": 1, "threeStarMinLives": 2 }
+    "starThresholds": {
+      "oneStar": 1,
+      "twoStarAccuracy": 0.8,
+      "threeStarAccuracy": 1,
+      "threeStarMinLives": 2
+    }
   },
   {
     "id": "itto-3-1",
@@ -412,8 +642,21 @@
     "mode": "itto",
     "description": "掌握执行与监控过程组关键过程的ITTO",
     "layoutType": "columns",
-    "columns": ["executing", "monitoring_controlling"],
-    "cardPool": { "source": "specific", "processIds": ["p003", "p004", "p005", "p006", "p025", "p029"] },
+    "columns": [
+      "executing",
+      "monitoring_controlling"
+    ],
+    "cardPool": {
+      "source": "specific",
+      "processIds": [
+        "p003",
+        "p004",
+        "p005",
+        "p006",
+        "p025",
+        "p029"
+      ]
+    },
     "targetCount": 6,
     "initialFallSpeed": 40,
     "initialSpawnInterval": 4000,
@@ -423,6 +666,11 @@
     "lives": 3,
     "freezeCount": 1,
     "trayCapacity": 6,
-    "starThresholds": { "oneStar": 1, "twoStarAccuracy": 0.8, "threeStarAccuracy": 1, "threeStarMinLives": 2 }
+    "starThresholds": {
+      "oneStar": 1,
+      "twoStarAccuracy": 0.8,
+      "threeStarAccuracy": 1,
+      "threeStarMinLives": 2
+    }
   }
 ]
