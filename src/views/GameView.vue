@@ -519,6 +519,8 @@ onUnmounted(() => {
       <!-- L3 ITTO 模式：作答器套统一引擎外壳 -->
       <template v-else>
         <div class="itto-area">
+          <!-- 仅倒计时条外壳（与 definition 模式一致，挑战模式可见倒计时） -->
+          <CardStage :show-guide="false" bar-only />
           <ITTOQuiz
             v-if="currentIttoQuestion"
             :key="gameStore.currentCardId ?? 'none'"
