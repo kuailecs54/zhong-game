@@ -21,21 +21,15 @@
         2
       ]
     },
-    "targetCount": 3,
-    "initialFallSpeed": 40,
-    "initialSpawnInterval": 4000,
-    "minSpawnInterval": 2000,
-    "speedIncreaseRate": 0.08,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 0,
+    "timePerCard": 15,
     "lives": 3,
+    "hintCount": 2,
     "freezeCount": 1,
-    "trayCapacity": 6,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 3,
       "twoStarAccuracy": 0.8,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -60,21 +54,15 @@
         2
       ]
     },
-    "targetCount": 20,
-    "initialFallSpeed": 42,
-    "initialSpawnInterval": 3800,
-    "minSpawnInterval": 2000,
-    "speedIncreaseRate": 0.08,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 1,
+    "timePerCard": 15,
     "lives": 3,
+    "hintCount": 2,
     "freezeCount": 1,
-    "trayCapacity": 6,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 5,
       "twoStarAccuracy": 0.8,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -101,21 +89,15 @@
         2
       ]
     },
-    "targetCount": 21,
-    "initialFallSpeed": 46,
-    "initialSpawnInterval": 3600,
-    "minSpawnInterval": 1800,
-    "speedIncreaseRate": 0.1,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 1,
+    "timePerCard": 15,
     "lives": 3,
+    "hintCount": 2,
     "freezeCount": 1,
-    "trayCapacity": 6,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 5,
       "twoStarAccuracy": 0.8,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -146,21 +128,15 @@
         3
       ]
     },
-    "targetCount": 29,
-    "initialFallSpeed": 50,
-    "initialSpawnInterval": 3400,
-    "minSpawnInterval": 1600,
-    "speedIncreaseRate": 0.1,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 1,
+    "timePerCard": 13,
     "lives": 3,
+    "hintCount": 2,
     "freezeCount": 1,
-    "trayCapacity": 8,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 6,
       "twoStarAccuracy": 0.85,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -191,21 +167,15 @@
         3
       ]
     },
-    "targetCount": 29,
-    "initialFallSpeed": 55,
-    "initialSpawnInterval": 3200,
-    "minSpawnInterval": 1500,
-    "speedIncreaseRate": 0.1,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 1,
+    "timePerCard": 13,
     "lives": 3,
+    "hintCount": 2,
     "freezeCount": 1,
-    "trayCapacity": 8,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 8,
       "twoStarAccuracy": 0.85,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -236,21 +206,15 @@
         3
       ]
     },
-    "targetCount": 29,
-    "initialFallSpeed": 60,
-    "initialSpawnInterval": 2800,
-    "minSpawnInterval": 1200,
-    "speedIncreaseRate": 0.12,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 2,
+    "timePerCard": 13,
     "lives": 3,
+    "hintCount": 2,
     "freezeCount": 1,
-    "trayCapacity": 8,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 9,
       "twoStarAccuracy": 0.85,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -281,21 +245,15 @@
         3
       ]
     },
-    "targetCount": 15,
-    "initialFallSpeed": 62,
-    "initialSpawnInterval": 2600,
-    "minSpawnInterval": 1600,
-    "speedIncreaseRate": 0.1,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 2,
+    "timePerCard": 11,
     "lives": 3,
+    "hintCount": 1,
     "freezeCount": 1,
-    "trayCapacity": 6,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 6,
       "twoStarAccuracy": 0.88,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -326,21 +284,15 @@
         3
       ]
     },
-    "targetCount": 13,
-    "initialFallSpeed": 64,
-    "initialSpawnInterval": 2400,
-    "minSpawnInterval": 1500,
-    "speedIncreaseRate": 0.1,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 2,
+    "timePerCard": 11,
     "lives": 3,
+    "hintCount": 1,
     "freezeCount": 1,
-    "trayCapacity": 6,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 6,
       "twoStarAccuracy": 0.88,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -381,20 +333,15 @@
         3
       ]
     },
-    "targetCount": 29,
-    "initialFallSpeed": 66,
-    "initialSpawnInterval": 2200,
-    "minSpawnInterval": 1200,
-    "speedIncreaseRate": 0.12,
-    "speedIncreaseEvery": 5,
+    "timePerCard": 11,
     "lives": 3,
+    "hintCount": 1,
     "freezeCount": 1,
-    "trayCapacity": 6,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 9,
       "twoStarAccuracy": 0.88,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -435,21 +382,15 @@
         3
       ]
     },
-    "targetCount": 0,
-    "initialFallSpeed": 66,
-    "initialSpawnInterval": 2200,
-    "minSpawnInterval": 1600,
-    "speedIncreaseRate": 0.1,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 2,
+    "timePerCard": 12,
     "lives": 3,
-    "freezeCount": 2,
-    "trayCapacity": 5,
+    "hintCount": 1,
+    "freezeCount": 1,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 6,
       "twoStarAccuracy": 0.92,
-      "threeStarAccuracy": 0.9,
-      "threeStarMinLives": 1
+      "threeStarAccuracy": 0.9
     }
   },
   {
@@ -494,21 +435,15 @@
         3
       ]
     },
-    "targetCount": 0,
-    "initialFallSpeed": 68,
-    "initialSpawnInterval": 2000,
-    "minSpawnInterval": 1500,
-    "speedIncreaseRate": 0.1,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 3,
+    "timePerCard": 12,
     "lives": 3,
-    "freezeCount": 2,
-    "trayCapacity": 5,
+    "hintCount": 1,
+    "freezeCount": 1,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 8,
       "twoStarAccuracy": 0.92,
-      "threeStarAccuracy": 0.9,
-      "threeStarMinLives": 1
+      "threeStarAccuracy": 0.9
     }
   },
   {
@@ -544,21 +479,15 @@
         3
       ]
     },
-    "targetCount": 29,
-    "initialFallSpeed": 68,
-    "initialSpawnInterval": 1800,
-    "minSpawnInterval": 1200,
-    "speedIncreaseRate": 0.12,
-    "speedIncreaseEvery": 5,
-    "distractorCount": 3,
+    "timePerCard": 12,
     "lives": 3,
-    "freezeCount": 2,
-    "trayCapacity": 5,
+    "hintCount": 1,
+    "freezeCount": 1,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 11,
       "twoStarAccuracy": 0.92,
-      "threeStarAccuracy": 0.9,
-      "threeStarMinLives": 1
+      "threeStarAccuracy": 0.9
     }
   },
   {
@@ -581,20 +510,15 @@
         "p046"
       ]
     },
-    "targetCount": 3,
-    "initialFallSpeed": 40,
-    "initialSpawnInterval": 4000,
-    "minSpawnInterval": 2000,
-    "speedIncreaseRate": 0.08,
-    "speedIncreaseEvery": 5,
+    "timePerCard": 20,
     "lives": 3,
+    "hintCount": 2,
     "freezeCount": 1,
-    "trayCapacity": 6,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 1,
       "twoStarAccuracy": 0.8,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -618,20 +542,15 @@
         "p014"
       ]
     },
-    "targetCount": 5,
-    "initialFallSpeed": 40,
-    "initialSpawnInterval": 4000,
-    "minSpawnInterval": 2000,
-    "speedIncreaseRate": 0.08,
-    "speedIncreaseEvery": 5,
+    "timePerCard": 20,
     "lives": 3,
+    "hintCount": 2,
     "freezeCount": 1,
-    "trayCapacity": 6,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 1,
       "twoStarAccuracy": 0.8,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
     }
   },
   {
@@ -657,20 +576,183 @@
         "p029"
       ]
     },
-    "targetCount": 6,
-    "initialFallSpeed": 40,
-    "initialSpawnInterval": 4000,
-    "minSpawnInterval": 2000,
-    "speedIncreaseRate": 0.08,
-    "speedIncreaseEvery": 5,
+    "timePerCard": 20,
     "lives": 3,
+    "hintCount": 1,
     "freezeCount": 1,
-    "trayCapacity": 6,
+    "shieldCount": 1,
     "starThresholds": {
       "oneStar": 1,
       "twoStarAccuracy": 0.8,
-      "threeStarAccuracy": 1,
-      "threeStarMinLives": 2
+      "threeStarAccuracy": 1
+    }
+  },
+  {
+    "id": "def-5-1",
+    "name": "定义挑战 · 上",
+    "stage": 5,
+    "number": 1,
+    "mode": "definition",
+    "description": "根据课本定义选出对应过程，或根据过程名选出主要作用（整合/范围/进度/成本/质量）",
+    "layoutType": "columns",
+    "columns": [],
+    "cardPool": {
+      "source": "knowledgeAreas",
+      "knowledgeAreaIds": [
+        "integration",
+        "scope",
+        "schedule",
+        "cost",
+        "quality"
+      ]
+    },
+    "timePerCard": 20,
+    "lives": 3,
+    "hintCount": 1,
+    "freezeCount": 1,
+    "shieldCount": 1,
+    "starThresholds": {
+      "oneStar": 1,
+      "twoStarAccuracy": 0.92,
+      "threeStarAccuracy": 0.9
+    }
+  },
+  {
+    "id": "def-5-2",
+    "name": "定义挑战 · 下",
+    "stage": 5,
+    "number": 2,
+    "mode": "definition",
+    "description": "根据课本定义选出对应过程，或根据过程名选出主要作用（资源/沟通/风险/采购/干系人）",
+    "layoutType": "columns",
+    "columns": [],
+    "cardPool": {
+      "source": "knowledgeAreas",
+      "knowledgeAreaIds": [
+        "resources",
+        "communications",
+        "risk",
+        "procurement",
+        "stakeholders"
+      ]
+    },
+    "timePerCard": 20,
+    "lives": 3,
+    "hintCount": 1,
+    "freezeCount": 1,
+    "shieldCount": 1,
+    "starThresholds": {
+      "oneStar": 1,
+      "twoStarAccuracy": 0.92,
+      "threeStarAccuracy": 0.9
+    }
+  },
+  {
+    "id": "def-5-3",
+    "name": "定义挑战 · 综合",
+    "stage": 5,
+    "number": 3,
+    "mode": "definition",
+    "description": "全部 49 个过程混合出题：定义选过程、过程选作用，检验完整记忆",
+    "layoutType": "columns",
+    "columns": [],
+    "cardPool": {
+      "source": "all"
+    },
+    "timePerCard": 20,
+    "lives": 3,
+    "hintCount": 1,
+    "freezeCount": 1,
+    "shieldCount": 1,
+    "starThresholds": {
+      "oneStar": 1,
+      "twoStarAccuracy": 0.92,
+      "threeStarAccuracy": 0.9
+    }
+  },
+  {
+    "id": "itto-6-1",
+    "name": "ITTO 补全 · 规划类",
+    "stage": 6,
+    "number": 1,
+    "mode": "itto",
+    "description": "补全规划过程组剩余过程的输入/工具与技术/输出（19 个过程）",
+    "layoutType": "columns",
+    "columns": [],
+    "cardPool": {
+      "source": "specific",
+      "processIds": [
+        "p002",
+        "p015",
+        "p016",
+        "p017",
+        "p018",
+        "p020",
+        "p021",
+        "p022",
+        "p024",
+        "p027",
+        "p028",
+        "p033",
+        "p036",
+        "p037",
+        "p038",
+        "p039",
+        "p040",
+        "p043",
+        "p047"
+      ]
+    },
+    "timePerCard": 20,
+    "lives": 3,
+    "hintCount": 1,
+    "freezeCount": 1,
+    "shieldCount": 1,
+    "starThresholds": {
+      "oneStar": 1,
+      "twoStarAccuracy": 0.92,
+      "threeStarAccuracy": 0.9
+    }
+  },
+  {
+    "id": "itto-6-2",
+    "name": "ITTO 补全 · 执行监控收尾",
+    "stage": 6,
+    "number": 2,
+    "mode": "itto",
+    "description": "补全执行/监控过程组剩余过程的输入/工具与技术/输出（16 个过程）",
+    "layoutType": "columns",
+    "columns": [],
+    "cardPool": {
+      "source": "specific",
+      "processIds": [
+        "p012",
+        "p013",
+        "p019",
+        "p023",
+        "p026",
+        "p030",
+        "p031",
+        "p032",
+        "p034",
+        "p035",
+        "p041",
+        "p042",
+        "p044",
+        "p045",
+        "p048",
+        "p049"
+      ]
+    },
+    "timePerCard": 20,
+    "lives": 3,
+    "hintCount": 1,
+    "freezeCount": 1,
+    "shieldCount": 1,
+    "starThresholds": {
+      "oneStar": 1,
+      "twoStarAccuracy": 0.92,
+      "threeStarAccuracy": 0.9
     }
   }
 ]
