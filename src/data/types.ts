@@ -81,6 +81,8 @@ export interface LevelConfig {
   trayCapacity: number
   /** 星级评定阈值 */
   starThresholds: StarThresholds
+  /** 玩法模式：sort=归类模式，itto=ITTO 测验模式，缺省 sort */
+  mode?: 'sort' | 'itto'
   /** 速度曲线类型（可选，向后兼容） */
   speedCurve?: 'linear' | 'easeOut' | 'exp'
   /** 干扰项随进度增长系数（可选） */
