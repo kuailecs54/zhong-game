@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useIttoStore } from '@/stores/itto'
 import type { ITTOCategory } from '@/stores/itto'
+import { CheckOne, CloseOne, ArrowCircleDown } from '@icon-park/vue-next'
 
 const store = useIttoStore()
 
@@ -61,22 +62,10 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
           @click="store.toggleSelection(cat.key, opt)"
         >
           <span class="opt-text">{{ opt }}</span>
-          <span v-if="optStatus(cat.key, opt)" class="opt-badge" :class="'badge-' + optStatus(cat.key, opt)">
-            <!-- 正确：圆形勾 -->
-            <svg v-if="optStatus(cat.key, opt) === 'correct'" class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15" />
-              <path d="M8 12.5l2.5 2.5 5.5-5.5" />
-            </svg>
-            <!-- 错选：圆形叉 -->
-            <svg v-else-if="optStatus(cat.key, opt) === 'wrong'" class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15" />
-              <path d="M15 9l-6 6M9 9l6 6" />
-            </svg>
-            <!-- 遗漏：箭头+圆圈 -->
-            <svg v-else-if="optStatus(cat.key, opt) === 'missing'" class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10" stroke-dasharray="4 2" />
-              <path d="M12 8v4M9 14l3 3 3-3" />
-            </svg>
+          <span v-if="optStatus(cat.key, opt) && optStatus(cat.key, opt) !== 'dimmed'" class="opt-badge" :class="'badge-' + optStatus(cat.key, opt)">
+            <CheckOne v-if="optStatus(cat.key, opt) === 'correct'" :size="20" fill="currentColor" />
+            <CloseOne v-else-if="optStatus(cat.key, opt) === 'wrong'" :size="20" fill="currentColor" />
+            <ArrowCircleDown v-else-if="optStatus(cat.key, opt) === 'missing'" :size="20" fill="currentColor" />
           </span>
         </button>
       </div>
@@ -107,24 +96,20 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
 .option:hover:not(:disabled) { border-color: #3498db; background: #f0f9ff; }
 .option.selected { border-color: #3498db; background: #eaf4ff; }
 
-/* 正确选中：绿 */
 .option.correct {
   border-color: #22c55e; background: #dcfce7; color: #15803d;
   box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
 }
-/* 错选：红 + 抖动 */
 .option.wrong {
   border-color: #ef4444; background: #fef2f2; color: #b91c1c;
   box-shadow: 0 0 0 2px rgba(239,68,68,0.25);
   animation: shakeWrong 0.45s ease;
 }
-/* 遗漏（正确但未选）：黄 + 虚线 */
 .option.missing {
   border-color: #f59e0b; background: #fffbeb; color: #92400e;
   border-style: dashed;
   box-shadow: 0 0 0 2px rgba(245,158,11,0.2);
 }
-/* 非正确项且未选中 */
 .option.dimmed { opacity: 0.3; }
 .option:disabled { cursor: default; }
 
@@ -138,12 +123,11 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
 
 .opt-text { flex: 1; min-width: 0; }
 
-/* ===== 图标徽章 ===== */
+/* ===== IconPark 图标徽章 ===== */
 .opt-badge {
-  flex-shrink: 0; width: 22px; height: 22px;
+  flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
-.badge-icon { width: 22px; height: 22px; }
 .badge-correct { color: #16a34a; }
 .badge-wrong { color: #dc2626; }
 .badge-missing { color: #d97706; }
@@ -158,7 +142,6 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
 .submit-btn:hover, .next-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
 .done { color: #888; font-size: 14px; }
 
-/* 移动端 */
 @media (max-width: 480px) {
   .itto-quiz { padding: 12px; }
   .option { font-size: 13px; padding: 8px 10px; }
