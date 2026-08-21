@@ -163,13 +163,12 @@ export interface FallingCard {
   isTarget: boolean
 }
 
-/** 反馈状态（processId 用于定向移除，避免 trayIndex 漂移） */
+/** 反馈状态（processId 指向被归类的本体，clearFeedback 据此清理选中态） */
 export interface FeedbackState {
   type: 'correct' | 'wrong'
   columnId: string
   rowId?: string
-  trayIndex: number
-  /** 放置时托盘内过程 id，用于 clearFeedback 定向移除 */
+  /** 被归类的过程 id，用于 clearFeedback 取消选中 */
   processId: string
 }
 

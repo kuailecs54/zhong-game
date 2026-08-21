@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import { useUserStore } from '@/stores/user'
@@ -15,7 +15,6 @@ import {
 import { useGameLoop } from '@/composables/useGameLoop'
 
 import GameHUD from '@/components/game/GameHUD.vue'
-import FallingCard from '@/components/game/FallingCard.vue'
 import SortGrid from '@/components/game/SortGrid.vue'
 import MatrixGrid from '@/components/game/MatrixGrid.vue'
 import Desk from '@/components/game/Desk.vue'
@@ -52,21 +51,26 @@ const matrixFeedback = computed(() => {
   return { rowId: fs.rowId, columnId: fs.columnId, type: fs.type as 'correct' | 'wrong' }
 })
 
+// 已正确归类（上架）的过程列表：从 processPool 中筛出 placedProcessIds 对应的过程
+const placedProcessList = computed<Process[]>(() =>
+  gameStore.processPool.filter(p => gameStore.placedProcessIds.includes(p.id)),
+)
+
 // 关卡描述
 const levelDescription = computed(() => {
   const level = gameStore.level
   if (!level) return ''
   const colCount = level.columns.length
   const rowCount = level.rows?.length ?? 0
-  const speedLabel = level.initialFallSpeed >= 60 ? '高速' : level.initialFallSpeed >= 50 ? '中速' : '低速'
+  // TODO(T6): 重写下落玩法为点选即放——原初始下落速度标签已下线
   if (level.layoutType === 'matrix' && rowCount > 0) {
-    return `${colCount}列 · ${rowCount}行 · ${speedLabel}`
+    return `${colCount}列 · ${rowCount}行`
   }
-  return `${colCount}列 · ${speedLabel}`
+  return `${colCount}列`
 })
 
-// 是否本关存在干扰项
-const hasDistractors = computed(() => gameStore.distractorCount > 0 && gameStore.distractorPool.length > 0)
+// TODO(T6): 重写下落玩法为点选即放——干扰项相关逻辑已下线
+const hasDistractors = computed(() => false)
 
 // 书架面板宽度
 const shelfPanelWidth = computed(() => {
@@ -81,83 +85,17 @@ const shelfUnitWidth = computed(() => {
   return Math.round((parseFloat(shelfPanelWidth.value) - 16 - (n - 1) * 8) / n)
 })
 
-// ===== 拖拽状态 =====
-const dragCard = ref<Process | null>(null)
-const dragTrayIndex = ref<number>(-1)
-const dragX = ref(0)
-const dragY = ref(0)
-const isDragging = ref(false)
-
-// 拖拽时高亮的目标（column/row）
-const dragHighlightTarget = ref<{ columnId: string; rowId?: string } | null>(null)
-
-// 捕获飞入动画：记录刚被捕获的卡片，临时渲染飞行副本
-interface CaptureAnimation {
-  id: string
-  process: Process
-  x: number
-  y: number
-  startTime: number
-}
-const captureAnimations = ref<Map<string, CaptureAnimation>>(new Map())
-const captureAnimationsList = computed(() => Array.from(captureAnimations.value.values()))
-const CAPTURE_ANIMATION_DURATION = 450
-
-// 浮动得分文字
-interface FloatingText {
-  id: string
-  text: string
-  x: number
-  y: number
-  color: string
-}
-const floatingTexts = ref<FloatingText[]>([])
-let floatingTextId = 0
-
-// 放置失败提示
-const dropHint = ref(false)
-let dropHintTimer: ReturnType<typeof setTimeout> | null = null
-function showDropHint() {
-  if (dropHintTimer) clearTimeout(dropHintTimer)
-  dropHint.value = true
-  dropHintTimer = setTimeout(() => { dropHint.value = false }, 1200)
-}
-
-// 托盘溢出与错题闪卡提示
-const overflowToast = ref('')
-let overflowToastTimer: ReturnType<typeof setTimeout> | null = null
-function showOverflowToast(msg: string) {
-  if (overflowToastTimer) clearTimeout(overflowToastTimer)
-  overflowToast.value = msg
-  overflowToastTimer = setTimeout(() => { overflowToast.value = '' }, 1500)
-}
-const lastCorrectHint = ref('')
-let lastCorrectHintTimer: ReturnType<typeof setTimeout> | null = null
-function showCorrectHint(msg: string) {
-  if (lastCorrectHintTimer) clearTimeout(lastCorrectHintTimer)
-  lastCorrectHint.value = msg
-  lastCorrectHintTimer = setTimeout(() => { lastCorrectHint.value = '' }, 1400)
-}
+// TODO(T6): 重写下落玩法为点选即放——放置失败/溢出/错题提示状态已下线，待 T6 重写后清理
 
 // 检查游戏结束/胜利
+// TODO(T6): 重写下落玩法为点选即放——原 endGame/isGameOver 已移除，胜利判定由 isLevelComplete 直接驱动
 watch(
   () => gameStore.isLevelComplete,
   (val) => {
     if (val && gameStore.isPlaying) {
       const won = true
-      gameStore.endGame(won)
       stopLoop()
       navigateToResult(won)
-    }
-  },
-)
-
-watch(
-  () => gameStore.isGameOver,
-  (val) => {
-    if (val) {
-      stopLoop()
-      navigateToResult(false)
     }
   },
 )
@@ -175,7 +113,8 @@ function calculateStars() {
   if (stars >= 1 && accuracy >= thresholds.twoStarAccuracy) {
     stars = 2
   }
-  if (stars >= 2 && accuracy >= thresholds.threeStarAccuracy && gameStore.lives >= thresholds.threeStarMinLives) {
+  // TODO(T6): 重写下落玩法为点选即放——原 threeStarMinLives 依赖 lives，暂按准确率给 3 星
+  if (stars >= 2 && accuracy >= thresholds.threeStarAccuracy) {
     stars = 3
   }
   return stars
@@ -207,7 +146,8 @@ function navigateToResult(won: boolean) {
     score: gameStore.score,
     correctCount: gameStore.correctCount,
     wrongCount: gameStore.wrongCount,
-    missedCount: gameStore.missedCount,
+    // TODO(T6): 重写下落玩法为点选即放——missedCount 已下线
+    missedCount: 0,
     accuracy: gameStore.correctAccuracy,
     nextLevelId,
     wrongHistory: gameStore.wrongHistory.slice(0, 10),
@@ -271,219 +211,24 @@ async function initGame() {
   }
 }
 
-function onFallingPointerDown(e: PointerEvent, cardId: string) {
-  e.preventDefault()
-  e.stopPropagation()
-
-  const card = gameStore.fallingCards.find(c => c.id === cardId)
-  if (!card) return
-
-  // 先启动捕获飞入动画
-  captureAnimations.value.set(cardId, {
-    id: cardId,
-    process: card.process,
-    x: card.x,
-    y: card.y,
-    startTime: performance.now(),
-  })
-
-  // 延迟清理动画副本
-  setTimeout(() => {
-    captureAnimations.value.delete(cardId)
-  }, CAPTURE_ANIMATION_DURATION)
-
-  // 调用 store 真正捕获（移除下落卡片并加入书桌托盘）
-  gameStore.captureCard(cardId)
-  if (gameStore.lastEvictedProcess) {
-    showOverflowToast(`已替换最旧卡 -10：${gameStore.lastEvictedProcess.name}`)
-  }
-}
-
-function handleFreeze() {
-  gameStore.activateFreeze()
-}
-
+// TODO(T6): 重写下落玩法为点选即放——原下落卡捕获/拖拽/冻结逻辑已下线，待 GameView 重写后替换
 function handlePause() {
   togglePause()
 }
 
-// ===== 拖拽处理 =====
-
-function onDragStart(trayIndex: number, process: Process) {
-  // 卡槽级锁：仅当该槽位正处于反馈中才阻塞，其他槽位可并行操作
-  if (!gameStore.isPlaying || gameStore.isPaused) return
-  if (gameStore.feedbackState?.trayIndex === trayIndex) return
-  dragCard.value = process
-  dragTrayIndex.value = trayIndex
-  isDragging.value = true
-  // 注册全局事件监听（确保拖到任意位置都能释放）
-  document.addEventListener('pointermove', onDragMove)
-  document.addEventListener('pointerup', onDragEnd)
-  document.addEventListener('touchmove', onTouchMove, { passive: false })
-  document.addEventListener('touchend', onDragEnd)
+// ===== 点选即放：选中过程后点击列/格子归类 =====
+function classifyToColumn(columnId: string) {
+  // TODO(T6): 重写下落玩法为点选即放——此处仅做归类判定占位，真实交互在 T6 接入
+  gameStore.classify(columnId)
 }
 
-function updateDragHighlight() {
-  if (!isDragging.value || !dragCard.value) {
-    dragHighlightTarget.value = null
-    return
-  }
-
-  const hitEl = document.elementFromPoint(dragX.value, dragY.value)
-  if (!hitEl) {
-    dragHighlightTarget.value = null
-    return
-  }
-
-  const target = hitEl.closest('[data-column-id]') as HTMLElement | null
-  if (!target) {
-    dragHighlightTarget.value = null
-    return
-  }
-
-  const columnId = target.dataset.columnId!
-  const rowId = target.dataset.rowId
-
-  // 仅当目标可放置时才高亮
-  let placeable = false
-  if (gameStore.layoutType === 'matrix' && rowId) {
-    placeable = dragCard.value.processGroupId === columnId && dragCard.value.knowledgeAreaId === rowId
-  } else {
-    placeable = gameStore.columnType === 'processGroup'
-      ? dragCard.value.processGroupId === columnId
-      : dragCard.value.knowledgeAreaId === columnId
-  }
-
-  if (placeable) {
-    dragHighlightTarget.value = { columnId, rowId }
-  } else {
-    dragHighlightTarget.value = null
-  }
-}
-
-function onDragMove(e: PointerEvent) {
-  if (!isDragging.value) return
-  dragX.value = e.clientX
-  dragY.value = e.clientY
-  updateDragHighlight()
-}
-
-function onDragEnd(e: PointerEvent | TouchEvent) {
-  if (!isDragging.value) return
-
-  const clientX = 'changedTouches' in e ? e.changedTouches[0].clientX : e.clientX
-  const clientY = 'changedTouches' in e ? e.changedTouches[0].clientY : e.clientY
-
-  // 移除全局监听
-  document.removeEventListener('pointermove', onDragMove)
-  document.removeEventListener('pointerup', onDragEnd)
-  document.removeEventListener('touchmove', onTouchMove)
-  document.removeEventListener('touchend', onDragEnd)
-
-  let result: 'correct' | 'wrong' | null = null
-
-  // 命中检测：查找指针下方的目标元素
-  const hitEl = document.elementFromPoint(clientX, clientY)
-  let placed = false
-  if (hitEl) {
-    // 向上查找带 data-column-id 的元素（书架单元或矩阵格子）
-    const target = hitEl.closest('[data-column-id]') as HTMLElement | null
-    if (target) {
-      const columnId = target.dataset.columnId!
-      const rowId = target.dataset.rowId // matrix 模式下有
-      result = gameStore.placeCard(dragTrayIndex.value, columnId, rowId || undefined)
-      placed = result !== null
-    }
-  }
-
-  // columns 模式下，直接命中失败时做面板内吸附（找最近的书架单元）
-  if (!placed && gameStore.layoutType === 'columns' && shelfPanelRef.value) {
-    const panelRect = shelfPanelRef.value.getBoundingClientRect()
-    if (
-      clientX >= panelRect.left && clientX <= panelRect.right &&
-      clientY >= panelRect.top && clientY <= panelRect.bottom
-    ) {
-      // 在面板内部：找离松手点最近的 .shelf-unit
-      const units = shelfPanelRef.value.querySelectorAll('.shelf-unit')
-      let bestDist = Infinity
-      let bestEl: HTMLElement | null = null
-      for (const u of units) {
-        const rect = (u as HTMLElement).getBoundingClientRect()
-        const cx = rect.left + rect.width / 2
-        const cy = rect.top + rect.height / 2
-        const dist = Math.hypot(clientX - cx, clientY - cy)
-        if (dist < bestDist) {
-          bestDist = dist
-          bestEl = u as HTMLElement
-        }
-      }
-      if (bestEl) {
-        const columnId = bestEl.dataset.columnId!
-        result = gameStore.placeCard(dragTrayIndex.value, columnId)
-        placed = result !== null
-      }
-    }
-  }
-
-  // 正确放置：弹出浮动得分
-  if (result === 'correct') {
-    const gained = 100 * gameStore.comboMultiplier
-    spawnFloatingText(`+${gained}`, clientX, clientY, '#34d399')
-  }
-
-  // 未成功放置或放错 → 显示提示
-  if (!placed || result === 'wrong') {
-    showDropHint()
-    if (result === 'wrong') {
-      const rec = gameStore.wrongHistory[gameStore.wrongHistory.length - 1]
-      if (rec) {
-        const target = rec.correctRowId ? `${rec.correctColumnId} / ${rec.correctRowId}` : rec.correctColumnId
-        showCorrectHint(`正确归属：${target}`)
-      }
-    }
-  }
-
-  // 清理拖拽状态
-  dragCard.value = null
-  dragTrayIndex.value = -1
-  isDragging.value = false
-  dragHighlightTarget.value = null
-}
-
-function spawnFloatingText(text: string, x: number, y: number, color: string) {
-  const id = `ft-${floatingTextId++}`
-  floatingTexts.value.push({ id, text, x, y, color })
-  setTimeout(() => {
-    floatingTexts.value = floatingTexts.value.filter(ft => ft.id !== id)
-  }, 900)
-}
-
-// 防止默认触摸行为（拖拽时）
-function onTouchMove(e: TouchEvent) {
-  if (isDragging.value) {
-    e.preventDefault()
-    const touch = e.touches[0]
-    if (touch) {
-      dragX.value = touch.clientX
-      dragY.value = touch.clientY
-      updateDragHighlight()
-    }
-  }
+function classifyToCell(columnId: string, rowId: string) {
+  // TODO(T6): 重写下落玩法为点选即放——此处仅做归类判定占位，真实交互在 T6 接入
+  gameStore.classify(columnId, rowId)
 }
 
 onMounted(() => {
   initGame()
-})
-
-onUnmounted(() => {
-  // 清理可能残留的拖拽监听
-  document.removeEventListener('pointermove', onDragMove)
-  document.removeEventListener('pointerup', onDragEnd)
-  document.removeEventListener('touchmove', onTouchMove)
-  document.removeEventListener('touchend', onDragEnd)
-  if (dropHintTimer) clearTimeout(dropHintTimer)
-  if (overflowToastTimer) clearTimeout(overflowToastTimer)
-  if (lastCorrectHintTimer) clearTimeout(lastCorrectHintTimer)
 })
 </script>
 
@@ -533,14 +278,9 @@ onUnmounted(() => {
             <span class="info-value">{{ levelDescription }}</span>
           </div>
           <div class="info-item">
-            <span class="info-icon">❤️</span>
-            <span class="info-label">生命</span>
-            <span class="info-value">{{ gameStore.level?.lives ?? 3 }} 条</span>
-          </div>
-          <div class="info-item">
-            <span class="info-icon">❄️</span>
-            <span class="info-label">冰冻道具</span>
-            <span class="info-value">{{ gameStore.level?.freezeCount ?? 0 }} 个</span>
+            <span class="info-icon">📊</span>
+            <span class="info-label">难度</span>
+            <span class="info-value">{{ levelDescription }}</span>
           </div>
         </div>
 
@@ -556,16 +296,9 @@ onUnmounted(() => {
       <!-- HUD -->
       <GameHUD
         :score="gameStore.score"
-        :lives="gameStore.lives"
-        :maxLives="gameStore.level?.lives ?? 3"
-        :combo="gameStore.combo"
-        :comboMultiplier="gameStore.comboMultiplier"
         :correctCount="gameStore.correctCount"
         :targetCount="gameStore.targetCount"
-        :freezeCount="gameStore.freezeCount"
-        :isFrozen="gameStore.isFrozen"
         :isPaused="gameStore.isPaused"
-        @freeze="handleFreeze"
         @pause="handlePause"
       />
 
@@ -577,58 +310,13 @@ onUnmounted(() => {
           class="game-area"
           :class="{
             'is-paused': gameStore.isPaused,
-            'is-frozen': gameStore.isFrozen,
           }"
         >
-          <!-- 冰冻 vignette -->
-          <div v-if="gameStore.isFrozen" class="freeze-vignette"></div>
-
-          <!-- 冰冻覆盖层 -->
-          <div v-if="gameStore.isFrozen" class="freeze-overlay">
-            <span class="freeze-timer">{{ Math.ceil(gameStore.freezeRemaining) }}s</span>
-          </div>
-
           <!-- 暂停覆盖层 -->
           <div v-if="gameStore.isPaused" class="pause-overlay">
             <span class="pause-text">已暂停</span>
             <button class="resume-btn" @click="handlePause">继续游戏</button>
           </div>
-
-          <!-- 下落卡片 -->
-          <div
-            v-for="card in gameStore.fallingCards"
-            :key="card.id"
-            class="falling-card-container"
-            :style="{
-              left: card.x + '%',
-              top: card.y + 'px',
-            }"
-            @pointerdown="onFallingPointerDown($event, card.id)"
-          >
-            <FallingCard
-              :process="card.process"
-              :isFrozen="gameStore.isFrozen"
-            />
-          </div>
-
-          <!-- 捕获飞入动画卡片 -->
-          <Teleport to="body">
-            <div
-              v-for="anim in captureAnimationsList"
-              :key="anim.id"
-              class="capture-flyer"
-              :style="{
-                left: anim.x + '%',
-                top: anim.y + 'px',
-              }"
-            >
-              <FallingCard
-                :process="anim.process"
-                :compact="true"
-                :captured="true"
-              />
-            </div>
-          </Teleport>
 
           <!-- matrix 模式：底部矩阵网格 -->
           <div
@@ -638,11 +326,10 @@ onUnmounted(() => {
             <MatrixGrid
               :columns="gameStore.columnInfos"
               :rows="gameStore.rowInfos"
-              :dragCard="dragCard"
+              :selectedProcess="gameStore.selectedProcess"
               :feedback="matrixFeedback"
-              :shelvedBooks="gameStore.shelvedBooks"
-              :highlightTarget="dragHighlightTarget"
-              @place="(p) => gameStore.placeCard(dragTrayIndex, p.columnId, p.rowId)"
+              :placedProcesses="placedProcessList"
+              @place="(p) => classifyToCell(p.columnId, p.rowId)"
             />
           </div>
         </div>
@@ -657,65 +344,23 @@ onUnmounted(() => {
           <SortGrid
             :columns="gameStore.columnInfos"
             :columnType="gameStore.columnType"
-            :shelvedBooks="gameStore.shelvedBooks"
-            :dragCard="dragCard"
+            :placedProcesses="placedProcessList"
+            :selectedProcess="gameStore.selectedProcess"
             :feedback="columnFeedback"
-            :highlightTarget="dragHighlightTarget"
             :unit-width="shelfUnitWidth"
-            @place="(colId) => gameStore.placeCard(dragTrayIndex, colId)"
+            @place="(colId) => classifyToColumn(colId)"
           />
         </aside>
       </div>
 
-      <!-- 书桌 -->
+      <!-- 书桌（点选即放玩法占位，待 T6 重写） -->
       <Desk
-        :cards="gameStore.captureTray"
-        :capacity="gameStore.trayCapacity"
-        :feedbackIndex="gameStore.feedbackState?.trayIndex ?? null"
-        :feedbackType="gameStore.feedbackState?.type ?? null"
-        :hint="dropHint"
-        :draggingIndex="dragTrayIndex"
-        @dragstart="onDragStart"
+        :cards="gameStore.processPool"
+        :capacity="1"
       />
     </template>
 
-    <!-- 拖拽浮层（跟手的书本） -->
-    <Teleport to="body">
-      <div
-        v-if="isDragging && dragCard"
-        class="drag-ghost"
-        :class="{ 'over-target': !!dragHighlightTarget }"
-        :style="{ left: dragX + 'px', top: dragY + 'px' }"
-      >
-        <FallingCard :process="dragCard" :compact="true" />
-      </div>
-    </Teleport>
-
-    <!-- 浮动得分文字 -->
-    <Teleport to="body">
-      <div
-        v-for="ft in floatingTexts"
-        :key="ft.id"
-        class="floating-text"
-        :style="{
-          left: ft.x + 'px',
-          top: ft.y + 'px',
-          color: ft.color,
-        }"
-      >
-        {{ ft.text }}
-      </div>
-    </Teleport>
-
-    <!-- 托盘溢出提示 -->
-    <Teleport to="body">
-      <transition name="toast-pop">
-        <div v-if="overflowToast" class="overflow-toast">{{ overflowToast }}</div>
-      </transition>
-      <transition name="toast-pop">
-        <div v-if="lastCorrectHint" class="correct-hint">{{ lastCorrectHint }}</div>
-      </transition>
-    </Teleport>
+    <!-- TODO(T6): 重写下落玩法为点选即放——拖拽浮层/浮动文字/溢出提示等已下线，待 T6 清理 -->
   </div>
 </template>
 

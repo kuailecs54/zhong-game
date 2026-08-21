@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Process, ColumnInfo, RowInfo, ShelvedBook } from '@/data/types'
+import type { Process, ColumnInfo, RowInfo } from '@/data/types'
 
 const props = defineProps<{
   columns: ColumnInfo[]
   rows: RowInfo[]
-  /** 当前正在拖拽的书本（null 表示未在拖拽） */
-  dragCard: Process | null
+  /** 当前选中的待归类过程（null 表示未选中） */
+  selectedProcess: Process | null
   feedback: { rowId?: string; columnId?: string; type: 'correct' | 'wrong' } | null
-  shelvedBooks: ShelvedBook[]
-  /** 当前拖拽高亮目标 */
-  highlightTarget?: { columnId: string; rowId?: string } | null
+  /** 已正确归类（上架）的过程列表 */
+  placedProcesses: Process[]
 }>()
 
 const emit = defineEmits<{
@@ -20,11 +19,10 @@ const emit = defineEmits<{
 /** 缓存每个格子的已放书列表 */
 const cellBooks = computed(() => {
   const map = new Map<string, Process[]>()
-  for (const book of props.shelvedBooks) {
-    if (!book.rowId) continue
-    const key = `${book.columnId}|${book.rowId}`
+  for (const proc of props.placedProcesses) {
+    const key = `${proc.processGroupId}|${proc.knowledgeAreaId}`
     const list = map.get(key) ?? []
-    list.push(book.process)
+    list.push(proc)
     map.set(key, list)
   }
   return map
@@ -38,10 +36,10 @@ function cellHasBooks(colId: string, rowId: string): boolean {
   return getCellBooks(colId, rowId).length > 0
 }
 
-/** 判断某格是否可放入当前拖拽卡片 */
+/** 判断某格是否可放入当前选中卡片 */
 function isCellPlaceable(colId: string, rowId: string): boolean {
-  if (!props.dragCard) return false
-  return props.dragCard.processGroupId === colId && props.dragCard.knowledgeAreaId === rowId
+  if (!props.selectedProcess) return false
+  return props.selectedProcess.processGroupId === colId && props.selectedProcess.knowledgeAreaId === rowId
 }
 </script>
 
@@ -79,10 +77,9 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
           :data-column-id="col.id"
           :data-row-id="row.id"
           :class="[
-            dragCard ? (isCellPlaceable(col.id, row.id) ? 'drag-highlight' : 'drag-dim') : '',
+            selectedProcess ? (isCellPlaceable(col.id, row.id) ? 'drag-highlight' : 'drag-dim') : '',
             feedback?.columnId === col.id && feedback?.rowId === row.id && feedback.type === 'correct' ? 'feedback-correct' : '',
             feedback?.columnId === col.id && feedback?.rowId === row.id && feedback.type === 'wrong' ? 'feedback-wrong' : '',
-            highlightTarget?.columnId === col.id && highlightTarget?.rowId === row.id ? 'drag-target-active' : '',
           ]"
           :style="{
             borderTopColor: col.color,

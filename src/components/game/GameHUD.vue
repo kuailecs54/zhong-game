@@ -3,19 +3,12 @@ import { computed } from 'vue'
 
 const props = defineProps<{
   score: number
-  lives: number
-  maxLives: number
-  combo: number
-  comboMultiplier: number
   correctCount: number
   targetCount: number
-  freezeCount: number
-  isFrozen: boolean
   isPaused: boolean
 }>()
 
 const emit = defineEmits<{
-  freeze: []
   pause: []
 }>()
 
@@ -45,51 +38,6 @@ const progress = computed(() => {
     </div>
 
     <div class="hud-right">
-      <!-- 生命值 -->
-      <div class="hud-item hud-lives" title="生命值">
-        <svg width="0" height="0" class="heart-defs">
-          <defs>
-            <linearGradient id="heart-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#f87171" />
-              <stop offset="100%" stop-color="#ef4444" />
-            </linearGradient>
-          </defs>
-        </svg>
-        <span
-          v-for="i in maxLives"
-          :key="i"
-          class="heart"
-          :class="{ 'heart-lost': i > lives, 'heart-beat': i <= lives && lives === 1 }"
-        >
-          <svg viewBox="0 0 24 24" class="heart-svg">
-            <path
-              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-              fill="url(#heart-gradient)"
-            />
-          </svg>
-        </span>
-      </div>
-
-      <!-- 连击 -->
-      <div class="hud-item hud-combo" v-if="combo > 0">
-        <span class="combo-text" :class="{ 'combo-hot': comboMultiplier >= 4, 'combo-fire': comboMultiplier >= 6 }" :key="combo">
-          x{{ comboMultiplier }}
-        </span>
-        <span class="combo-label">连击</span>
-      </div>
-
-      <!-- 冰冻道具 -->
-      <button
-        class="hud-btn freeze-btn"
-        :class="{ 'is-active': isFrozen, 'is-disabled': freezeCount <= 0, 'is-ready': freezeCount > 0 && !isFrozen }"
-        :disabled="freezeCount <= 0"
-        title="冰冻道具（3秒）"
-        @click="emit('freeze')"
-      >
-        <span class="freeze-icon">❄️</span>
-        <span class="btn-count">{{ freezeCount }}</span>
-      </button>
-
       <!-- 暂停 -->
       <button
         class="hud-btn pause-btn"

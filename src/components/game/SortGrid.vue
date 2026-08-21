@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Process, ColumnInfo, ShelvedBook } from '@/data/types'
+import type { Process, ColumnInfo } from '@/data/types'
 import { buildShelfLayers, layerCapacityFor, spineWidthFor } from '@/utils/shelfLayout'
 import type { MergedSpine, ShelfLayer } from '@/utils/shelfLayout'
 
 const props = defineProps<{
   columns: ColumnInfo[]
   columnType: 'processGroup' | 'knowledgeArea'
-  shelvedBooks: ShelvedBook[]
-  /** 当前正在拖拽的书本（null 表示未在拖拽） */
-  dragCard: Process | null
+  /** 已正确归类（上架）的过程，按列渲染书脊 */
+  placedProcesses: Process[]
+  /** 当前选中的待归类过程（null 表示未选中） */
+  selectedProcess: Process | null
   feedback: { columnId: string; type: 'correct' | 'wrong' } | null
-  /** 当前拖拽高亮目标 */
-  highlightTarget?: { columnId: string; rowId?: string } | null
   /** 书架单元估算宽度（px），由 GameView 传入 */
   unitWidth: number
 }>()
@@ -23,13 +22,14 @@ const emit = defineEmits<{
 
 /** 按列分组的书本索引 */
 const booksByColumn = computed(() => {
-  const map = new Map<string, ShelvedBook[]>()
+  const map = new Map<string, Process[]>()
   for (const col of props.columns) {
     map.set(col.id, [])
   }
-  for (const book of props.shelvedBooks) {
-    const arr = map.get(book.columnId)
-    if (arr) arr.push(book)
+  for (const proc of props.placedProcesses) {
+    const colId = props.columnType === 'processGroup' ? proc.processGroupId : proc.knowledgeAreaId
+    const arr = map.get(colId)
+    if (arr) arr.push(proc)
   }
   return map
 })
@@ -45,7 +45,7 @@ const layerData = computed(() => {
 
   for (const col of props.columns) {
     const books = booksByColumn.value.get(col.id) ?? []
-    result.set(col.id, buildShelfLayers(books.map(b => b.process), capacity))
+    result.set(col.id, buildShelfLayers(books, capacity))
   }
   return result
 })
@@ -64,7 +64,7 @@ const colLayerCounts = computed(() => {
  * 幽灵预览：已有同种书 → 其所在层；新书 → 最低有空位层末尾
  */
 const ghostPreview = computed(() => {
-  if (!props.dragCard) return null
+  if (!props.selectedProcess) return null
   const map = new Map<string, number>()
   const capacity = layerCapacityFor(props.unitWidth)
 
@@ -74,7 +74,7 @@ const ghostPreview = computed(() => {
 
     // 已有同种书 → 其所在层
     const existingIdx = layers.findIndex(l =>
-      l.spines.some(s => s.process.id === props.dragCard!.id)
+      l.spines.some(s => s.process.id === props.selectedProcess!.id)
     )
     if (existingIdx >= 0) {
       map.set(col.id, existingIdx)
@@ -87,13 +87,13 @@ const ghostPreview = computed(() => {
   return map
 })
 
-/** 判断某列是否可放入当前拖拽卡片 */
+/** 判断某列是否可放入当前选中卡片 */
 function isPlaceable(colId: string): boolean {
-  if (!props.dragCard) return false
+  if (!props.selectedProcess) return false
   if (props.columnType === 'processGroup') {
-    return props.dragCard.processGroupId === colId
+    return props.selectedProcess.processGroupId === colId
   }
-  return props.dragCard.knowledgeAreaId === colId
+  return props.selectedProcess.knowledgeAreaId === colId
 }
 
 /** 获取某列某层的书脊数据 */
@@ -120,7 +120,6 @@ function hasGhost(colId: string, layer: number): boolean {
         feedback?.columnId === col.id && feedback.type === 'correct' ? 'feedback-correct' : '',
         feedback?.columnId === col.id && feedback.type === 'wrong' ? 'feedback-wrong' : '',
         isPlaceable(col.id) ? 'placeable' : '',
-        highlightTarget?.columnId === col.id ? 'drag-target-active' : '',
       ]"
       @click="emit('place', col.id)"
     >
@@ -161,7 +160,7 @@ function hasGhost(colId: string, layer: number): boolean {
               class="ghost-spine"
               :style="{ width: spineWidthFor(unitWidth) + 'px' }"
             >
-              <span class="ghost-text">{{ dragCard?.name }}</span>
+              <span class="ghost-text">{{ selectedProcess?.name }}</span>
             </div>
           </div>
         </div>

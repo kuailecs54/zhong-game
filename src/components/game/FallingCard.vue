@@ -4,10 +4,8 @@ import type { Process } from '@/data/types'
 
 const props = defineProps<{
   process: Process
-  isFrozen?: boolean
   feedback?: 'none' | 'correct' | 'wrong'
   compact?: boolean
-  captured?: boolean
 }>()
 
 // 书本封皮颜色（按过程组区分）
@@ -29,14 +27,9 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
     :class="[
       feedback === 'correct' ? 'feedback-correct' : '',
       feedback === 'wrong' ? 'feedback-wrong' : '',
-      isFrozen ? 'is-frozen' : '',
       compact ? 'is-compact' : '',
-      captured ? 'is-captured' : '',
     ]"
   >
-    <!-- 冰冻霜冻覆盖层 -->
-    <div v-if="isFrozen" class="ice-overlay"></div>
-
     <!-- 书脊（左侧窄条） -->
     <div class="book-spine-edge"></div>
 
@@ -179,55 +172,6 @@ const coverColor = computed(() => BOOK_COVER_COLORS[props.process.processGroupId
 .falling-card:active {
   transform: translateY(0) scale(0.95);
   transition-duration: 0.08s;
-}
-
-/* 冰冻霜冻覆盖层 */
-.ice-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  border-radius: inherit;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 40%, rgba(147, 197, 253, 0.2) 100%);
-  box-shadow:
-    inset 0 0 12px rgba(147, 197, 253, 0.4),
-    0 0 0 2px rgba(96, 165, 250, 0.45);
-}
-
-.ice-overlay::before {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 2px;
-  background-image:
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.35) 0%, transparent 2px),
-    radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.25) 0%, transparent 1.5px),
-    radial-gradient(circle at 45% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 2px),
-    radial-gradient(circle at 85% 65%, rgba(255, 255, 255, 0.2) 0%, transparent 1.5px);
-}
-
-/* 冻结状态 */
-.is-frozen {
-  opacity: 0.75;
-  filter: saturate(0.55) brightness(0.92);
-}
-
-/* 捕获飞入书桌动画 */
-.is-captured {
-  animation: cardCaptured 0.45s var(--ease-out-expo) forwards;
-  pointer-events: none;
-}
-
-@keyframes cardCaptured {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(60px) scale(0.85);
-  }
 }
 
 /* 正确反馈 */
