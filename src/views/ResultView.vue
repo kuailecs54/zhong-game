@@ -12,6 +12,21 @@ const gameStore = useGameStore()
 
 const levelId = route.params.levelId as string
 
+interface WrongItem {
+  processId: string
+  processName: string
+  chosenColumnId: string
+  correctColumnId: string
+  correctRowId?: string
+  chosenRowId?: string
+  missed?: boolean
+  /** 结算增强字段（由 GameView payload 携带） */
+  chosenLabel?: string
+  correctPgLabel?: string
+  correctKaLabel?: string
+  mnemonic?: string
+}
+
 interface ResultPayload {
   won?: boolean
   stars?: number
@@ -21,7 +36,7 @@ interface ResultPayload {
   missedCount?: number
   accuracy?: number
   nextLevelId?: string
-  wrongHistory?: { processName: string; chosenColumnId: string; correctColumnId: string; correctRowId?: string }[]
+  wrongHistory?: WrongItem[]
 }
 
 function readResultPayload(): ResultPayload | null {
@@ -49,7 +64,9 @@ const wrongCount = ref(resultData?.wrongCount ?? 0)
 const accuracy = ref(resultData?.accuracy ?? 0)
 const nextLevelId = ref(resultData?.nextLevelId ?? '')
 const missedCount = ref(resultData?.missedCount ?? 0)
-const wrongItems = ref<{ processName: string; chosenColumnId: string; correctColumnId: string; correctRowId?: string }[]>(resultData?.wrongHistory ?? [])
+const wrongItems = ref<WrongItem[]>(resultData?.wrongHistory ?? [])
+// 本关模式（只练错题合成关需与刚结束关卡一致）
+const currentMode = ref<'sort' | 'itto' | 'definition'>('sort')
 // 错题记录在导航时写入 sessionStorage，不依赖 gameStore 存活；此处仅展示
 // gameStore.resetLevel 会清空内存队列，不影响本次展示
 
@@ -74,6 +91,7 @@ onMounted(async () => {
     const level = levels.find((l: LevelConfig) => l.id === levelId)
     if (level) {
       levelName.value = level.name
+      currentMode.value = level.mode ?? 'sort'
     }
 
     // 如果路由没有 state，尝试从 store 获取
@@ -92,6 +110,35 @@ onMounted(async () => {
   // 清除游戏状态
   gameStore.resetLevel()
 })
+
+/**
+ * 只练错题：以本局错题过程为卡池构造合成关卡（同模式），
+ * 存 sessionStorage 后跳转，GameView 读取并走正常 startLevel。
+ */
+function startWrongDrill() {
+  const ids = [...new Set((resultData?.wrongHistory ?? []).map(w => w.processId))]
+  if (ids.length === 0) return
+  const isSort = currentMode.value === 'sort'
+  const level = {
+    id: 'wrong-drill',
+    name: '只练错题',
+    stage: 99,
+    number: 2,
+    mode: currentMode.value,
+    description: `针对本局 ${ids.length} 道错题的强化重练`,
+    layoutType: 'columns',
+    columns: isSort ? ['initiating', 'planning', 'executing', 'monitoring_controlling', 'closing'] : [],
+    cardPool: { source: 'specific', processIds: ids },
+    timePerCard: 15,
+    lives: 3,
+    hintCount: 1,
+    freezeCount: 1,
+    shieldCount: 1,
+    starThresholds: { oneStar: 1, twoStarAccuracy: 0.8, threeStarAccuracy: 0.9 },
+  }
+  sessionStorage.setItem('custom-level', JSON.stringify(level))
+  router.push('/game/wrong-drill')
+}
 
 function handleRetry() {
   router.push(`/game/${levelId}`)
@@ -174,8 +221,10 @@ function handleBackToLevels() {
           <h3 class="wrong-review-title">错题回顾 · TOP{{ Math.min(3, wrongItems.length) }}</h3>
           <ul class="wrong-review-list">
             <li v-for="(w, i) in wrongItems.slice(0, 3)" :key="i" class="wrong-review-item">
-              <span class="wrong-name">{{ w.processName }}</span>
-              <span class="wrong-detail">选中 {{ w.chosenColumnId }} → 正确 {{ w.correctRowId ? `${w.correctColumnId} / ${w.correctRowId}` : w.correctColumnId }}</span>
+              <span class="wrong-name">{{ w.processName }}<template v-if="w.mnemonic"> · {{ w.mnemonic }}</template></span>
+              <span class="wrong-detail">
+                选中 {{ w.chosenLabel || '—' }} → 正确 {{ w.correctPgLabel ?? w.correctColumnId }}<template v-if="w.correctKaLabel"> × {{ w.correctKaLabel }}</template>
+              </span>
             </li>
           </ul>
           <p class="wrong-review-tip">建议重点复习这些过程</p>
@@ -190,6 +239,9 @@ function handleBackToLevels() {
           >
             <span>下一关</span>
             <Right :size="16" fill="currentColor" class="btn-arrow" />
+          </button>
+          <button v-if="wrongItems.length > 0" class="result-btn btn-drill" @click="startWrongDrill">
+            只练错题（{{ wrongItems.length }}）
           </button>
           <button class="result-btn btn-retry" @click="handleRetry">
             重新挑战
@@ -559,6 +611,16 @@ function handleBackToLevels() {
 
 .btn-retry:hover {
   box-shadow: 0 6px 26px rgba(99, 102, 241, 0.5);
+}
+
+/* 只练错题按钮 */
+.btn-drill {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+}
+
+.btn-drill:hover {
+  box-shadow: 0 6px 26px rgba(245, 158, 11, 0.5);
 }
 
 /* 弱按钮：返回选关 */

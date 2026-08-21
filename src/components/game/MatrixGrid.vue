@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Process, ColumnInfo, RowInfo } from '@/data/types'
+import { useUserStore } from '@/stores/user'
 
 const props = defineProps<{
   columns: ColumnInfo[]
   rows: RowInfo[]
-  /** 当前选中的待归类过程（null 表示未选中） */
-  selectedProcess: Process | null
   feedback: { rowId?: string; columnId?: string; type: 'correct' | 'wrong' } | null
   /** 已正确归类（上架）的过程列表 */
   placedProcesses: Process[]
@@ -15,6 +14,24 @@ const props = defineProps<{
 const emit = defineEmits<{
   place: [payload: { rowId: string; columnId: string }]
 }>()
+
+const userStore = useUserStore()
+
+/** 掌握度书脊样式档位：与 AnswerCards 同一套规则（2=金色、1=木质、0=虚线） */
+function masteryClass(processId: string): string {
+  const box = userStore.getMasteryBox(processId, 'position')
+  if (box >= 2) return 'mastery-2'
+  if (box <= 0) return 'mastery-0'
+  return ''
+}
+
+/** 列头动态列宽：按列数生成，替代硬编码 repeat(5,1fr)，2/5/10 列均合理分布 */
+const gridTemplateColumns = computed(
+  () => `minmax(56px, 96px) repeat(${props.columns.length}, minmax(0, 1fr))`,
+)
+
+/** 动态最小宽度：保证窄屏横向滚动而非过度压缩 */
+const gridMinWidth = computed(() => `${72 + props.columns.length * 76}px`)
 
 /** 缓存每个格子的已放书列表 */
 const cellBooks = computed(() => {
@@ -35,17 +52,11 @@ function getCellBooks(colId: string, rowId: string): Process[] {
 function cellHasBooks(colId: string, rowId: string): boolean {
   return getCellBooks(colId, rowId).length > 0
 }
-
-/** 判断某格是否可放入当前选中卡片 */
-function isCellPlaceable(colId: string, rowId: string): boolean {
-  if (!props.selectedProcess) return false
-  return props.selectedProcess.processGroupId === colId && props.selectedProcess.knowledgeAreaId === rowId
-}
 </script>
 
 <template>
   <div class="matrix-grid-wrapper">
-    <div class="matrix-grid">
+    <div class="matrix-grid" :style="{ gridTemplateColumns, minWidth: gridMinWidth }">
       <!-- 左上角空白 -->
       <div class="matrix-cell matrix-corner"></div>
 
@@ -76,8 +87,10 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
           class="matrix-cell matrix-grid-cell"
           :data-column-id="col.id"
           :data-row-id="row.id"
+          role="button"
+          tabindex="0"
+          :aria-label="`放置到 ${col.name} × ${row.name}`"
           :class="[
-            selectedProcess ? (isCellPlaceable(col.id, row.id) ? 'drag-highlight' : 'drag-dim') : '',
             feedback?.columnId === col.id && feedback?.rowId === row.id && feedback.type === 'correct' ? 'feedback-correct' : '',
             feedback?.columnId === col.id && feedback?.rowId === row.id && feedback.type === 'wrong' ? 'feedback-wrong' : '',
           ]"
@@ -86,13 +99,20 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
             borderLeftColor: row.color,
           }"
           @click="emit('place', { rowId: row.id, columnId: col.id })"
+          @keydown.enter.prevent="emit('place', { rowId: row.id, columnId: col.id })"
+          @keydown.space.prevent="emit('place', { rowId: row.id, columnId: col.id })"
         >
-          <!-- 格内固定宽书脊 + 角标 -->
-          <div v-if="cellHasBooks(col.id, row.id)" class="cell-spine">
-            <span class="cell-spine__text">{{ getCellBooks(col.id, row.id)[0].name }}</span>
-            <span v-if="getCellBooks(col.id, row.id).length > 1" class="cell-spine__count">
-              ×{{ getCellBooks(col.id, row.id).length }}
-            </span>
+          <!-- 格内书脊：每过程独立一根（无重复计数徽章），hover/点按显示全名 -->
+          <div v-if="cellHasBooks(col.id, row.id)" class="cell-spines">
+            <div
+              v-for="b in getCellBooks(col.id, row.id)"
+              :key="b.id"
+              class="cell-spine"
+              :class="masteryClass(b.id)"
+              :data-name="b.name"
+            >
+              <span class="cell-spine__text">{{ b.name }}</span>
+            </div>
           </div>
 
           <!-- 空状态指示点 -->
@@ -122,10 +142,9 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
 
 .matrix-grid {
   display: grid;
-  grid-template-columns: 96px repeat(5, 1fr);
+  /* 列宽与最小宽度由内联样式按列数动态生成 */
   gap: 3px;
   padding: 4px;
-  min-width: 400px;
 }
 
 .matrix-cell {
@@ -178,23 +197,21 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   border: 1.5px solid rgba(255, 255, 255, 0.12);
   border-top: 3px solid;
   border-left: 3px solid;
-  cursor: default;
+  cursor: pointer;
   min-height: 90px;
   padding: 2px;
   position: relative;
 }
 
-/* 拖拽时高亮可放置的格子 */
-.matrix-grid-cell.drag-highlight {
-  cursor: pointer;
-  border-color: rgba(99, 102, 241, 0.6);
-  background: rgba(99, 102, 241, 0.15);
+/* 中性 hover 高亮：与正确性无关，所有格子统一 */
+.matrix-grid-cell:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
-.matrix-grid-cell.drag-highlight:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.3);
-  z-index: 2;
+/* 键盘焦点可见性 */
+.matrix-grid-cell:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .matrix-grid-cell.drag-target-active {
@@ -210,11 +227,6 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   50% { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.6), 0 0 28px rgba(99, 102, 241, 0.5); }
 }
 
-/* 拖拽时弱化不可放置的格子 */
-.matrix-grid-cell.drag-dim {
-  opacity: 0.5;
-}
-
 .cell-indicator {
   width: 5px;
   height: 5px;
@@ -222,13 +234,20 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   opacity: 0.35;
 }
 
-/* 格内固定宽书脊 + 角标 */
+/* 格内书脊组：每过程独立一根固定宽书脊 */
+.cell-spines {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2px;
+  height: 96%;
+}
+
 .cell-spine {
   position: relative;
   width: 14px;
-  height: 96%;
   background: linear-gradient(180deg, #7c4a24, #a9743f);
-  border-radius: 2px;
+  border-radius: 3px;
   box-shadow:
     1px 0 2px rgba(0, 0, 0, 0.35),
     inset 1px 0 0 rgba(255, 255, 255, 0.12);
@@ -236,6 +255,54 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   align-items: center;
   justify-content: center;
   overflow: visible;
+  /* 落位脉冲：新上架书脊挂载时短促高亮一次（与 AnswerCards 同一套视觉语言） */
+  animation: spineLand 0.5s var(--ease-spring);
+}
+
+@keyframes spineLand {
+  0% { filter: brightness(1.7); }
+  100% { filter: brightness(1); }
+}
+
+/* ===== 掌握度书脊样式（与 AnswerCards 同一套规则，仅作用于已上架书） ===== */
+.cell-spine.mastery-2 {
+  background: linear-gradient(180deg, #a16207, #eab308);
+  border: 1.5px solid #fbbf24;
+  box-shadow:
+    1px 0 2px rgba(0, 0, 0, 0.35),
+    0 0 6px rgba(251, 191, 36, 0.45),
+    inset 1px 0 0 rgba(255, 255, 255, 0.15);
+}
+
+.cell-spine.mastery-0 {
+  border: 1.5px dashed rgba(245, 230, 200, 0.55);
+  filter: saturate(0.45);
+}
+
+/* ===== 书脊 tooltip：hover/点按显示完整过程名 ===== */
+.cell-spine::after {
+  content: attr(data-name);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(15, 12, 41, 0.95);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+.cell-spine:hover::after,
+.cell-spine:active::after {
+  opacity: 1;
 }
 
 .cell-spine__text {
@@ -247,20 +314,6 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   white-space: nowrap;
   padding: 2px 0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-.cell-spine__count {
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 0 3px;
-  border-radius: 6px;
-  line-height: 1.2;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* 正确反馈 */
@@ -310,13 +363,11 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
   }
 }
 
-/* 响应式：小屏幕 */
+/* 响应式：小屏幕（列宽由内联样式动态生成，此处仅紧凑化字号与间距） */
 @media (max-width: 600px) {
   .matrix-grid {
-    grid-template-columns: 72px repeat(5, 1fr);
     gap: 2px;
     padding: 2px;
-    min-width: 320px;
   }
 
   .matrix-col-header {
@@ -349,11 +400,6 @@ function isCellPlaceable(colId: string, rowId: string): boolean {
 }
 
 @media (max-width: 400px) {
-  .matrix-grid {
-    grid-template-columns: 64px repeat(5, 1fr);
-    min-width: 280px;
-  }
-
   .matrix-col-header {
     font-size: 0.5rem;
     padding: 3px 1px;

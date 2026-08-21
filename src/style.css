@@ -78,6 +78,13 @@
   box-sizing: border-box;
 }
 
+/* 键盘焦点可见性（WCAG）：所有可交互元素统一可见描边 */
+button:focus-visible,
+[role='button']:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;

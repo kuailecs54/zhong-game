@@ -1,21 +1,71 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
 import { PauseOne, Play } from '@icon-park/vue-next'
+import type { DifficultyMode } from '@/stores/game'
 
 const props = defineProps<{
   score: number
   correctCount: number
   targetCount: number
   isPaused: boolean
+  /** 双模式：challenge 显示生命/倒计时，relaxed 隐藏 */
+  difficultyMode?: DifficultyMode
+  /** 剩余生命 */
+  livesLeft?: number
+  /** 生命上限（渲染灰心用） */
+  livesTotal?: number
+  /** 当前连击 */
+  combo?: number
+  /** 剩余秒数（挑战模式显示在分数旁） */
+  timeLeft?: number
+  /** 道具剩余数量 */
+  items?: { hint: number; freeze: number; shield: number }
+  /** 冰冻剩余 tick 数（>0 表示冰冻激活） */
+  freezeTicksLeft?: number
+  /** 提示高亮截止时间戳（> Date.now() 时提示按钮描边） */
+  hintActiveUntil?: number
+  /** 进度文案覆盖（itto 模式传「题目 x/y」） */
+  progressText?: string
 }>()
 
 const emit = defineEmits<{
   pause: []
+  useHint: []
+  useFreeze: []
+  useShield: []
 }>()
 
 const progress = computed(() => {
   if (props.targetCount <= 0) return 0
   return Math.min(100, (props.correctCount / props.targetCount) * 100)
+})
+
+/** 连击样式档位：≥6 火、≥3 热 */
+const comboClass = computed(() => {
+  const c = props.combo ?? 0
+  if (c >= 6) return 'combo-fire'
+  if (c >= 3) return 'combo-hot'
+  return ''
+})
+
+/** 提示按钮高亮描边：hintActiveUntil 变化时点亮 3 秒 */
+const hintGlow = ref(false)
+let hintGlowTimer: ReturnType<typeof setTimeout> | null = null
+watch(
+  () => props.hintActiveUntil,
+  (val) => {
+    if (val && val > Date.now()) {
+      hintGlow.value = true
+      if (hintGlowTimer) clearTimeout(hintGlowTimer)
+      hintGlowTimer = setTimeout(() => { hintGlow.value = false }, 3000)
+    } else {
+      hintGlow.value = false
+    }
+  },
+)
+
+onUnmounted(() => {
+  if (hintGlowTimer) clearTimeout(hintGlowTimer)
 })
 </script>
 
@@ -25,6 +75,8 @@ const progress = computed(() => {
       <div class="hud-score">
         <span class="score-label">分数</span>
         <span class="score-value" :key="score">{{ score.toLocaleString() }}</span>
+        <!-- 挑战模式：剩余秒数 -->
+        <span v-if="difficultyMode === 'challenge'" class="score-time">{{ (timeLeft ?? 0).toFixed(0) }}s</span>
       </div>
       <div class="hud-progress">
         <div class="progress-track">
@@ -32,13 +84,56 @@ const progress = computed(() => {
           <div class="progress-glow" :style="{ left: progress + '%' }"></div>
         </div>
         <div class="progress-info">
-          <span class="progress-text">{{ correctCount }} / {{ targetCount }}</span>
+          <span class="progress-text">{{ progressText ?? `${correctCount} / ${targetCount}` }}</span>
           <span class="progress-pct" v-if="targetCount > 0">{{ Math.round(progress) }}%</span>
         </div>
+      </div>
+
+      <!-- 生命（仅挑战模式） -->
+      <div v-if="difficultyMode === 'challenge' && (livesTotal ?? 0) > 0" class="hud-hearts">
+        <span
+          v-for="i in (livesTotal ?? 0)"
+          :key="i"
+          class="heart"
+          :class="{ 'heart-lost': i > (livesLeft ?? 0) }"
+        >❤️</span>
+      </div>
+
+      <!-- 连击 ×N -->
+      <div v-if="(combo ?? 0) >= 2" class="hud-combo">
+        <span class="combo-text" :class="comboClass">×{{ combo }}</span>
+        <span class="combo-label">连击</span>
       </div>
     </div>
 
     <div class="hud-right">
+      <!-- 提示道具 -->
+      <button
+        class="hud-btn hint-btn"
+        :class="{ 'is-disabled': (items?.hint ?? 0) <= 0, 'hint-glow': hintGlow }"
+        :disabled="(items?.hint ?? 0) <= 0"
+        title="提示：高亮正确位置 3 秒"
+        @click="emit('useHint')"
+      >🔍<span class="btn-count">{{ items?.hint ?? 0 }}</span></button>
+
+      <!-- 冰冻道具 -->
+      <button
+        class="hud-btn freeze-btn"
+        :class="{ 'is-disabled': (items?.freeze ?? 0) <= 0, 'is-active': (freezeTicksLeft ?? 0) > 0 }"
+        :disabled="(items?.freeze ?? 0) <= 0"
+        title="冰冻：暂停倒计时 10 秒"
+        @click="emit('useFreeze')"
+      >❄️<span class="btn-count">{{ items?.freeze ?? 0 }}</span></button>
+
+      <!-- 护盾道具 -->
+      <button
+        class="hud-btn shield-btn"
+        :class="{ 'is-disabled': (items?.shield ?? 0) <= 0 }"
+        :disabled="(items?.shield ?? 0) <= 0"
+        title="护盾：本题答错免罚且不断连击"
+        @click="emit('useShield')"
+      >🛡️<span class="btn-count">{{ items?.shield ?? 0 }}</span></button>
+
       <!-- 暂停 -->
       <button
         class="hud-btn pause-btn"
@@ -109,6 +204,39 @@ const progress = computed(() => {
   0% { transform: scale(1); }
   40% { transform: scale(1.2); }
   100% { transform: scale(1); }
+}
+
+.score-time {
+  font-size: var(--font-xs);
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.hud-hearts {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.hud-combo {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+/* 道具按钮：emoji 图标 + 数量角标 */
+.hud-btn.hint-btn,
+.hud-btn.freeze-btn,
+.hud-btn.shield-btn {
+  position: relative;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* 提示生效期高亮描边 */
+.hint-btn.hint-glow {
+  border-color: var(--color-star);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
 }
 
 .hud-progress {
@@ -375,5 +503,8 @@ const progress = computed(() => {
 /* 触摸设备横屏：HUD 压扁，节省纵向空间 */
 @media (pointer: coarse) and (orientation: landscape) {
   .game-hud { padding: 0.3rem 0.75rem; }
+  .score-value { font-size: 1rem; }
+  .heart { width: 1rem; height: 1rem; }
+  .combo-text { font-size: 1rem; }
 }
 </style>

@@ -2,10 +2,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { loadLevels } from '@/data/loader'
-import type { LevelConfig } from '@/data/types'
-import { Star, Trophy, LockOne } from '@icon-park/vue-next'
+import { loadLevels, loadProcesses, loadProcessGroups, loadKnowledgeAreas } from '@/data/loader'
+import type { LevelConfig, Process, ProcessGroup, KnowledgeArea } from '@/data/types'
+import { Star, Trophy, LockOne, Rocket } from '@icon-park/vue-next'
 import StarRating from '@/components/ui/StarRating.vue'
+import MasteryHeatmap from '@/components/game/MasteryHeatmap.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -13,11 +14,53 @@ const userStore = useUserStore()
 const levels = ref<LevelConfig[]>([])
 const loading = ref(true)
 
+// ===== 掌握度仪表盘数据 =====
+const showDashboard = ref(false)
+const processesData = ref<Process[]>([])
+const processGroupsData = ref<ProcessGroup[]>([])
+const knowledgeAreasData = ref<KnowledgeArea[]>([])
+
+/** 薄弱项：position 维度 box<2 或无记录的过程 */
+const weakProcesses = computed(() =>
+  processesData.value.filter(p => {
+    if (!userStore.hasMasteryRecord(p.id, 'position')) return true
+    return userStore.getMasteryBox(p.id, 'position') < 2
+  }),
+)
+
+/**
+ * 薄弱特训：以非掌握项为卡池构造合成 L1 关卡（绕过解锁链），
+ * 存 sessionStorage 后跳转，GameView 读取并走正常 startLevel。
+ */
+function startWeakTraining() {
+  if (weakProcesses.value.length === 0) return
+  const level: LevelConfig = {
+    id: 'weak-training',
+    name: '薄弱特训',
+    stage: 99,
+    number: 1,
+    description: `针对 ${weakProcesses.value.length} 个未掌握过程的定位特训`,
+    layoutType: 'columns',
+    columns: ['initiating', 'planning', 'executing', 'monitoring_controlling', 'closing'],
+    cardPool: { source: 'specific', processIds: weakProcesses.value.map(p => p.id) },
+    timePerCard: 12,
+    lives: 3,
+    hintCount: 1,
+    freezeCount: 1,
+    shieldCount: 1,
+    starThresholds: { oneStar: 1, twoStarAccuracy: 0.8, threeStarAccuracy: 0.9 },
+  }
+  sessionStorage.setItem('custom-level', JSON.stringify(level))
+  router.push('/game/weak-training')
+}
+
 const STAGE_NAMES: Record<number, string> = {
-  1: '第一阶段 \u00B7 入门',
-  2: '第二阶段 \u00B7 过程组',
-  3: '第三阶段 \u00B7 知识领域',
-  4: '第四阶段 \u00B7 矩阵挑战',
+  1: '第一阶段 \u00B7 定位入门',
+  2: '第二阶段 \u00B7 定位进阶',
+  3: '第三阶段 \u00B7 定位挑战',
+  4: '第四阶段 \u00B7 矩阵定位',
+  5: '第五阶段 \u00B7 定义挑战',
+  6: '第六阶段 \u00B7 ITTO 补全',
 }
 
 const STAGE_COLORS: Record<number, string> = {
@@ -25,9 +68,16 @@ const STAGE_COLORS: Record<number, string> = {
   2: 'var(--stage-2)',
   3: 'var(--stage-3)',
   4: 'var(--stage-4)',
+  5: '#34d399',
+  6: '#fb923c',
 }
 
-const TOTAL_STARS = 12
+/** 模式标签文案 */
+function modeLabel(mode?: string): string {
+  if (mode === 'itto') return 'ITTO'
+  if (mode === 'definition') return '定义'
+  return '归类'
+}
 
 function getUnlockHint(levelId: string): string {
   const sorted = [...levels.value].sort((a, b) => {
@@ -42,7 +92,16 @@ function getUnlockHint(levelId: string): string {
 
 onMounted(async () => {
   try {
-    levels.value = await loadLevels()
+    const [levelList, processList, processGroupList, knowledgeAreaList] = await Promise.all([
+      loadLevels(),
+      loadProcesses(),
+      loadProcessGroups(),
+      loadKnowledgeAreas(),
+    ])
+    levels.value = levelList
+    processesData.value = processList
+    processGroupsData.value = processGroupList
+    knowledgeAreasData.value = knowledgeAreaList
   } catch {
     // Handle error silently
   } finally {
@@ -56,6 +115,9 @@ const sortedLevels = computed(() => {
     return a.number - b.number
   })
 })
+
+/** 总星数上限 = 全部关卡 ×3（关卡增减自适应，不硬编码） */
+const TOTAL_STARS = computed(() => levels.value.length * 3)
 
 const stages = computed(() => {
   const map = new Map<number, LevelConfig[]>()
@@ -105,7 +167,33 @@ function onLevelKeydown(e: KeyboardEvent, levelId: string) {
           总星数 {{ userStore.totalStars }} / {{ TOTAL_STARS }}
         </span>
       </div>
+
+      <!-- 薄弱特训入口：以非掌握项为卡池，绕过解锁链 -->
+      <button
+        class="weak-training-btn"
+        :class="{ 'is-empty': weakProcesses.length === 0 }"
+        :disabled="weakProcesses.length === 0 || loading"
+        :title="weakProcesses.length === 0 ? '全部过程已掌握，暂无需特训' : `针对 ${weakProcesses.length} 个未掌握过程开一局定位特训`"
+        @click="startWeakTraining"
+      >
+        <Rocket :size="16" fill="currentColor" class="wt-icon" />
+        薄弱特训（{{ weakProcesses.length }}）
+      </button>
+
+      <!-- 掌握度仪表盘开关 -->
+      <button class="dashboard-toggle" @click="showDashboard = !showDashboard">
+        {{ showDashboard ? '收起掌握度仪表盘 ▲' : '展开掌握度仪表盘 ▼' }}
+      </button>
     </header>
+
+    <!-- 掌握度热力图（选关页展示档位不违反无剧透：非作答界面） -->
+    <section v-if="showDashboard" class="dashboard-section">
+      <MasteryHeatmap
+        :processes="processesData"
+        :process-groups="processGroupsData"
+        :knowledge-areas="knowledgeAreasData"
+      />
+    </section>
 
     <div v-if="loading" class="loading">
       <div class="loading-spinner"></div>
@@ -146,7 +234,8 @@ function onLevelKeydown(e: KeyboardEvent, levelId: string) {
               </div>
               <div class="level-name">{{ level.name }}</div>
               <span v-if="level.mode === 'itto'" class="level-mode-tag itto-tag">ITTO</span>
-              <span v-else class="level-mode-tag sort-tag">归类</span>
+              <span v-else-if="level.mode === 'definition'" class="level-mode-tag def-tag">定义</span>
+              <span v-else class="level-mode-tag sort-tag">{{ modeLabel(level.mode) }}</span>
               <div class="level-description">{{ level.description }}</div>
               <div class="level-meta">
                 <span v-if="userStore.getLevelBestScore(level.id) > 0" class="level-score">
@@ -285,6 +374,71 @@ function onLevelKeydown(e: KeyboardEvent, levelId: string) {
 
 .star-icon {
   font-size: 1rem;
+}
+
+/* ===== 薄弱特训入口 ===== */
+.weak-training-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.9rem;
+  padding: 0.55rem 1.2rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--glow-primary);
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.weak-training-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+}
+
+.weak-training-btn.is-empty {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wt-icon {
+  flex-shrink: 0;
+}
+
+/* ===== 掌握度仪表盘 ===== */
+.dashboard-toggle {
+  display: block;
+  margin: 0.75rem auto 0;
+  padding: 0.35rem 0.9rem;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.dashboard-toggle:hover {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.dashboard-section {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .loading {
@@ -563,6 +717,11 @@ function onLevelKeydown(e: KeyboardEvent, levelId: string) {
   background: rgba(99, 102, 241, 0.12);
   color: #a5b4fc;
   border: 1px solid rgba(99, 102, 241, 0.25);
+}
+.def-tag {
+  background: rgba(52, 211, 153, 0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(52, 211, 153, 0.25);
 }
 
 .level-card:hover .play-hint {

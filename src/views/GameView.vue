@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGameStore } from '@/stores/game'
-import { useIttoStore } from '@/stores/itto'
 import { useUserStore } from '@/stores/user'
-import type { Process } from '@/data/types'
+import type { Process, ITTO, ProcessGroup, KnowledgeArea, LevelConfig } from '@/data/types'
 import {
   loadLevels,
   loadProcesses,
@@ -15,17 +14,21 @@ import {
   getProcessesForLevel,
   getITTOForLevel,
 } from '@/data/loader'
+import { playCorrect, playWrong } from '@/utils/sound'
 
 import { Edit, BookOpen, Target, ChartHistogram } from '@icon-park/vue-next'
 import GameHUD from '@/components/game/GameHUD.vue'
-import SortGrid from '@/components/game/SortGrid.vue'
 import MatrixGrid from '@/components/game/MatrixGrid.vue'
 import ITTOQuiz from '@/components/game/ITTOQuiz.vue'
+import PauseOverlay from '@/components/game/PauseOverlay.vue'
+import CardStage from '@/components/game/CardStage.vue'
+import FeedbackOverlay from '@/components/game/FeedbackOverlay.vue'
+import DefinitionQuiz from '@/components/game/DefinitionQuiz.vue'
+import AnswerCards from '@/components/game/AnswerCards.vue'
 
 const router = useRouter()
 const route = useRoute()
 const gameStore = useGameStore()
-const ittoStore = useIttoStore()
 const userStore = useUserStore()
 
 const levelId = route.params.levelId as string
@@ -34,13 +37,39 @@ const loadError = ref('')
 
 const gameMode = computed(() => gameStore.level?.mode ?? 'sort')
 
-// ===== 列/矩阵反馈 =====
-const columnFeedback = computed(() => {
-  const fs = gameStore.feedbackState
-  if (!fs) return null
-  return { columnId: fs.columnId, type: fs.type as 'correct' | 'wrong' }
-})
+// ===== 全量数据（供 DefinitionQuiz 干扰项与 FeedbackOverlay 归属名查询） =====
+const allProcesses = ref<Process[]>([])
+const processGroupsData = ref<ProcessGroup[]>([])
+const knowledgeAreasData = ref<KnowledgeArea[]>([])
+const pgNames = computed<Record<string, string>>(() =>
+  Object.fromEntries(processGroupsData.value.map(g => [g.id, g.name])),
+)
+const kaNames = computed<Record<string, string>>(() =>
+  Object.fromEntries(knowledgeAreasData.value.map(a => [a.id, a.name])),
+)
 
+// ===== L3 ITTO 数据（当前题由引擎 currentProcess 派生） =====
+const ittoDataMap = ref<Record<string, ITTO>>({})
+const ittoGlobalPool = ref<{ inputs: string[]; tools: string[]; outputs: string[] }>({
+  inputs: [], tools: [], outputs: [],
+})
+const currentIttoQuestion = computed(() => {
+  const p = gameStore.currentProcess
+  if (!p || !ittoDataMap.value[p.id]) return null
+  return { process: p, itto: ittoDataMap.value[p.id] }
+})
+/** ITTO 答错复盘停留态：停留期间暂停引擎倒计时，避免批改阅读时被超时二次扣罚 */
+const ittoHold = ref(false)
+
+// ===== 双模式选择（开始界面，选中写回 user store 持久化） =====
+const selectedMode = ref<'challenge' | 'relaxed'>(userStore.settings.difficultyMode ?? 'challenge')
+
+function selectMode(mode: 'challenge' | 'relaxed') {
+  selectedMode.value = mode
+  userStore.setSettings({ difficultyMode: mode })
+}
+
+// ===== 矩阵反馈 =====
 const matrixFeedback = computed(() => {
   const fs = gameStore.feedbackState
   if (!fs) return null
@@ -62,40 +91,42 @@ const levelDescription = computed(() => {
   return `${colCount}列`
 })
 
-// 书架面板宽度
-const shelfPanelWidth = computed(() => {
-  const n = gameStore.columnInfos.length
-  return `${Math.min(520, Math.max(130, n * 110 + (n - 1) * 8 + 16))}px`
-})
-
-const shelfUnitWidth = computed(() => {
-  const n = gameStore.columnInfos.length
-  if (n === 0) return 0
-  return Math.round((parseFloat(shelfPanelWidth.value) - 16 - (n - 1) * 8) / n)
-})
-
-// ===== sort 模式过关判定 =====
+// ===== 过关判定（队列清空）与失败判定（生命归零），三模式统一 =====
 watch(
   () => gameStore.isLevelComplete,
   (val) => {
-    if (val && gameMode.value === 'sort') {
+    if (val && gameStore.isPlaying) {
       navigateToResult(true)
     }
   },
 )
 
-// ===== itto 模式过关判定 =====
-const ittoComplete = computed(() => ittoStore.total > 0 && ittoStore.index >= ittoStore.total - 1 && ittoStore.submitted)
+watch(
+  () => gameStore.isFailed,
+  (val) => {
+    if (val && gameStore.isPlaying) {
+      navigateToResult(false)
+    }
+  },
+)
 
 function calculateStars() {
   const level = gameStore.level
   if (!level) return 0
-  const accuracy = gameMode.value === 'itto' ? ittoStore.accuracy : gameStore.correctAccuracy
+  const accuracy = gameStore.correctAccuracy
   const thresholds = level.starThresholds
   let stars = 0
   if (accuracy > 0) stars = 1
   if (accuracy >= thresholds.twoStarAccuracy) stars = 2
   if (accuracy >= thresholds.threeStarAccuracy) stars = 3
+  // 三星附加条件：挑战=零漏接；轻松=零错误（D5）
+  if (stars === 3) {
+    if (gameStore.difficultyMode === 'relaxed') {
+      if (gameStore.wrongCount + gameStore.missedCount > 0) stars = 2
+    } else if (gameStore.missedCount > 0) {
+      stars = 2
+    }
+  }
   return stars
 }
 
@@ -103,9 +134,12 @@ function navigateToResult(won: boolean) {
   const stars = calculateStars()
   const level = gameStore.level
   if (!level) return
-  const accuracy = gameMode.value === 'itto' ? ittoStore.accuracy : gameStore.correctAccuracy
+  const accuracy = gameStore.correctAccuracy
 
-  userStore.saveProgress(level.id, stars, Math.round(accuracy * 100))
+  // 合成练习关（薄弱特训/只练错题）不计入关卡进度与总星数
+  if (allLevels.value.some(l => l.id === level.id)) {
+    userStore.saveProgress(level.id, stars, Math.round(accuracy * 100))
+  }
 
   let nextLevelId: string | undefined
   const sortedLevels = [...allLevels.value].sort((a, b) => {
@@ -117,16 +151,31 @@ function navigateToResult(won: boolean) {
     nextLevelId = sortedLevels[idx + 1].id
   }
 
+  // 错题本增强：附正确归属中文名（过程组 × 知识领域）与口诀
+  const enrichedWrongHistory = gameStore.wrongHistory.slice(0, 10).map(w => {
+    const proc = allProcesses.value.find(p => p.id === w.processId)
+    return {
+      ...w,
+      chosenLabel: w.chosenColumnId
+        ? (pgNames.value[w.chosenColumnId] ?? kaNames.value[w.chosenColumnId] ?? w.chosenColumnId)
+        : '',
+      correctPgLabel: pgNames.value[proc?.processGroupId ?? ''] ?? proc?.processGroupId ?? '',
+      correctKaLabel: kaNames.value[proc?.knowledgeAreaId ?? ''] ?? proc?.knowledgeAreaId ?? '',
+      mnemonic: proc?.mnemonic,
+    }
+  })
+
   const payload = {
     won,
     stars,
-    score: Math.round(accuracy * 100),
-    correctCount: gameMode.value === 'itto' ? ittoStore.score : gameStore.correctCount,
+    score: gameStore.score,
+    correctCount: gameStore.correctCount,
     wrongCount: gameStore.wrongCount,
-    missedCount: 0,
+    missedCount: gameStore.missedCount,
+    maxCombo: gameStore.maxCombo,
     accuracy,
     nextLevelId,
-    wrongHistory: gameStore.wrongHistory.slice(0, 10),
+    wrongHistory: enrichedWrongHistory,
   }
   try {
     sessionStorage.setItem(`result:${level.id}`, JSON.stringify(payload))
@@ -140,6 +189,14 @@ function navigateToResult(won: boolean) {
 
 // ===== 开始游戏 =====
 function handleStartGame() {
+  // 应用开始界面选择的双模式（startLevel 已用 user store 上次选择初始化）
+  gameStore.setDifficultyMode(selectedMode.value)
+  gameStore.setGamePhase('playing')
+}
+
+// ===== 暂停遮罩：重新开始（resetLevel 会把 phase 置回 start，需再置 playing）=====
+function handleRestart() {
+  gameStore.resetLevel()
   gameStore.setGamePhase('playing')
 }
 
@@ -158,37 +215,47 @@ async function initGame() {
       loadKnowledgeAreas(),
     ])
     allLevels.value = levels
+    allProcesses.value = processes
+    processGroupsData.value = processGroups
+    knowledgeAreasData.value = knowledgeAreas
 
-    const level = getLevelById(levelId, levels)
-    if (!level) {
-      loadError.value = `关卡 ${levelId} 不存在`
-      isLoading.value = false
-      return
-    }
-
-    const mode = level.mode ?? 'sort'
-
-    if (mode === 'sort') {
-      const processPool = getProcessesForLevel(level, processes)
-      if (processPool.length === 0) {
-        loadError.value = '关卡卡片池为空'
+    // 合成关卡（薄弱特训 / 只练错题）：优先于常规关卡查找——合成关 id 不在 levels.json 中，
+    // 若先走 getLevelById 会因未命中而提前报「关卡不存在」，永远到不了本分支
+    let finalLevel: LevelConfig | null = null
+    if (levelId === 'weak-training' || levelId === 'wrong-drill') {
+      let custom: LevelConfig | null = null
+      try {
+        const raw = sessionStorage.getItem('custom-level')
+        if (raw) custom = JSON.parse(raw) as LevelConfig
+      } catch { /* ignore */ }
+      sessionStorage.removeItem('custom-level')
+      if (!custom || custom.id !== levelId) {
+        loadError.value = '练习关卡已失效，请重新从选关页进入'
         isLoading.value = false
         return
       }
-      gameStore.startLevel(level, processPool, processGroups, knowledgeAreas, processes)
+      finalLevel = custom
     } else {
-      // itto 模式
+      finalLevel = getLevelById(levelId, levels) ?? null
+      if (!finalLevel) {
+        loadError.value = `关卡 ${levelId} 不存在`
+        isLoading.value = false
+        return
+      }
+    }
+
+    const mode = finalLevel.mode ?? 'sort'
+
+    if (mode === 'itto') {
+      // L3 ITTO：引擎队列仍为过程 id，itto 数据按当前卡派生传给作答器
       const ittoData = await loadITTO()
-      const pool = getITTOForLevel(level, processes, ittoData)
+      ittoDataMap.value = ittoData
+      const pool = getITTOForLevel(finalLevel, processes, ittoData)
       if (pool.length === 0) {
         loadError.value = '关卡 ITTO 池为空'
         isLoading.value = false
         return
       }
-      // 先装载 gameStore 的列/行信息（共用 gameStore.level）
-      const processPool = getProcessesForLevel(level, processes)
-      gameStore.startLevel(level, processPool, processGroups, knowledgeAreas, processes)
-      // 聚合全局 ITTO 名称
       const allInputs: string[] = []
       const allTools: string[] = []
       const allOutputs: string[] = []
@@ -197,8 +264,19 @@ async function initGame() {
         ittoData[k].toolsAndTechniques.forEach(t => allTools.push(t.name))
         ittoData[k].outputs.forEach(o => allOutputs.push(o.name))
       }
-      ittoStore.startQuiz(pool, { inputs: allInputs, tools: allTools, outputs: allOutputs })
+      ittoGlobalPool.value = { inputs: allInputs, tools: allTools, outputs: allOutputs }
     }
+
+    // 统一入口：三模式共用 startLevel（队列 = 卡池过程 id 洗牌）
+    const processPool = getProcessesForLevel(finalLevel, processes)
+    if (processPool.length === 0) {
+      loadError.value = '关卡卡片池为空'
+      isLoading.value = false
+      return
+    }
+    gameStore.startLevel(finalLevel, processPool, processGroups, knowledgeAreas, {
+      difficultyMode: userStore.settings.difficultyMode ?? 'challenge',
+    })
 
     isLoading.value = false
   } catch (e) {
@@ -207,19 +285,79 @@ async function initGame() {
   }
 }
 
-// ===== sort 模式交互 =====
-function classifyToColumn(columnId: string) {
-  if (!gameStore.selectedProcessId) return
-  gameStore.classify(columnId)
+// ===== sort 模式交互（统一引擎 answer 判定） =====
+function answerColumn(columnId: string) {
+  gameStore.answer(columnId)
 }
 
-function classifyToCell(columnId: string, rowId: string) {
-  if (!gameStore.selectedProcessId) return
-  gameStore.classify(columnId, rowId)
+function answerCell(columnId: string, rowId: string) {
+  gameStore.answer(columnId, rowId)
 }
+
+// ===== 音效反馈（settings.soundEnabled===false 时不播，默认开） =====
+watch(
+  () => gameStore.feedbackState,
+  (fs) => {
+    if (!fs || userStore.settings.soundEnabled === false) return
+    if (fs.type === 'correct') {
+      // 连击倍率 ≥2（combo≥3）时音高递增升调
+      playCorrect(gameStore.comboMultiplier)
+    } else {
+      playWrong()
+    }
+  },
+)
+
+function toggleSound() {
+  const next = userStore.settings.soundEnabled === false
+  userStore.setSettings({ soundEnabled: next })
+}
+
+// ===== 键盘快捷键（仅 playing 且非输入框聚焦时生效）=====
+// Esc：暂停/继续切换；数字键 1-9/0：sort 列模式选第 N 列作答（矩阵关不支持键盘）
+function isTypingTarget(e: KeyboardEvent): boolean {
+  const t = e.target as HTMLElement | null
+  return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (isTypingTarget(e)) return
+
+  // Esc：全模式暂停/继续切换
+  if (e.key === 'Escape') {
+    if (gameStore.isPlaying) gameStore.setGamePhase('paused')
+    else if (gameStore.isPaused) gameStore.setGamePhase('playing')
+    return
+  }
+
+  if (!gameStore.isPlaying) return
+  // 数字键选列：仅 sort 列模式（矩阵关需行列同时指定，仅支持点击）
+  if (gameMode.value === 'sort' && gameStore.layoutType === 'columns') {
+    const digit = e.key >= '1' && e.key <= '9' ? Number(e.key) : e.key === '0' ? 10 : 0
+    if (digit >= 1 && digit <= gameStore.columnInfos.length) {
+      gameStore.answer(gameStore.columnInfos[digit - 1].id)
+    }
+  }
+}
+
+// ===== 引擎心跳：100ms 粒度驱动倒计时（暂停/轻松模式由 tick 内部守卫跳过）=====
+let tickTimer: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
   initGame()
+  tickTimer = setInterval(() => {
+    // ITTO 答错复盘停留期间暂停倒计时，避免阅读解析时被超时二次扣罚
+    if (!ittoHold.value) gameStore.tick()
+  }, 100)
+  window.addEventListener('keydown', onKeydown)
+})
+
+onUnmounted(() => {
+  if (tickTimer) {
+    clearInterval(tickTimer)
+    tickTimer = null
+  }
+  window.removeEventListener('keydown', onKeydown)
 })
 </script>
 
@@ -250,15 +388,16 @@ onMounted(() => {
         <p class="start-description">{{ gameStore.level?.description ?? '' }}</p>
         <div class="start-guide">
           <component :is="gameMode === 'itto' ? Edit : BookOpen" :size="20" class="guide-icon" />
-          <span v-if="gameMode === 'itto'">给出过程名，选出正确的输入/工具与技术/输出</span>
-          <span v-else>点击过程卡牌选中，然后点击目标列/格完成归类</span>
+          <span v-if="gameMode === 'itto'">给出过程名，选出正确的输入/工具与技术/输出（Enter 提交）</span>
+          <span v-else-if="gameMode === 'definition'">阅读题面后点选答案（Tab 切换选项 + Enter 提交）</span>
+          <span v-else>记住当前过程，点击目标列/格完成归类（列模式可用数字键 1-9/0；Esc 暂停）</span>
         </div>
 
         <div class="start-info">
           <div class="info-item">
             <Target :size="18" class="info-icon" />
             <span class="info-label">目标</span>
-            <span class="info-value">{{ gameMode === 'itto' ? `完成 ${gameStore.targetCount} 道题` : `正确归类 ${gameStore.targetCount} 个过程` }}</span>
+            <span class="info-value">{{ gameMode === 'itto' ? `完成 ${gameStore.totalCount} 道题` : `正确归类 ${gameStore.totalCount} 个过程` }}</span>
           </div>
           <div class="info-item">
             <ChartHistogram :size="18" class="info-icon" />
@@ -266,6 +405,28 @@ onMounted(() => {
             <span class="info-value">{{ levelDescription }}</span>
           </div>
         </div>
+
+        <!-- 双模式选择 -->
+        <div class="mode-select">
+          <button
+            class="mode-btn"
+            :class="{ active: selectedMode === 'challenge' }"
+            @click="selectMode('challenge')"
+          >挑战模式</button>
+          <button
+            class="mode-btn"
+            :class="{ active: selectedMode === 'relaxed' }"
+            @click="selectMode('relaxed')"
+          >轻松模式</button>
+        </div>
+        <p class="mode-hint">{{ selectedMode === 'challenge' ? '限时作答，答错扣生命' : '无倒计时与生命，轻松练习' }}</p>
+
+        <!-- 音效开关（默认开） -->
+        <button
+          class="sound-toggle"
+          :class="{ off: userStore.settings.soundEnabled === false }"
+          @click="toggleSound"
+        >{{ userStore.settings.soundEnabled === false ? '🔇 音效关' : '🔊 音效开' }}</button>
 
         <button class="start-btn" @click="handleStartGame">
           <span class="btn-text">开始游戏</span>
@@ -277,72 +438,97 @@ onMounted(() => {
     <!-- 游戏中 -->
     <template v-else-if="gameStore.gamePhase === 'playing' || gameStore.gamePhase === 'paused'">
       <GameHUD
-        :score="gameMode === 'itto' ? Math.round(ittoStore.accuracy * 100) : gameStore.score"
-        :correctCount="gameMode === 'itto' ? ittoStore.score : gameStore.correctCount"
-        :targetCount="gameStore.targetCount"
+        :score="gameStore.score"
+        :correctCount="gameStore.correctCount"
+        :targetCount="gameStore.totalCount"
         :isPaused="gameStore.isPaused"
+        :difficultyMode="gameStore.difficultyMode"
+        :livesLeft="gameStore.livesLeft"
+        :livesTotal="gameStore.level?.lives ?? 0"
+        :combo="gameStore.combo"
+        :timeLeft="gameStore.timeLeft"
+        :items="gameStore.items"
+        :freezeTicksLeft="gameStore.freezeTicksLeft"
+        :hintActiveUntil="gameStore.hintActiveUntil"
+        :progressText="`题目 ${Math.min(gameStore.correctCount + 1, gameStore.totalCount)} / ${gameStore.totalCount}`"
+        @pause="gameStore.setGamePhase('paused')"
+        @use-hint="gameStore.useHint()"
+        @use-freeze="gameStore.useFreeze()"
+        @use-shield="gameStore.useShield()"
       />
 
-      <!-- sort 模式 -->
+      <!-- 反馈浮层（口诀闪现 / 纠错，附过程组×知识领域归属） -->
+      <FeedbackOverlay :pg-names="pgNames" :ka-names="kaNames" />
+
+      <!-- 暂停遮罩 -->
+      <PauseOverlay
+        v-if="gameStore.isPaused"
+        @resume="gameStore.setGamePhase('playing')"
+        @restart="handleRestart"
+        @quit="router.push('/levels')"
+      />
+
+      <!-- L1 归类模式：居中大卡 + 底部答案卡组（列）/ 矩阵（矩阵） -->
       <template v-if="gameMode === 'sort'">
         <div class="main-area">
           <div class="game-area">
-            <!-- 选卡区 -->
-            <div class="card-tray">
-              <button
-                v-for="p in gameStore.processPool"
-                :key="p.id"
-                class="process-card"
-                :class="{
-                  selected: gameStore.selectedProcessId === p.id,
-                  placed: gameStore.placedProcessIds.includes(p.id),
-                  'correct-flash': gameStore.feedbackState?.processId === p.id && gameStore.feedbackState.type === 'correct',
-                  'wrong-flash': gameStore.feedbackState?.processId === p.id && gameStore.feedbackState.type === 'wrong',
-                }"
-                :disabled="gameStore.placedProcessIds.includes(p.id)"
-                @click="gameStore.selectCard(p.id)"
-              >{{ p.name }}</button>
-            </div>
+            <!-- 居中大卡（书本外观 + 倒计时条） -->
+            <CardStage :show-guide="true" />
           </div>
 
+          <!-- columns 模式：底部答案卡组 -->
+          <AnswerCards
+            v-if="gameStore.layoutType === 'columns'"
+            :columns="gameStore.columnInfos"
+            :column-type="gameStore.columnType"
+            :placed-processes="placedProcessList"
+            :hint-active-until="gameStore.hintActiveUntil"
+            @place="(colId) => answerColumn(colId)"
+          />
+
           <!-- matrix 模式：底部矩阵 -->
-          <div v-if="gameStore.layoutType !== 'columns'" class="sort-grid-container">
+          <div v-else class="sort-grid-container">
             <MatrixGrid
               :columns="gameStore.columnInfos"
               :rows="gameStore.rowInfos"
-              :selectedProcess="gameStore.selectedProcess"
               :feedback="matrixFeedback"
               :placedProcesses="placedProcessList"
-              @place="(p) => classifyToCell(p.columnId, p.rowId)"
+              @place="(p) => answerCell(p.columnId, p.rowId)"
             />
           </div>
-
-          <!-- columns 模式：侧边书架 -->
-          <aside
-            v-if="gameStore.layoutType === 'columns'"
-            class="book-shelf-panel"
-            :style="{ width: shelfPanelWidth }"
-          >
-            <SortGrid
-              :columns="gameStore.columnInfos"
-              :columnType="gameStore.columnType"
-              :placedProcesses="placedProcessList"
-              :selectedProcess="gameStore.selectedProcess"
-              :feedback="columnFeedback"
-              :unit-width="shelfUnitWidth"
-              @place="(colId) => classifyToColumn(colId)"
-            />
-          </aside>
         </div>
       </template>
 
-      <!-- itto 模式 -->
+      <!-- L2 定义挑战模式：倒计时外壳 + 定义题作答器 -->
+      <template v-else-if="gameMode === 'definition'">
+        <div class="main-area">
+          <div class="game-area definition-stage">
+            <!-- 仅倒计时条外壳 -->
+            <CardStage :show-guide="false" bar-only />
+            <!-- 定义题作答器（随当前卡切换重出新题） -->
+            <DefinitionQuiz
+              v-if="gameStore.currentProcess"
+              :key="gameStore.currentCardId ?? 'none'"
+              :processes="allProcesses"
+              @result="(isCorrect, label) => gameStore.submitQuizResult(isCorrect, label)"
+            />
+          </div>
+        </div>
+      </template>
+
+      <!-- L3 ITTO 模式：作答器套统一引擎外壳 -->
       <template v-else>
         <div class="itto-area">
-          <ITTOQuiz />
-          <div v-if="ittoComplete" class="itto-complete">
-            <button class="result-btn" @click="navigateToResult(true)">查看结果</button>
-          </div>
+          <ITTOQuiz
+            v-if="currentIttoQuestion"
+            :key="gameStore.currentCardId ?? 'none'"
+            :question="currentIttoQuestion"
+            :global-pool="ittoGlobalPool"
+            :pg-names="pgNames"
+            :ka-names="kaNames"
+            @hold="(h) => (ittoHold = h)"
+            @result="(isCorrect, label) => gameStore.submitQuizResult(isCorrect, label)"
+          />
         </div>
       </template>
     </template>
@@ -461,6 +647,64 @@ onMounted(() => {
 .info-label { font-size: 0.85rem; color: var(--text-faint); font-weight: 500; min-width: 60px; }
 .info-value { font-size: 0.9rem; color: var(--text-primary); font-weight: 600; }
 
+/* ===== 双模式选择 ===== */
+.mode-select {
+  position: relative;
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 0.6rem 0;
+  background: var(--surface-glass);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.mode-btn.active {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.mode-hint {
+  position: relative;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  margin-bottom: 1rem;
+}
+
+/* 音效开关 */
+.sound-toggle {
+  position: relative;
+  margin-bottom: 1.25rem;
+  padding: 0.35rem 0.9rem;
+  background: var(--surface-glass);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.sound-toggle.off {
+  opacity: 0.6;
+}
+
+.sound-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--text-primary);
+}
+
 .start-btn {
   position: relative; width: 100%; padding: 0.9rem 2rem;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
@@ -474,68 +718,35 @@ onMounted(() => {
 .start-btn:hover .btn-shimmer { left: 100%; }
 .start-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 30px rgba(99,102,241,0.5); }
 
-/* ===== sort 模式主区域 ===== */
-.main-area { display: flex; flex: 1; min-height: 0; }
+/* ===== sort 模式主区域：纵向三段（大卡 / 答案卡组或矩阵） ===== */
+.main-area {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
 
 .game-area { flex: 1; position: relative; overflow: hidden; background: var(--bg-gradient-game); min-height: 0; }
 
-/* 选卡区 */
-.card-tray {
-  display: flex; flex-wrap: wrap; gap: 8px; padding: 16px;
-  align-content: flex-start;
-}
-
-.process-card {
-  padding: 8px 14px;
-  background: rgba(255,255,255,0.08);
-  border: 2px solid rgba(255,255,255,0.15);
-  border-radius: 8px;
-  color: #e2e8f0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.process-card:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  background: rgba(34,211,238,0.1);
-  transform: translateY(-2px);
-}
-
-.process-card.selected {
-  border-color: var(--color-primary);
-  background: rgba(99,102,241,0.2);
-  box-shadow: 0 0 12px rgba(99,102,241,0.3);
-  transform: translateY(-2px);
-}
-
-.process-card.placed {
-  opacity: 0.35;
-  cursor: default;
-  border-color: rgba(255,255,255,0.05);
-}
-
-.process-card.correct-flash {
-  border-color: #10b981;
-  background: rgba(16,185,129,0.2);
-  animation: flashCorrect 0.5s ease;
-}
-
-.process-card.wrong-flash {
-  border-color: #ef4444;
-  background: rgba(239,68,68,0.15);
-  animation: flashWrong 0.5s ease;
-}
-
-@keyframes flashCorrect { 0% { transform: scale(1); } 30% { transform: scale(1.1); } 100% { transform: scale(1); } }
-@keyframes flashWrong { 0% { transform: translateX(0); } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } 100% { transform: translateX(0); } }
-
-/* 书架侧面板 */
-.book-shelf-panel { flex-shrink: 0; min-width: 160px; }
-
 .sort-grid-container { position: absolute; bottom: 0; left: 0; right: 0; z-index: 5; }
+
+/* ===== L2 定义挑战模式：倒计时条 + 题面作答器纵向排列 ===== */
+.definition-stage {
+  display: flex;
+  flex-direction: column;
+}
+
+.definition-stage :deep(.card-stage) {
+  height: auto;
+  flex-shrink: 0;
+}
+
+.definition-stage :deep(.definition-quiz) {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
 
 /* ===== itto 模式 ===== */
 .itto-area {
@@ -545,31 +756,6 @@ onMounted(() => {
   align-items: center;
   overflow-y: auto;
   padding: 1rem;
-}
-
-.itto-complete {
-  margin-top: 1rem;
-  text-align: center;
-}
-
-.result-btn {
-  padding: 0.8rem 2rem;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: var(--glow-primary);
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) and (pointer: coarse) and (orientation: portrait) {
-  .main-area { flex-direction: column-reverse; }
-  .book-shelf-panel { width: 100% !important; min-width: auto; max-height: 28vh; overflow-y: auto; border-top: 1px solid rgba(0,0,0,0.25); }
-  .card-tray { padding: 10px; }
-  .process-card { font-size: 0.75rem; padding: 6px 10px; }
 }
 
 @media (max-width: 480px) {

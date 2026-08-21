@@ -1,49 +1,162 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useIttoStore } from '@/stores/itto'
-import type { ITTOCategory } from '@/stores/itto'
-import { CheckOne, CloseOne, ArrowCircleDown } from '@icon-park/vue-next'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import type { Process, ITTO } from '@/data/types'
+import { CheckOne, CloseOne, ArrowCircleDown, Download, Tool, Upload } from '@icon-park/vue-next'
 
-const store = useIttoStore()
+const props = defineProps<{
+  /** 当前题：过程 + 对应 ITTO 数据（由 GameView 从引擎当前卡派生） */
+  question: { process: Process; itto: ITTO } | null
+  /** 全局名称聚合（干扰项来源，与既有出题口径一致） */
+  globalPool?: { inputs: string[]; tools: string[]; outputs: string[] }
+  /** 过程组中文名映射（答错解析展示用） */
+  pgNames?: Record<string, string>
+  /** 知识领域中文名映射（答错解析展示用） */
+  kaNames?: Record<string, string>
+}>()
 
-const categories: { key: ITTOCategory; label: string }[] = [
-  { key: 'inputs', label: '输入 (I)' },
-  { key: 'tools', label: '工具与技术 (T)' },
-  { key: 'outputs', label: '输出 (O)' },
+const emit = defineEmits<{
+  result: [isCorrect: boolean, chosenLabel: string]
+  /** 答错复盘停留态变化：true=开始停留（父层暂停倒计时），false=停留结束即将上报 */
+  hold: [holding: boolean]
+}>()
+
+type Category = 'inputs' | 'tools' | 'outputs'
+
+const categories: { key: Category; label: string; icon: unknown; cls: string }[] = [
+  { key: 'inputs', label: '输入 (I)', icon: Download, cls: 'cat-input' },
+  { key: 'tools', label: '工具与技术 (T)', icon: Tool, cls: 'cat-tool' },
+  { key: 'outputs', label: '输出 (O)', icon: Upload, cls: 'cat-output' },
 ]
 
-const q = computed(() => store.currentQuestion)
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
 
-function optionList(key: ITTOCategory): string[] {
-  const k = `options${key[0].toUpperCase()}${key.slice(1)}` as 'optionsInputs'
-  return (q.value as any)?.[k] ?? []
+/** 从全局池抽干扰项（排除正确项），与旧 itto store 出题逻辑同构 */
+function sampleExcept(pool: string[], correct: string[], n: number): string[] {
+  const candidates = shuffle(pool.filter(x => !correct.includes(x)))
+  return candidates.slice(0, Math.max(0, n - correct.length))
 }
-function correctList(key: ITTOCategory): string[] {
-  const k = `correct${key[0].toUpperCase()}${key.slice(1)}` as 'correctInputs'
-  return (q.value as any)?.[k] ?? []
+
+// 每次挂载（新卡）生成一次选项
+const q = computed(() => {
+  if (!props.question) return null
+  const { itto } = props.question
+  const gp = props.globalPool ?? { inputs: [], tools: [], outputs: [] }
+  const correctInputs = itto.inputs.map(i => i.name)
+  const correctTools = itto.toolsAndTechniques.map(t => t.name)
+  const correctOutputs = itto.outputs.map(o => o.name)
+  return {
+    processName: props.question.process.name,
+    ittoRaw: itto,
+    correct: { inputs: correctInputs, tools: correctTools, outputs: correctOutputs } as Record<Category, string[]>,
+    options: {
+      inputs: shuffle([...correctInputs, ...sampleExcept(gp.inputs, correctInputs, 4)]),
+      tools: shuffle([...correctTools, ...sampleExcept(gp.tools, correctTools, 4)]),
+      outputs: shuffle([...correctOutputs, ...sampleExcept(gp.outputs, correctOutputs, 4)]),
+    } as Record<Category, string[]>,
+  }
+})
+
+// 本地多选状态（提交后冻结，引擎推进下一卡时组件随 key 重挂载自动重置）
+const selections = ref<Record<Category, string[]>>({ inputs: [], tools: [], outputs: [] })
+const submitted = ref(false)
+const lastResult = ref<Record<Category, boolean> | null>(null)
+
+// ===== 答错复盘停留：批改标记与知识卡片保持可见，直到点击「下一题」或自动倒计时结束 =====
+const HOLD_SECONDS = 10
+const holding = ref(false)
+const holdCountdown = ref(0)
+let holdTimer: ReturnType<typeof setInterval> | null = null
+
+function startHold() {
+  holding.value = true
+  holdCountdown.value = HOLD_SECONDS
+  emit('hold', true)
+  holdTimer = setInterval(() => {
+    holdCountdown.value--
+    if (holdCountdown.value <= 0) finishHold()
+  }, 1000)
 }
-function isSelected(key: ITTOCategory, name: string): boolean {
-  return store.selections[key].includes(name)
+
+/** 结束停留并上报引擎（推进下一题） */
+function finishHold() {
+  if (!holding.value) return
+  if (holdTimer) {
+    clearInterval(holdTimer)
+    holdTimer = null
+  }
+  holding.value = false
+  emit('hold', false)
+  emit('result', false, `I:${selections.value.inputs.length}/T:${selections.value.tools.length}/O:${selections.value.outputs.length}`)
 }
-function optClass(key: ITTOCategory, name: string): string {
-  if (!store.submitted) return isSelected(key, name) ? 'selected' : ''
-  const correct = correctList(key).includes(name)
-  const picked = isSelected(key, name)
+
+function toggleSelection(category: Category, name: string) {
+  if (submitted.value) return
+  const arr = selections.value[category]
+  const i = arr.indexOf(name)
+  if (i === -1) arr.push(name)
+  else arr.splice(i, 1)
+}
+
+/** 提交判定：答对立即上报；答错进入复盘停留（解析保持可见），停留结束后才上报 */
+function submit() {
+  if (!q.value || submitted.value) return
+  const res: Record<Category, boolean> = {
+    inputs: selections.value.inputs.slice().sort().join() === q.value.correct.inputs.slice().sort().join(),
+    tools: selections.value.tools.slice().sort().join() === q.value.correct.tools.slice().sort().join(),
+    outputs: selections.value.outputs.slice().sort().join() === q.value.correct.outputs.slice().sort().join(),
+  }
+  lastResult.value = res
+  submitted.value = true
+  const isCorrect = res.inputs && res.tools && res.outputs
+  if (isCorrect) {
+    emit('result', true, '')
+  } else {
+    startHold()
+  }
+}
+
+// 键盘快捷键：Enter 提交当前选择 / 复盘停留时 Enter 等效「下一题」（已提交非停留或输入框聚焦时忽略）
+function onKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Enter') return
+  const t = e.target as HTMLElement | null
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
+  if (holding.value) {
+    finishHold()
+    return
+  }
+  if (!submitted.value) submit()
+}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  if (holdTimer) clearInterval(holdTimer)
+})
+
+/** 归属中文名（过程组 × 知识领域），答错解析用 */
+const attributionText = computed(() => {
+  if (!props.question) return ''
+  const p = props.question.process
+  const pg = props.pgNames?.[p.processGroupId] ?? p.processGroupId
+  const ka = props.kaNames?.[p.knowledgeAreaId] ?? p.knowledgeAreaId
+  return `${pg} × ${ka}`
+})
+
+function optStatus(category: Category, name: string): 'correct' | 'missing' | 'wrong' | 'dimmed' | null {
+  if (!submitted.value || !lastResult.value) return null
+  const correct = q.value!.correct[category].includes(name)
+  const picked = selections.value[category].includes(name)
   if (correct && picked) return 'correct'
   if (correct && !picked) return 'missing'
   if (!correct && picked) return 'wrong'
   return 'dimmed'
 }
-function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wrong' | 'dimmed' | null {
-  if (!store.submitted) return null
-  const correct = correctList(key).includes(name)
-  const picked = isSelected(key, name)
-  if (correct && picked) return 'correct'
-  if (correct && !picked) return 'missing'
-  if (!correct && picked) return 'wrong'
-  return 'dimmed'
-}
-
 </script>
 
 <template>
@@ -54,15 +167,21 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
       <p class="hint">勾选属于该过程的输入 / 工具与技术 / 输出</p>
 
       <div v-for="cat in categories" :key="cat.key" class="itto-section">
-        <h3>{{ cat.label }}</h3>
+        <h3 :class="cat.cls"><component :is="cat.icon" :size="14" fill="currentColor" theme="filled" />{{ cat.label }}</h3>
         <div class="option-grid">
           <button
-            v-for="opt in optionList(cat.key)"
+            v-for="opt in q.options[cat.key]"
             :key="opt"
             class="option"
-            :class="optClass(cat.key, opt)"
-            :disabled="store.submitted"
-            @click="store.toggleSelection(cat.key, opt)"
+            :class="{
+              selected: selections[cat.key].includes(opt) && !submitted,
+              correct: optStatus(cat.key, opt) === 'correct',
+              wrong: optStatus(cat.key, opt) === 'wrong',
+              missing: optStatus(cat.key, opt) === 'missing',
+              dimmed: optStatus(cat.key, opt) === 'dimmed',
+            }"
+            :disabled="submitted"
+            @click="toggleSelection(cat.key, opt)"
           >
             <span class="opt-text">{{ opt }}</span>
             <span v-if="optStatus(cat.key, opt) && optStatus(cat.key, opt) !== 'dimmed'" class="opt-badge" :class="'badge-' + optStatus(cat.key, opt)">
@@ -74,27 +193,44 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
         </div>
       </div>
 
+      <!-- 提交后：分区判定小结 -->
+      <div v-if="submitted && lastResult" class="section-summary">
+        <span v-for="cat in categories" :key="cat.key" class="sum-chip" :class="lastResult[cat.key] ? 'sum-ok' : 'sum-bad'">
+          {{ cat.label }} {{ lastResult[cat.key] ? '✓' : '✗' }}
+        </span>
+      </div>
+
       <!-- 提交后：颜色图例 -->
-      <div v-if="store.submitted" class="legend">
+      <div v-if="submitted" class="legend">
         <span class="legend-item legend-correct"><CheckOne :size="14" fill="currentColor" /> 正确选中</span>
         <span class="legend-item legend-wrong"><CloseOne :size="14" fill="currentColor" /> 错选</span>
         <span class="legend-item legend-missing"><ArrowCircleDown :size="14" fill="currentColor" /> 遗漏答案</span>
       </div>
 
       <div class="actions">
-        <button v-if="!store.submitted" class="submit-btn" @click="store.submit()">提交</button>
-        <button v-else-if="!store.isLast" class="next-btn" @click="store.nextQuestion()">下一题</button>
-        <span v-else class="done">测验完成</span>
+        <button v-if="!submitted" class="submit-btn" @click="submit">提交</button>
+        <!-- 答错复盘停留：批改与知识卡片保持，手动或自动进入下一题 -->
+        <button v-else-if="holding" class="submit-btn next-btn" @click="finishHold">
+          下一题（{{ holdCountdown }}s 后自动）
+        </button>
+        <span v-else class="done">已提交，即将进入下一题</span>
       </div>
     </div>
 
     <!-- 右侧：知识卡片（提交后显示） -->
     <transition name="slide-in">
-      <aside v-if="store.submitted && q.ittoRaw" class="knowledge-card">
+      <aside v-if="submitted && q.ittoRaw" class="knowledge-card">
         <h3 class="kc-title">{{ q.processName }} · ITTO 知识点</h3>
 
+        <!-- 答错解析：矩阵归属 + 口诀 + 定义 -->
+        <div class="kc-meta">
+          <p class="kc-attribution">归属：{{ attributionText }}</p>
+          <p v-if="props.question?.process.mnemonic" class="kc-mnemonic">口诀：{{ props.question.process.mnemonic }}</p>
+          <p v-if="props.question?.process.definition" class="kc-def">{{ props.question.process.definition }}</p>
+        </div>
+
         <div class="kc-section">
-          <h4 class="kc-section-title kc-input">输入 (Inputs)</h4>
+          <h4 class="kc-section-title kc-input"><Download :size="13" fill="currentColor" theme="filled" />输入 (Inputs)</h4>
           <ul class="kc-list">
             <li v-for="item in q.ittoRaw.inputs" :key="item.name" class="kc-item">
               <span class="kc-name">{{ item.name }}</span>
@@ -107,7 +243,7 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
         </div>
 
         <div class="kc-section">
-          <h4 class="kc-section-title kc-tool">工具与技术 (Tools & Techniques)</h4>
+          <h4 class="kc-section-title kc-tool"><Tool :size="13" fill="currentColor" theme="filled" />工具与技术 (Tools & Techniques)</h4>
           <ul class="kc-list">
             <li v-for="item in q.ittoRaw.toolsAndTechniques" :key="item.name" class="kc-item">
               <span class="kc-name">{{ item.name }}</span>
@@ -120,7 +256,7 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
         </div>
 
         <div class="kc-section">
-          <h4 class="kc-section-title kc-output">输出 (Outputs)</h4>
+          <h4 class="kc-section-title kc-output"><Upload :size="13" fill="currentColor" theme="filled" />输出 (Outputs)</h4>
           <ul class="kc-list">
             <li v-for="item in q.ittoRaw.outputs" :key="item.name" class="kc-item">
               <span class="kc-name">{{ item.name }}</span>
@@ -156,9 +292,14 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
 .hint { color: var(--text-muted, #94a3b8); margin-bottom: 20px; font-size: 14px; }
 .itto-section { margin-bottom: 18px; }
 .itto-section h3 {
+  display: flex; align-items: center; gap: 6px;
   font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
   color: var(--text-muted, #94a3b8); margin-bottom: 10px;
 }
+/* 分区语义色：图标+标题同色，与知识卡片分区一致（选择器带上下文以压过基础 h3 色） */
+.itto-section h3.cat-input { color: #38bdf8; }
+.itto-section h3.cat-tool { color: #a78bfa; }
+.itto-section h3.cat-output { color: #34d399; }
 .option-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .option {
@@ -169,7 +310,7 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
   cursor: pointer; font-size: 14px; transition: all 0.2s; text-align: left;
   min-width: 0; flex: 1 1 auto; max-width: 100%;
 }
-.option:hover:not(:disabled) { border-color: var(--color-accent, #22d3ee); background: rgba(34,211,238,0.1); }
+.option:hover:not(:disabled) { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.1); }
 .option.selected { border-color: var(--color-accent, #22d3ee); background: rgba(34,211,238,0.15); }
 
 .option.correct { border-color: var(--color-success, #10b981); background: rgba(16,185,129,0.15); color: #6ee7b7; box-shadow: 0 0 0 2px rgba(16,185,129,0.2); }
@@ -209,13 +350,30 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
 .legend-missing { color: #fbbf24; }
 
 .actions { margin-top: 16px; text-align: center; }
-.submit-btn, .next-btn {
+
+/* ===== 分区判定小结 ===== */
+.section-summary {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0;
+}
+.sum-chip {
+  font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+}
+.sum-ok { background: rgba(16,185,129,0.15); color: #34d399; }
+.sum-bad { background: rgba(239,68,68,0.15); color: #f87171; }
+
+.next-btn { animation: nextPulse 1.6s ease-in-out infinite; }
+@keyframes nextPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.35); }
+  50% { box-shadow: 0 0 16px 4px rgba(99,102,241,0.35); }
+}
+
+.submit-btn {
   padding: 10px 28px; border: none; border-radius: 8px;
   background: linear-gradient(135deg, var(--color-primary, #6366f1), var(--color-primary-strong, #4f46e5));
   color: #fff; cursor: pointer; font-size: 15px; font-weight: 600;
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.submit-btn:hover, .next-btn:hover { transform: translateY(-1px); box-shadow: var(--glow-primary); }
+.submit-btn:hover { transform: translateY(-1px); box-shadow: var(--glow-primary); }
 .done { color: var(--text-muted, #94a3b8); font-size: 14px; }
 
 /* ===== 右侧知识卡片 ===== */
@@ -238,10 +396,29 @@ function optStatus(key: ITTOCategory, name: string): 'correct' | 'missing' | 'wr
   border-bottom: 1px solid var(--border-subtle, rgba(255,255,255,0.12));
 }
 
+/* ===== 答错解析：归属/口诀/定义 ===== */
+.kc-meta {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+}
+.kc-attribution {
+  font-size: 13px; font-weight: 700; color: #fca5a5; margin-bottom: 6px;
+}
+.kc-mnemonic {
+  font-size: 13px; font-weight: 700; color: var(--color-star, #fbbf24); margin-bottom: 4px;
+}
+.kc-def {
+  font-size: 12px; color: var(--text-muted, #94a3b8); line-height: 1.5; margin: 0;
+}
+
 .kc-section { margin-bottom: 14px; }
 .kc-section:last-child { margin-bottom: 0; }
 
 .kc-section-title {
+  display: flex; align-items: center; gap: 6px;
   font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
   margin-bottom: 8px; padding-left: 4px;
 }
