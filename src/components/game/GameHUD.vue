@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { PauseOne, Play } from '@icon-park/vue-next'
 
 const props = defineProps<{
   score: number
@@ -44,7 +45,8 @@ const progress = computed(() => {
         @click="emit('pause')"
         :title="isPaused ? '继续' : '暂停'"
       >
-        {{ isPaused ? '▶' : '⏸' }}
+        <Play v-if="isPaused" :size="18" fill="currentColor" />
+        <PauseOne v-else :size="18" fill="currentColor" />
       </button>
     </div>
   </div>

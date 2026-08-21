@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { loadLevels } from '@/data/loader'
 import type { LevelConfig } from '@/data/types'
+import { Star, Trophy, LockOne } from '@icon-park/vue-next'
 import StarRating from '@/components/ui/StarRating.vue'
 
 const router = useRouter()
@@ -100,7 +101,7 @@ function onLevelKeydown(e: KeyboardEvent, levelId: string) {
           <div class="stars-progress__glow" :style="{ left: (userStore.totalStars / TOTAL_STARS * 100) + '%' }"></div>
         </div>
         <span class="stars-progress__text">
-          <span class="star-icon">⭐</span>
+          <Star :size="16" fill="currentColor" class="star-icon" />
           总星数 {{ userStore.totalStars }} / {{ TOTAL_STARS }}
         </span>
       </div>
@@ -149,14 +150,14 @@ function onLevelKeydown(e: KeyboardEvent, levelId: string) {
               <div class="level-description">{{ level.description }}</div>
               <div class="level-meta">
                 <span v-if="userStore.getLevelBestScore(level.id) > 0" class="level-score">
-                  <span class="score-icon">🏆</span>
+                  <Trophy :size="14" fill="currentColor" class="score-icon" />
                   {{ userStore.getLevelBestScore(level.id) }}
                 </span>
                 <span class="play-hint">点击开始</span>
               </div>
             </template>
             <template v-else>
-              <div class="lock-icon">&#x1F512;</div>
+              <div class="lock-icon"><LockOne :size="28" fill="currentColor" /></div>
               <div class="level-name">未解锁</div>
               <div class="lock-tooltip">{{ getUnlockHint(level.id) }}</div>
             </template>

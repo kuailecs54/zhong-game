@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import { loadLevels } from '@/data/loader'
 import type { LevelConfig } from '@/data/types'
+import { CheckOne, CloseOne, Star, Right } from '@icon-park/vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -132,7 +133,11 @@ function handleBackToLevels() {
         <span>加载中...</span>
       </div>
       <template v-else>
-        <h1 class="result-title">{{ won ? '🎉 恭喜通关！' : '💔 游戏失败' }}</h1>
+        <h1 class="result-title">
+          <CheckOne v-if="won" :size="28" fill="currentColor" class="result-title-icon win-icon" />
+          <CloseOne v-else :size="28" fill="currentColor" class="result-title-icon lose-icon" />
+          {{ won ? '恭喜通关！' : '游戏失败' }}
+        </h1>
         <p class="result-level-name">{{ levelName }}</p>
 
         <!-- 星级 -->
@@ -144,18 +149,7 @@ function handleBackToLevels() {
             :class="{ 'star-filled': i <= stars }"
             :style="{ animationDelay: `${0.2 + (i - 1) * 0.2}s` }"
           >
-            <svg viewBox="0 0 24 24" class="result-star__svg">
-              <defs>
-                <linearGradient id="result-star-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#fbbf24" />
-                  <stop offset="100%" stop-color="#f59e0b" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                :fill="i <= stars ? 'url(#result-star-gradient)' : 'rgba(255,255,255,0.15)'"
-              />
-            </svg>
+            <Star :size="40" :fill="i <= stars ? 'currentColor' : 'rgba(255,255,255,0.15)'" />
           </span>
         </div>
 
@@ -195,7 +189,7 @@ function handleBackToLevels() {
             @click="handleNextLevel"
           >
             <span>下一关</span>
-            <span class="btn-arrow">→</span>
+            <Right :size="16" fill="currentColor" class="btn-arrow" />
           </button>
           <button class="result-btn btn-retry" @click="handleRetry">
             重新挑战
@@ -344,6 +338,10 @@ function handleBackToLevels() {
   font-size: 1.7rem;
   font-weight: 900;
   margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .result-win .result-title {
@@ -355,6 +353,8 @@ function handleBackToLevels() {
   color: var(--color-error);
   text-shadow: 0 0 16px rgba(239, 68, 68, 0.3);
 }
+
+.result-title-icon { flex-shrink: 0; }
 
 .result-level-name {
   position: relative;
@@ -378,16 +378,15 @@ function handleBackToLevels() {
   opacity: 0;
   transform: scale(0) rotate(-30deg);
   animation: starPop 0.6s var(--ease-spring) forwards;
-}
-
-.result-star__svg {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.5));
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .result-star.star-filled {
   opacity: 1;
+  color: #fbbf24;
+  filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.5));
 }
 
 @keyframes starPop {
@@ -542,8 +541,9 @@ function handleBackToLevels() {
 }
 
 .btn-arrow {
-  font-size: 1.2rem;
   transition: transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
 }
 
 .btn-next:hover .btn-arrow {

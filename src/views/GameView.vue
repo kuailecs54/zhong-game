@@ -16,6 +16,7 @@ import {
   getITTOForLevel,
 } from '@/data/loader'
 
+import { Edit, BookOpen, Target, ChartHistogram } from '@icon-park/vue-next'
 import GameHUD from '@/components/game/GameHUD.vue'
 import SortGrid from '@/components/game/SortGrid.vue'
 import MatrixGrid from '@/components/game/MatrixGrid.vue'
@@ -248,19 +249,19 @@ onMounted(() => {
         <h1 class="start-title">{{ gameStore.level?.name ?? '关卡' }}</h1>
         <p class="start-description">{{ gameStore.level?.description ?? '' }}</p>
         <div class="start-guide">
-          <span class="guide-icon">{{ gameMode === 'itto' ? '📝' : '📖' }}</span>
+          <component :is="gameMode === 'itto' ? Edit : BookOpen" :size="20" class="guide-icon" />
           <span v-if="gameMode === 'itto'">给出过程名，选出正确的输入/工具与技术/输出</span>
           <span v-else>点击过程卡牌选中，然后点击目标列/格完成归类</span>
         </div>
 
         <div class="start-info">
           <div class="info-item">
-            <span class="info-icon">🎯</span>
+            <Target :size="18" class="info-icon" />
             <span class="info-label">目标</span>
             <span class="info-value">{{ gameMode === 'itto' ? `完成 ${gameStore.targetCount} 道题` : `正确归类 ${gameStore.targetCount} 个过程` }}</span>
           </div>
           <div class="info-item">
-            <span class="info-icon">📊</span>
+            <ChartHistogram :size="18" class="info-icon" />
             <span class="info-label">难度</span>
             <span class="info-value">{{ levelDescription }}</span>
           </div>
