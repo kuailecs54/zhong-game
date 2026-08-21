@@ -1,5 +1,5 @@
 import { describe, it, expect, test } from 'vitest'
-import { getProcessesForLevel, getITTOForLevel } from './loader'
+import { getProcessesForLevel, getITTOForLevel, assertLearningFields } from './loader'
 import type { LevelConfig, Process, CardPoolConfig, ITTO } from './types'
 
 function proc(id: string, difficulty = 3, pg = 'planning', ka = 'scope'): Process {
@@ -17,16 +17,12 @@ function level(overrides: Partial<CardPoolConfig> & { source?: CardPoolConfig['s
     layoutType: 'columns',
     columns: ['planning'],
     cardPool: { source, ...rest },
-    targetCount: 5,
-    initialFallSpeed: 100,
-    initialSpawnInterval: 1000,
-    minSpawnInterval: 300,
-    speedIncreaseRate: 0.1,
-    speedIncreaseEvery: 5,
+    timePerCard: 15,
     lives: 3,
+    hintCount: 1,
     freezeCount: 1,
-    trayCapacity: 4,
-    starThresholds: { oneStar: 5, twoStarAccuracy: 0.7, threeStarAccuracy: 0.9, threeStarMinLives: 1 },
+    shieldCount: 1,
+    starThresholds: { oneStar: 5, twoStarAccuracy: 0.7, threeStarAccuracy: 0.9 },
   } as LevelConfig
 }
 
@@ -92,5 +88,46 @@ describe('getITTOForLevel', () => {
     expect(result).toHaveLength(1)
     expect(result[0].process.id).toBe('p001')
     expect(result[0].itto.outputs[0].name).toBe('项目章程')
+  })
+})
+
+describe('assertLearningFields', () => {
+  function learningProc(id: string, over: Partial<Process> = {}): Process {
+    return {
+      id,
+      name: id,
+      processGroupId: 'planning',
+      knowledgeAreaId: 'scope',
+      difficulty: 2,
+      definition: '定义',
+      role: '作用',
+      mnemonic: '口诀',
+      ...over,
+    } as Process
+  }
+
+  test('全字段齐全时不抛错', () => {
+    expect(() => assertLearningFields([learningProc('p1'), learningProc('p2')])).not.toThrow()
+  })
+
+  test('缺失字段时抛错且信息含过程 ID 与字段名', () => {
+    const processes = [
+      learningProc('p1', { definition: undefined }),
+      learningProc('p2', { role: '  ' }),
+      learningProc('p3', { mnemonic: '' }),
+    ]
+    try {
+      assertLearningFields(processes)
+      expect.unreachable('应当抛出 Error')
+    } catch (e) {
+      expect(e).toBeInstanceOf(Error)
+      const msg = (e as Error).message
+      expect(msg).toContain('p1')
+      expect(msg).toContain('"definition"')
+      expect(msg).toContain('p2')
+      expect(msg).toContain('"role"')
+      expect(msg).toContain('p3')
+      expect(msg).toContain('"mnemonic"')
+    }
   })
 })

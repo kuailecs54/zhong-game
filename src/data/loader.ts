@@ -240,6 +240,29 @@ export function validateProcessMatrix(
 }
 
 /**
+ * 断言 49 个过程的学习字段（definition/role/mnemonic）齐全非空。
+ * 任一过程缺失（undefined / 空字符串 / 纯空白）即抛 Error，
+ * 错误信息聚合全部缺失项，每项均含过程 ID 与字段名。
+ */
+export function assertLearningFields(processes: Process[]): void {
+  const requiredFields = ['definition', 'role', 'mnemonic'] as const
+  const errors: string[] = []
+
+  for (const process of processes) {
+    for (const field of requiredFields) {
+      const value = process[field]
+      if (typeof value !== 'string' || value.trim() === '') {
+        errors.push(`过程 "${process.id}" 缺少学习字段 "${field}"`)
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`学习字段校验失败（共 ${errors.length} 项缺失）：\n${errors.join('\n')}`)
+  }
+}
+
+/**
  * 便捷加载所有数据
  */
 export async function loadAllData() {
@@ -249,6 +272,9 @@ export async function loadAllData() {
     loadProcesses(),
     loadITTO(),
   ])
+
+  // 学习字段断言先于矩阵校验：缺字段在加载期即失败，不允许空值静默进游戏
+  assertLearningFields(processes)
 
   const validation = validateProcessMatrix(processes, processGroups, knowledgeAreas)
 

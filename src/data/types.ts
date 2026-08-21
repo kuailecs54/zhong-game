@@ -9,8 +9,6 @@ export interface StarThresholds {
   twoStarAccuracy: number
   /** 3星所需最低准确率 */
   threeStarAccuracy: number
-  /** 3星所需最低剩余生命值 */
-  threeStarMinLives: number
 }
 
 /** 卡片池配置 */
@@ -31,12 +29,6 @@ export interface CardPoolConfig {
   excludeIds?: string[]
   /** 易混淆对ID列表，干扰项加权使用，本阶段仅保留结构 */
   confusingPairIds?: string[][]
-  /** 速度曲线类型（向后兼容） */
-  speedCurve?: 'linear' | 'easeOut' | 'exp'
-  /** 干扰项随进度增长系数（向后兼容） */
-  distractorGrowth?: number
-  /** 是否按目标分段判定生命（向后兼容） */
-  livesByTarget?: boolean
 }
 
 /** 关卡配置 */
@@ -59,36 +51,20 @@ export interface LevelConfig {
   rows?: string[]
   /** 卡片池配置 */
   cardPool: CardPoolConfig
-  /** 需要正确放置的卡片数 */
-  targetCount: number
-  /** 初始下落速度（像素/秒） */
-  initialFallSpeed: number
-  /** 初始生成间隔（毫秒） */
-  initialSpawnInterval: number
-  /** 最小生成间隔（毫秒） */
-  minSpawnInterval: number
-  /** 每完成一定数量后速度增加比例 */
-  speedIncreaseRate: number
-  /** 每完成多少张卡加速一次 */
-  speedIncreaseEvery: number
-  /** 每波干扰项数量（缺省按阶段推导） */
-  distractorCount?: number
-  /** 生命值 */
-  lives: number
+  /** 每张卡的倒计时秒数（挑战模式启用，缺省无倒计时） */
+  timePerCard?: number
+  /** 生命值（仅挑战模式生效） */
+  lives?: number
+  /** 提示道具数量 */
+  hintCount?: number
   /** 冰冻道具数量 */
-  freezeCount: number
-  /** 托盘容量 */
-  trayCapacity: number
+  freezeCount?: number
+  /** 护盾道具数量 */
+  shieldCount?: number
   /** 星级评定阈值 */
   starThresholds: StarThresholds
-  /** 玩法模式：sort=归类模式，itto=ITTO 测验模式，缺省 sort */
-  mode?: 'sort' | 'itto'
-  /** 速度曲线类型（可选，向后兼容） */
-  speedCurve?: 'linear' | 'easeOut' | 'exp'
-  /** 干扰项随进度增长系数（可选） */
-  distractorGrowth?: number
-  /** 是否按目标分段判定生命（可选） */
-  livesByTarget?: boolean
+  /** 玩法模式：sort=归类模式，itto=ITTO 测验模式，definition=定义挑战，缺省 sort */
+  mode?: 'sort' | 'itto' | 'definition'
 }
 
 /** 过程组数据 */
@@ -115,6 +91,12 @@ export interface Process {
   difficulty: number
   /** 难度权重覆盖（可选，向后兼容） */
   difficultyWeight?: number
+  /** 过程定义（L2 学习字段，后续 loader 断言非空） */
+  definition?: string
+  /** 主要作用（L2 学习字段，后续 loader 断言非空） */
+  role?: string
+  /** 记忆口诀（≤20 字，后续 loader 断言非空） */
+  mnemonic?: string
 }
 
 /** ITTO 单项 */
@@ -148,22 +130,6 @@ export interface ProcessMatrix {
   grid: (ProcessMatrixCell | null)[][]
 }
 
-/** 下落中的卡片实例 */
-export interface FallingCard {
-  /** 唯一实例ID */
-  id: string
-  /** 过程数据 */
-  process: Process
-  /** 水平位置（百分比 0-100） */
-  x: number
-  /** 垂直位置（像素，相对于游戏区域顶部） */
-  y: number
-  /** 当前下落速度（像素/秒） */
-  speed: number
-  /** 是否为本关正解卡片（false 表示干扰项） */
-  isTarget: boolean
-}
-
 /** 反馈状态（processId 指向被归类的本体，clearFeedback 据此清理选中态） */
 export interface FeedbackState {
   type: 'correct' | 'wrong'
@@ -181,18 +147,8 @@ export interface WrongRecord {
   correctColumnId: string
   correctRowId?: string
   chosenRowId?: string
-}
-
-/** 已上架的书（正确放置的卡片积累） */
-export interface ShelvedBook {
-  /** 唯一实例ID */
-  id: string
-  /** 过程数据 */
-  process: Process
-  /** 列ID（columns 模式为过程组/知识领域ID，matrix 模式为过程组ID） */
-  columnId: string
-  /** 行ID（仅 matrix 模式） */
-  rowId?: string
+  /** 是否为超时漏接（未作答） */
+  missed?: boolean
 }
 
 /** 行信息（矩阵模式用） */
