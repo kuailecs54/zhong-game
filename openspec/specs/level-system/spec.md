@@ -3,7 +3,6 @@
 ## Purpose
 
 定义游戏的关卡结构、解锁规则、每关配置、星级持久化以及关卡内的难度递进。
-
 ## Requirements
 ### Requirement: 关卡结构
 系统 SHALL 提供分阶段难度递增的关卡序列：第 1-4 阶段为 L1 定位渐进（2 列 → 5 列 → 10 列 → 全矩阵），第 5 阶段为 L2 定义挑战，第 6 阶段为 L3 ITTO 补全；关卡总数由 levels.json 配置派生。
@@ -19,6 +18,7 @@
 #### Scenario: ITTO 全覆盖
 - **WHEN** 玩家完成全部 Stage 6 关卡
 - **THEN** 49 个过程均至少出现在一个 ITTO 关卡的题目中
+
 ### Requirement: 关卡解锁
 系统 SHALL 在当前关卡以至少 1 星完成时解锁下一关。
 
@@ -31,8 +31,9 @@
 - **WHEN** 新玩家首次查看选关界面
 - **THEN** 仅关卡 1-1 已解锁
 - **AND** 所有其他关卡处于锁定状态
+
 ### Requirement: 关卡配置
-系统 SHALL 为每个关卡定义布局、卡池、模式、时间压力参数、生命与道具配置；SHALL NOT 包含下落速度类字段与手工目标数字段。
+系统 SHALL 为每个关卡定义布局、卡池、模式、时间压力参数、生命与道具配置；ITTO 关卡 SHALL 可通过 `ittoQuiz` 定义每题分区数、每区正确项数和每区干扰项数；配置 SHALL NOT 包含下落速度类字段与手工目标数字段。
 
 #### Scenario: 列布局
 - **WHEN** 关卡使用列布局（第 1-3 阶段）
@@ -49,6 +50,17 @@
 - **WHEN** 关卡加载
 - **THEN** 可用 `timePerCard`（每卡秒数）、`lives`（生命）、`hintCount`/`freezeCount`/`shieldCount`（道具数量）定义难度
 - **AND** 配置中不存在 `initialFallSpeed`、`initialSpawnInterval`、`minSpawnInterval`、`speedIncreaseRate`、`speedIncreaseEvery`、`distractorCount`、`trayCapacity`、`targetCount`
+
+#### Scenario: ITTO 题型配置
+- **WHEN** `mode` 为 `itto` 的关卡加载
+- **THEN** `ittoQuiz.sectionsPerQuestion` 为 2
+- **AND** `ittoQuiz.correctPerSection` 定义每个展示分区抽取的正确项上限
+- **AND** `ittoQuiz.distractorsPerSection` 为 3
+
+#### Scenario: 非 ITTO 关卡无需题型配置
+- **WHEN** `mode` 不是 `itto`
+- **THEN** 关卡无需定义 `ittoQuiz`
+
 ### Requirement: 星级持久化
 系统 SHALL 保存每个关卡的最佳星级。
 
@@ -59,6 +71,7 @@
 #### Scenario: 选关界面显示星级
 - **WHEN** 玩家查看选关界面
 - **THEN** 每个已解锁关卡显示其最佳星级（0-3 星）
+
 ### Requirement: 选关卡片视觉增强
 系统 SHALL 为选关页的关卡卡片提供更丰富的视觉层次，包括阶段色条、星级渐变、悬停动效。
 
@@ -67,6 +80,7 @@
 - **THEN** 每个关卡卡片左上角有对应阶段的主题色条
 - **AND** 星级使用渐变填充的星形图标（非文字 ★）
 - **AND** 卡片悬停时有上浮和发光效果
+
 ### Requirement: 总星数进度可视化
 系统 SHALL 在选关页头部以进度条或进度环形式展示总星数进度，总星数上限 SHALL 由全部关卡星级动态求和得出，SHALL NOT 硬编码。
 
@@ -78,12 +92,14 @@
 #### Scenario: 关卡增减自适应
 - **WHEN** levels.json 中关卡数量发生变化
 - **THEN** 总星数上限随之变化，无需修改代码常量
+
 ### Requirement: 锁定卡片提示
 系统 SHALL 为锁定的关卡卡片提供解锁条件提示。
 
 #### Scenario: 悬停锁定关卡
 - **WHEN** 用户悬停在锁定的关卡卡片上
 - **THEN** 显示解锁条件提示（如"完成前一关并获得至少 1 星解锁"）
+
 ### Requirement: 结算页胜利动效
 系统 SHALL 在游戏胜利结算页提供星级逐个弹出的动画和庆祝视觉效果。
 
@@ -92,6 +108,7 @@
 - **THEN** 星级从左到右逐个弹出，带缩放旋转动画
 - **AND** 页面有轻微的庆祝光效（彩点/光斑）
 - **AND** 统计数据逐项淡入
+
 ### Requirement: 结算页按钮层级
 系统 SHALL 优化结算页按钮的视觉层级，主操作（下一关）最突出，次要操作（重新挑战、返回）次之。
 
@@ -100,6 +117,7 @@
 - **THEN** "下一关"按钮最大最突出（主按钮样式）
 - **AND** "重新挑战"次之（次按钮样式）
 - **AND** "返回选关"最不突出（文字按钮或弱按钮样式）
+
 ### Requirement: 玩法模式维度
 系统 SHALL 为每个关卡定义玩法模式（`mode`）：`sort`（L1 定位归类，缺省）、`definition`（L2 定义挑战）、`itto`（L3 ITTO 测验），选关页 SHALL 以标签区分显示。
 
@@ -110,3 +128,22 @@
 #### Scenario: 按模式渲染作答器
 - **WHEN** 玩家进入不同 mode 的关卡
 - **THEN** 游戏以对应模式的题面与作答方式运行，引擎行为一致
+
+### Requirement: ITTO 关卡难度递进
+系统 SHALL 通过每区正确项数量和 `timePerCard` 为 ITTO 关卡提供渐进难度，同时保持每区 3 个干扰项和每题 2 个分区不变。
+
+#### Scenario: 前期 ITTO 关卡
+- **WHEN** 玩家进入 `itto-1-1` 或 `itto-2-1`
+- **THEN** 每个展示分区抽取 1 个正确项和 3 个干扰项
+- **AND** 每张过程卡的挑战模式时间为 25 秒
+
+#### Scenario: 中期 ITTO 关卡
+- **WHEN** 玩家进入 `itto-3-1`
+- **THEN** 每个展示分区抽取最多 2 个正确项和 3 个干扰项
+- **AND** 每张过程卡的挑战模式时间为 30 秒
+
+#### Scenario: 后期 ITTO 关卡
+- **WHEN** 玩家进入 `itto-6-1` 或 `itto-6-2`
+- **THEN** 每个展示分区抽取最多 3 个正确项和 3 个干扰项
+- **AND** 每张过程卡的挑战模式时间为 35 秒
+

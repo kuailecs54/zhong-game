@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import type { Process, ITTO } from '@/data/types'
+import type { ITTOCategory, ITTOQuestionPlan, Process, ITTO } from '@/data/types'
+import { isITTOSelectionCorrect } from '@/data/ittoQuestion'
 import { CheckOne, CloseOne, ArrowCircleDown, Download, Tool, Upload } from '@icon-park/vue-next'
 
 const props = defineProps<{
-  /** 当前题：过程 + 对应 ITTO 数据（由 GameView 从引擎当前卡派生） */
-  question: { process: Process; itto: ITTO } | null
-  /** 全局名称聚合（干扰项来源，与既有出题口径一致） */
-  globalPool?: { inputs: string[]; tools: string[]; outputs: string[] }
+  /** 当前题：过程、完整 ITTO 与本轮缓存题面 */
+  question: { process: Process; itto: ITTO; plan: ITTOQuestionPlan } | null
   /** 过程组中文名映射（答错解析展示用） */
   pgNames?: Record<string, string>
   /** 知识领域中文名映射（答错解析展示用） */
@@ -20,53 +19,30 @@ const emit = defineEmits<{
   hold: [holding: boolean]
 }>()
 
-type Category = 'inputs' | 'tools' | 'outputs'
-
-const categories: { key: Category; label: string; icon: unknown; cls: string }[] = [
+const categories: { key: ITTOCategory; label: string; icon: unknown; cls: string }[] = [
   { key: 'inputs', label: '输入 (I)', icon: Download, cls: 'cat-input' },
   { key: 'tools', label: '工具与技术 (T)', icon: Tool, cls: 'cat-tool' },
   { key: 'outputs', label: '输出 (O)', icon: Upload, cls: 'cat-output' },
 ]
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
-
-/** 从全局池抽干扰项（排除正确项），与旧 itto store 出题逻辑同构 */
-function sampleExcept(pool: string[], correct: string[], n: number): string[] {
-  const candidates = shuffle(pool.filter(x => !correct.includes(x)))
-  return candidates.slice(0, Math.max(0, n - correct.length))
-}
-
-// 每次挂载（新卡）生成一次选项
 const q = computed(() => {
   if (!props.question) return null
-  const { itto } = props.question
-  const gp = props.globalPool ?? { inputs: [], tools: [], outputs: [] }
-  const correctInputs = itto.inputs.map(i => i.name)
-  const correctTools = itto.toolsAndTechniques.map(t => t.name)
-  const correctOutputs = itto.outputs.map(o => o.name)
   return {
     processName: props.question.process.name,
-    ittoRaw: itto,
-    correct: { inputs: correctInputs, tools: correctTools, outputs: correctOutputs } as Record<Category, string[]>,
-    options: {
-      inputs: shuffle([...correctInputs, ...sampleExcept(gp.inputs, correctInputs, 4)]),
-      tools: shuffle([...correctTools, ...sampleExcept(gp.tools, correctTools, 4)]),
-      outputs: shuffle([...correctOutputs, ...sampleExcept(gp.outputs, correctOutputs, 4)]),
-    } as Record<Category, string[]>,
+    ittoRaw: props.question.itto,
+    plan: props.question.plan,
   }
 })
 
+const displayedSections = computed(() => q.value?.plan.sections.map(section => ({
+  ...section,
+  meta: categories.find(category => category.key === section.category)!,
+})) ?? [])
+
 // 本地多选状态（提交后冻结，引擎推进下一卡时组件随 key 重挂载自动重置）
-const selections = ref<Record<Category, string[]>>({ inputs: [], tools: [], outputs: [] })
+const selections = ref<Record<ITTOCategory, string[]>>({ inputs: [], tools: [], outputs: [] })
 const submitted = ref(false)
-const lastResult = ref<Record<Category, boolean> | null>(null)
+const lastResult = ref<Partial<Record<ITTOCategory, boolean>> | null>(null)
 
 // ===== 答错复盘停留：批改标记与知识卡片保持可见，直到点击「下一题」或自动倒计时结束 =====
 const HOLD_SECONDS = 10
@@ -96,7 +72,7 @@ function finishHold() {
   emit('result', false, `I:${selections.value.inputs.length}/T:${selections.value.tools.length}/O:${selections.value.outputs.length}`)
 }
 
-function toggleSelection(category: Category, name: string) {
+function toggleSelection(category: ITTOCategory, name: string) {
   if (submitted.value) return
   const arr = selections.value[category]
   const i = arr.indexOf(name)
@@ -107,14 +83,16 @@ function toggleSelection(category: Category, name: string) {
 /** 提交判定：答对立即上报；答错进入复盘停留（解析保持可见），停留结束后才上报 */
 function submit() {
   if (!q.value || submitted.value) return
-  const res: Record<Category, boolean> = {
-    inputs: selections.value.inputs.slice().sort().join() === q.value.correct.inputs.slice().sort().join(),
-    tools: selections.value.tools.slice().sort().join() === q.value.correct.tools.slice().sort().join(),
-    outputs: selections.value.outputs.slice().sort().join() === q.value.correct.outputs.slice().sort().join(),
-  }
+  const res = Object.fromEntries(q.value.plan.sections.map(section => [
+    section.category,
+    isITTOSelectionCorrect(
+      { processId: q.value!.plan.processId, sections: [section] },
+      selections.value,
+    ),
+  ])) as Partial<Record<ITTOCategory, boolean>>
   lastResult.value = res
   submitted.value = true
-  const isCorrect = res.inputs && res.tools && res.outputs
+  const isCorrect = isITTOSelectionCorrect(q.value.plan, selections.value)
   if (isCorrect) {
     emit('result', true, '')
   } else {
@@ -148,9 +126,9 @@ const attributionText = computed(() => {
   return `${pg} × ${ka}`
 })
 
-function optStatus(category: Category, name: string): 'correct' | 'missing' | 'wrong' | 'dimmed' | null {
+function optStatus(category: ITTOCategory, name: string): 'correct' | 'missing' | 'wrong' | 'dimmed' | null {
   if (!submitted.value || !lastResult.value) return null
-  const correct = q.value!.correct[category].includes(name)
+  const correct = q.value!.plan.sections.find(section => section.category === category)!.correct.includes(name)
   const picked = selections.value[category].includes(name)
   if (correct && picked) return 'correct'
   if (correct && !picked) return 'missing'
@@ -164,30 +142,33 @@ function optStatus(category: Category, name: string): 'correct' | 'missing' | 'w
     <!-- 左侧：答题区 -->
     <div class="itto-quiz">
       <h2 class="process-name">{{ q.processName }}</h2>
-      <p class="hint">勾选属于该过程的输入 / 工具与技术 / 输出</p>
+      <p class="hint">完成本题抽查的两个 ITTO 分区</p>
 
-      <div v-for="cat in categories" :key="cat.key" class="itto-section">
-        <h3 :class="cat.cls"><component :is="cat.icon" :size="14" fill="currentColor" theme="filled" />{{ cat.label }}</h3>
+      <div v-for="section in displayedSections" :key="section.category" class="itto-section">
+        <div class="section-heading">
+          <h3 :class="section.meta.cls"><component :is="section.meta.icon" :size="14" fill="currentColor" theme="filled" />{{ section.meta.label }}</h3>
+          <span class="selection-count">请选择 {{ section.correct.length }} 项</span>
+        </div>
         <div class="option-grid">
           <button
-            v-for="opt in q.options[cat.key]"
+            v-for="opt in section.options"
             :key="opt"
             class="option"
             :class="{
-              selected: selections[cat.key].includes(opt) && !submitted,
-              correct: optStatus(cat.key, opt) === 'correct',
-              wrong: optStatus(cat.key, opt) === 'wrong',
-              missing: optStatus(cat.key, opt) === 'missing',
-              dimmed: optStatus(cat.key, opt) === 'dimmed',
+              selected: selections[section.category].includes(opt) && !submitted,
+              correct: optStatus(section.category, opt) === 'correct',
+              wrong: optStatus(section.category, opt) === 'wrong',
+              missing: optStatus(section.category, opt) === 'missing',
+              dimmed: optStatus(section.category, opt) === 'dimmed',
             }"
             :disabled="submitted"
-            @click="toggleSelection(cat.key, opt)"
+            @click="toggleSelection(section.category, opt)"
           >
             <span class="opt-text">{{ opt }}</span>
-            <span v-if="optStatus(cat.key, opt) && optStatus(cat.key, opt) !== 'dimmed'" class="opt-badge" :class="'badge-' + optStatus(cat.key, opt)">
-              <CheckOne v-if="optStatus(cat.key, opt) === 'correct'" :size="18" fill="currentColor" />
-              <CloseOne v-else-if="optStatus(cat.key, opt) === 'wrong'" :size="18" fill="currentColor" />
-              <ArrowCircleDown v-else-if="optStatus(cat.key, opt) === 'missing'" :size="18" fill="currentColor" />
+            <span v-if="optStatus(section.category, opt) && optStatus(section.category, opt) !== 'dimmed'" class="opt-badge" :class="'badge-' + optStatus(section.category, opt)">
+              <CheckOne v-if="optStatus(section.category, opt) === 'correct'" :size="18" fill="currentColor" />
+              <CloseOne v-else-if="optStatus(section.category, opt) === 'wrong'" :size="18" fill="currentColor" />
+              <ArrowCircleDown v-else-if="optStatus(section.category, opt) === 'missing'" :size="18" fill="currentColor" />
             </span>
           </button>
         </div>
@@ -195,8 +176,8 @@ function optStatus(category: Category, name: string): 'correct' | 'missing' | 'w
 
       <!-- 提交后：分区判定小结 -->
       <div v-if="submitted && lastResult" class="section-summary">
-        <span v-for="cat in categories" :key="cat.key" class="sum-chip" :class="lastResult[cat.key] ? 'sum-ok' : 'sum-bad'">
-          {{ cat.label }} {{ lastResult[cat.key] ? '✓' : '✗' }}
+        <span v-for="section in displayedSections" :key="section.category" class="sum-chip" :class="lastResult[section.category] ? 'sum-ok' : 'sum-bad'">
+          {{ section.meta.label }} {{ lastResult[section.category] ? '✓' : '✗' }}
         </span>
       </div>
 
@@ -278,6 +259,7 @@ function optStatus(category: Category, name: string): 'correct' | 'missing' | 'w
   display: flex;
   gap: 20px;
   padding: 20px;
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
   align-items: flex-start;
@@ -296,6 +278,9 @@ function optStatus(category: Category, name: string): 'correct' | 'missing' | 'w
   font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
   color: var(--text-muted, #94a3b8); margin-bottom: 10px;
 }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.section-heading h3 { margin-bottom: 0; }
+.selection-count { flex-shrink: 0; font-size: 12px; font-weight: 700; color: #e2e8f0; }
 /* 分区语义色：图标+标题同色，与知识卡片分区一致（选择器带上下文以压过基础 h3 色） */
 .itto-section h3.cat-input { color: #38bdf8; }
 .itto-section h3.cat-tool { color: #a78bfa; }
@@ -327,7 +312,7 @@ function optStatus(category: Category, name: string): 'correct' | 'missing' | 'w
   80% { transform: translateX(2px); }
 }
 
-.opt-text { flex: 1; min-width: 0; }
+.opt-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .opt-badge { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .badge-correct { color: #34d399; }
 .badge-wrong { color: #f87171; }

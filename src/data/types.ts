@@ -31,6 +31,13 @@ export interface CardPoolConfig {
   confusingPairIds?: string[][]
 }
 
+/** ITTO 分区题配置 */
+export interface ITTOQuizConfig {
+  sectionsPerQuestion: number
+  correctPerSection: number
+  distractorsPerSection: number
+}
+
 /** 关卡配置 */
 export interface LevelConfig {
   /** 关卡ID，格式 "sort-{stage}-{number}" */
@@ -65,6 +72,8 @@ export interface LevelConfig {
   starThresholds: StarThresholds
   /** 玩法模式：sort=归类模式，itto=ITTO 测验模式，definition=定义挑战，缺省 sort */
   mode?: 'sort' | 'itto' | 'definition'
+  /** ITTO 分区题配置（仅 ITTO 关卡需要） */
+  ittoQuiz?: ITTOQuizConfig
 }
 
 /** 过程组数据 */
@@ -111,6 +120,22 @@ export interface ITTO {
   inputs: ITTOItem[]
   toolsAndTechniques: ITTOItem[]
   outputs: ITTOItem[]
+}
+
+/** ITTO 题目分区 */
+export type ITTOCategory = 'inputs' | 'tools' | 'outputs'
+
+/** 单个 ITTO 分区的不可变题面 */
+export interface ITTOSectionPlan {
+  readonly category: ITTOCategory
+  readonly correct: readonly string[]
+  readonly options: readonly string[]
+}
+
+/** 单个过程在本轮关卡中的不可变 ITTO 题面 */
+export interface ITTOQuestionPlan {
+  readonly processId: string
+  readonly sections: readonly ITTOSectionPlan[]
 }
 
 /** 矩阵单元格 */

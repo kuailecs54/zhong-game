@@ -1,32 +1,22 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 import { useGameStore } from '@/stores/game'
 import type { FeedbackState } from '@/data/types'
+import BurningFuseTimer from './BurningFuseTimer.vue'
 
 defineProps<{
   /** 是否显示「点击下方列/格放置」引导文案（sort 模式显示，definition 模式隐藏） */
   showGuide?: boolean
-  /** 仅渲染倒计时条外壳（definition 模式题面由 DefinitionQuiz 呈现） */
+  /** 仅渲染倒计时外壳（definition / ITTO 模式题面由测验组件呈现） */
   barOnly?: boolean
+  /** 仅暂停燃烧动画（ITTO 答错复盘期间使用） */
+  timerPaused?: boolean
 }>()
 
 const gameStore = useGameStore()
 
 /** 根节点（飞卡起点取当前卡 rect 用） */
 const stageRef = ref<HTMLElement | null>(null)
-
-/** 倒计时进度百分比（relaxed 模式整条不渲染） */
-const timePercent = computed(() => {
-  const total = gameStore.level?.timePerCard ?? 0
-  if (total <= 0) return 100
-  return Math.max(0, Math.min(100, (gameStore.timeLeft / total) * 100))
-})
-
-/** 剩余时间 ≤30% 进入告警态（变红 + pulse） */
-const timeCritical = computed(() => {
-  const total = gameStore.level?.timePerCard ?? 0
-  return total > 0 && gameStore.timeLeft / total <= 0.3
-})
 
 /**
  * 答对飞卡动画（FLIP 式）：从当前卡 rect 中心克隆迷你卡，
@@ -89,14 +79,7 @@ onUnmounted(() => {
 
 <template>
   <div ref="stageRef" class="card-stage">
-    <!-- 倒计时细进度条（挑战模式；barOnly 时静态排列作外壳） -->
-    <div
-      v-if="gameStore.difficultyMode === 'challenge'"
-      class="timebar"
-      :class="{ critical: timeCritical, static: barOnly }"
-    >
-      <div class="timebar-fill" :style="{ width: timePercent + '%' }"></div>
-    </div>
+    <BurningFuseTimer :visual-paused="timerPaused" />
 
     <div v-if="!barOnly" class="stage-inner">
       <!-- 当前卡：key 绑定触发入场动画 -->
@@ -140,6 +123,7 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
   height: 100%;
   padding: 16px;
   position: relative;
@@ -203,51 +187,12 @@ onUnmounted(() => {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== 倒计时细进度条 ===== */
-.timebar {
-  position: absolute;
-  top: 0;
-  left: 16px;
-  right: 16px;
-  height: 3px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-}
-
-.timebar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
-  border-radius: var(--radius-full);
-  /* linear 0.1s 对齐 tick 粒度 */
-  transition: width 0.1s linear;
-}
-
-.timebar.critical .timebar-fill {
-  background: #ef4444;
-  animation: criticalPulse 0.8s ease-in-out infinite;
-}
-
-/* barOnly 外壳模式：进度条静态排列（definition 模式顶部） */
-.timebar.static {
-  position: static;
-  margin: 12px 16px 0;
-}
-
-@keyframes criticalPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
-}
-
 /* ===== 减少动态偏好：全部动画降级为淡入（飞卡动画在 JS 侧直接跳过） ===== */
 @media (prefers-reduced-motion: reduce) {
   .book-card {
     animation: cardFadeIn 0.25s ease-out;
   }
 
-  .timebar.critical .timebar-fill {
-    animation: none;
-  }
 }
 
 @keyframes cardFadeIn {

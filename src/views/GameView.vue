@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import { useUserStore } from '@/stores/user'
-import type { Process, ITTO, ProcessGroup, KnowledgeArea, LevelConfig } from '@/data/types'
+import type { Process, ITTO, ITTOQuestionPlan, ProcessGroup, KnowledgeArea, LevelConfig } from '@/data/types'
 import {
   loadLevels,
   loadProcesses,
@@ -14,6 +14,7 @@ import {
   getProcessesForLevel,
   getITTOForLevel,
 } from '@/data/loader'
+import { createITTOQuestionPlans } from '@/data/ittoQuestion'
 import { playCorrect, playWrong } from '@/utils/sound'
 
 import { Edit, BookOpen, Target, ChartHistogram } from '@icon-park/vue-next'
@@ -25,6 +26,7 @@ import CardStage from '@/components/game/CardStage.vue'
 import FeedbackOverlay from '@/components/game/FeedbackOverlay.vue'
 import DefinitionQuiz from '@/components/game/DefinitionQuiz.vue'
 import AnswerCards from '@/components/game/AnswerCards.vue'
+import { createQuizAttemptKey } from '@/components/game/quizAttemptKey'
 
 const router = useRouter()
 const route = useRoute()
@@ -50,13 +52,11 @@ const kaNames = computed<Record<string, string>>(() =>
 
 // ===== L3 ITTO 数据（当前题由引擎 currentProcess 派生） =====
 const ittoDataMap = ref<Record<string, ITTO>>({})
-const ittoGlobalPool = ref<{ inputs: string[]; tools: string[]; outputs: string[] }>({
-  inputs: [], tools: [], outputs: [],
-})
+const ittoQuestionPlans = ref<Readonly<Record<string, ITTOQuestionPlan>>>({})
 const currentIttoQuestion = computed(() => {
   const p = gameStore.currentProcess
-  if (!p || !ittoDataMap.value[p.id]) return null
-  return { process: p, itto: ittoDataMap.value[p.id] }
+  if (!p || !ittoDataMap.value[p.id] || !ittoQuestionPlans.value[p.id]) return null
+  return { process: p, itto: ittoDataMap.value[p.id], plan: ittoQuestionPlans.value[p.id] }
 })
 /** ITTO 答错复盘停留态：停留期间暂停引擎倒计时，避免批改阅读时被超时二次扣罚 */
 const ittoHold = ref(false)
@@ -196,8 +196,20 @@ function handleStartGame() {
 
 // ===== 暂停遮罩：重新开始（resetLevel 会把 phase 置回 start，需再置 playing）=====
 function handleRestart() {
+  regenerateITTOQuestionPlans()
   gameStore.resetLevel()
   gameStore.setGamePhase('playing')
+}
+
+function regenerateITTOQuestionPlans() {
+  const config = gameStore.level?.ittoQuiz
+  if (gameStore.mode !== 'itto' || !config) return
+  ittoQuestionPlans.value = createITTOQuestionPlans(
+    gameStore.processPool,
+    allProcesses.value,
+    ittoDataMap.value,
+    config,
+  )
 }
 
 // ===== 关卡数据加载 =====
@@ -256,15 +268,6 @@ async function initGame() {
         isLoading.value = false
         return
       }
-      const allInputs: string[] = []
-      const allTools: string[] = []
-      const allOutputs: string[] = []
-      for (const k of Object.keys(ittoData)) {
-        ittoData[k].inputs.forEach(i => allInputs.push(i.name))
-        ittoData[k].toolsAndTechniques.forEach(t => allTools.push(t.name))
-        ittoData[k].outputs.forEach(o => allOutputs.push(o.name))
-      }
-      ittoGlobalPool.value = { inputs: allInputs, tools: allTools, outputs: allOutputs }
     }
 
     // 统一入口：三模式共用 startLevel（队列 = 卡池过程 id 洗牌）
@@ -277,6 +280,7 @@ async function initGame() {
     gameStore.startLevel(finalLevel, processPool, processGroups, knowledgeAreas, {
       difficultyMode: userStore.settings.difficultyMode ?? 'challenge',
     })
+    regenerateITTOQuestionPlans()
 
     isLoading.value = false
   } catch (e) {
@@ -508,7 +512,7 @@ onUnmounted(() => {
             <!-- 定义题作答器（随当前卡切换重出新题） -->
             <DefinitionQuiz
               v-if="gameStore.currentProcess"
-              :key="gameStore.currentCardId ?? 'none'"
+              :key="createQuizAttemptKey(gameStore.currentCardId, gameStore.cardsDrawn)"
               :processes="allProcesses"
               @result="(isCorrect, label) => gameStore.submitQuizResult(isCorrect, label)"
             />
@@ -520,12 +524,11 @@ onUnmounted(() => {
       <template v-else>
         <div class="itto-area">
           <!-- 仅倒计时条外壳（与 definition 模式一致，挑战模式可见倒计时） -->
-          <CardStage :show-guide="false" bar-only />
+          <CardStage :show-guide="false" bar-only :timer-paused="ittoHold" />
           <ITTOQuiz
             v-if="currentIttoQuestion"
-            :key="gameStore.currentCardId ?? 'none'"
+            :key="createQuizAttemptKey(gameStore.currentCardId, gameStore.cardsDrawn)"
             :question="currentIttoQuestion"
-            :global-pool="ittoGlobalPool"
             :pg-names="pgNames"
             :ka-names="kaNames"
             @hold="(h) => (ittoHold = h)"

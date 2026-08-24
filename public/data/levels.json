@@ -510,7 +510,12 @@
         "p046"
       ]
     },
-    "timePerCard": 20,
+    "ittoQuiz": {
+      "sectionsPerQuestion": 2,
+      "correctPerSection": 1,
+      "distractorsPerSection": 3
+    },
+    "timePerCard": 25,
     "lives": 3,
     "hintCount": 2,
     "freezeCount": 1,
@@ -542,7 +547,12 @@
         "p014"
       ]
     },
-    "timePerCard": 20,
+    "ittoQuiz": {
+      "sectionsPerQuestion": 2,
+      "correctPerSection": 1,
+      "distractorsPerSection": 3
+    },
+    "timePerCard": 25,
     "lives": 3,
     "hintCount": 2,
     "freezeCount": 1,
@@ -576,7 +586,12 @@
         "p029"
       ]
     },
-    "timePerCard": 20,
+    "ittoQuiz": {
+      "sectionsPerQuestion": 2,
+      "correctPerSection": 2,
+      "distractorsPerSection": 3
+    },
+    "timePerCard": 30,
     "lives": 3,
     "hintCount": 1,
     "freezeCount": 1,
@@ -703,7 +718,12 @@
         "p047"
       ]
     },
-    "timePerCard": 20,
+    "ittoQuiz": {
+      "sectionsPerQuestion": 2,
+      "correctPerSection": 3,
+      "distractorsPerSection": 3
+    },
+    "timePerCard": 35,
     "lives": 3,
     "hintCount": 1,
     "freezeCount": 1,
@@ -744,7 +764,12 @@
         "p049"
       ]
     },
-    "timePerCard": 20,
+    "ittoQuiz": {
+      "sectionsPerQuestion": 2,
+      "correctPerSection": 3,
+      "distractorsPerSection": 3
+    },
+    "timePerCard": 35,
     "lives": 3,
     "hintCount": 1,
     "freezeCount": 1,
