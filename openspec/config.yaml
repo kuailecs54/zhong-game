@@ -1,25 +1,53 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
-
-# 语言规范：文档类内容（proposal、design、spec 说明文字、任务描述等）以中文为主；
-# 仅代码类内容（代码块、标识符、命令、技术术语）采用英文。
+# 项目上下文：创建 artifact 时展示给 AI。
 context: |
-  语言规范：文档类内容（proposal、design、spec 说明文字、任务描述等）以中文为主；仅代码类内容（代码块、标识符、命令、技术术语）采用英文。
+  ## 项目概述
+  备考"系统集成项目管理工程师（中级）"的游戏化 Web 应用。玩法为"下落 + 归类"：
+  卡片下落 → 点击捕获 → 点击放置到对应列/格 → 判分，含生命、连击、星级、冰冻道具。
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  ## 技术栈与架构
+  - Vue 3 + TypeScript + Vite + Pinia + vue-router。纯前端，无后端。
+  - 进度存 localStorage（key: `pm-sort-game-user`）。
+  - 目录入口：src/main.ts → App.vue；路由 4 条（/、/levels、/game/:levelId、/result/:levelId）。
+  - 状态：src/stores/game.ts（单局逻辑）、src/stores/user.ts（用户名/进度）；
+    gameLoop 由 src/composables/useGameLoop.ts 驱动。
+  - 别名 `@` → src。
+
+  ## 数据约束（硬性）
+  - 数据全部来自 public/data/*.json（processes、levels、itto、knowledge-areas、process-groups），
+    运行时通过 fetch('/data/...') 加载，不是 TS import。
+  - 教材数据来源：book/系统集成项目管理工程师教程_第3版_完整版.md（仅提取公共数据，勿整段复制原文）。
+  - src/data/loader.ts 的 validateProcessMatrix 校验：总过程数必须为 49，
+    且每知识领域在 5 个过程组中的数量须匹配 EXPECTED_MATRIX。
+    改动 processes.json 或 levels.json 后必须跑 npm run build 验证。
+
+  ## 术语校准
+  - 49 个过程一律用课本全名，禁止 2-4 字缩写（如"排列顺序"→"排列活动顺序"）。
+    UI 展示、卡牌文案、书架文本均用全名。
+  - 过程归属（过程组 × 知识领域）须与课本一致。
+
+  ## 校验方式
+  - 无 lint / test 脚本；npm run build（vue-tsc -b && vite build）是唯一静态校验方式。
+
+  ## 语言规范
+  - 文档类内容以中文为主；仅代码类内容（代码块、标识符、命令、技术术语）采用英文。
+
+  ## 统一工作流
+  - 本项目一切变更统一走 openspec 流程（/opsx-propose → /opsx-apply → /opsx-archive），
+    openspec 变更为唯一权威依据；不再生成 docs/superpowers/ 下的实施计划。
+
+# Per-artifact rules
+rules:
+  proposal:
+    - 用中文撰写；说明是否触碰 public/data/*.json 及 49 过程矩阵约束
+    - 包含 "Non-goals" 小节，明确不做的事
+  specs:
+    - 涉及 49 个过程的描述一律用课本全名，禁止缩写
+    - Requirement 场景用中文描述，Given/When/Then 关键词保留英文
+  design:
+    - 说明改动对 validateProcessMatrix、stores（game/user）的影响面
+    - 涉及数据文件的改动须注明"完成后跑 npm run build 验证"
+  tasks:
+    - 任务用中文描述，拆分为可独立验证的小块
+    - 改动 processes.json / levels.json 的任务必须附带 npm run build 验证步骤

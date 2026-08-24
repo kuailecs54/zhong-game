@@ -26,18 +26,14 @@ npm run preview  # 预览构建产物
 - **49 过程约束**：`src/data/loader.ts` 的 `validateProcessMatrix` 校验总过程数必须为 49，且每知识领域在 5 个过程组中的数量须匹配 `EXPECTED_MATRIX`。改动 `public/data/processes.json` 或 `levels.json` 后必须跑 `npm run build` 或手动确认矩阵，否则报错。
 - 关卡数据经 `public/data/levels.json` 配置（列/矩阵模式、卡池来源、速度、星级阈值等），类型见 `src/data/types.ts`。
 
-## 术语与数据校准
-
-改动 `public/data/processes.json` 或 `levels.json` 前，先对照 `book/系统集成项目管理工程师教程_第3版_完整版.md` 核对以下内容：
+## 硬约束（所有改动适用，含不走 openspec 的直接修改）
 
 - **49 个过程一律用课本全名**，禁止用 2-4 字缩写（如"排列顺序"→ 应为"排列活动顺序"，"规划进度"→ 应为"规划进度管理"）。UI 展示、卡牌文案、书架文本均用全名。
-- 过程归属（过程组 × 知识领域）须与课本一致，并满足 `src/data/loader.ts` 的 `validateProcessMatrix`（总数 49、每知识领域分布匹配 `EXPECTED_MATRIX`）。
-- 改动后必须跑 `npm run build` 验证矩阵与类型，确认无报错再提交。
+- 过程归属（过程组 × 知识领域）须与课本一致；改动 `processes.json` / `levels.json` 前先对照教材核对，改后跑 `npm run build` 验证（矩阵校验见上方"架构要点"）。
 
 ## 语言规范
 
 - 代码内注释、UI 文案均用中文；代码类内容（标识符、命令、术语）用英文。
-- openspec 文档类内容以中文为主，仅代码内容用英文（见 `openspec/config.yaml` 的 context）。
 
 ## codegraph 使用
 
@@ -48,8 +44,8 @@ npm run preview  # 预览构建产物
 
 ## openspec 工作流
 
-- 规格驱动开发，规范与归档在 `openspec/`（`specs/` 存放能力规格，`changes/` 存放变更）。需要 `openspec` CLI。
-- 使用 `/opsx-propose` → `/opsx-apply` → `/opsx-archive` 命令完成 提案 → 实现 → 归档 全流程（命令定义在 `.opencode/commands/`）。
+- 规格驱动开发，规格与归档在 `openspec/`（`specs/` 存放能力规格，`changes/` 存放变更）。需要 `openspec` CLI。
+- 一切变更统一走 `/opsx-propose` → `/opsx-apply` → `/opsx-archive`（命令定义在 `.opencode/commands/`）；项目上下文与 per-artifact 规则见 `openspec/config.yaml`，此处不再重复。
 
 ## 注意
 
